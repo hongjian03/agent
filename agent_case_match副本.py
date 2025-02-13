@@ -14,7 +14,7 @@ logging.getLogger('streamlit.runtime.scriptrunner.magic_funcs').setLevel(logging
 # 或者完全禁用所有警告
 logging.getLogger('streamlit').setLevel(logging.ERROR)
 import time
-from embedchain.models.data_type import DataType
+#from embedchain.models.data_type import DataType
 
 
 
