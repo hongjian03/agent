@@ -1,10 +1,8 @@
 beautifulsoup4==4.13.3
 crewai==0.102.0
 crewai_tools==0.36.0
-embedchain==0.1.126
 langchain==0.3.18
 langchain_openai==0.3.5
 pandas==2.2.3
 Requests==2.32.3
-sparkai==0.3.0
 streamlit==1.42.0
