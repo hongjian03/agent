@@ -1,7 +1,10 @@
 beautifulsoup4==4.12.3
-crewai==0.100.1
-crewai_tools==0.32.1
-langchain_openai==0.2.14
+crewai== 0.36.0
+crewai-tools==0.4.7
+langchain-openai==0.1.14
 pandas==2.2.3
-Requests==2.32.3
+requests==2.31.0
 streamlit==1.42.0
+
+
+
