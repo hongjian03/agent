@@ -1,6 +1,6 @@
 from crewai import Agent, Task, Crew
 from crewai_tools import SerperDevTool, CSVSearchTool
-from JinaReaderTool import JinaReaderTool
+#from JinaReaderTool import JinaReaderTool
 from langchain_openai import ChatOpenAI
 import os
 import json
@@ -145,7 +145,7 @@ default_llm = ChatOpenAI(
 
 # 初始化工具
 search_tool = CustomSerperDevTool()  # 使用自定义的工具类而不是直接使用 SerperDevTool
-jina_tool = JinaReaderTool()
+#jina_tool = JinaReaderTool()
 
 
 

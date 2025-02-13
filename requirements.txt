@@ -1,6 +1,5 @@
 beautifulsoup4==4.13.3
 crewai==0.102.0
-crewai_tools==0.36.0
 langchain==0.3.18
 langchain_openai==0.3.5
 pandas==2.2.3
