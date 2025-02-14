@@ -1,3 +1,8 @@
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+
 import streamlit as st
 import pandas as pd
 from agent_case_match3 import (
@@ -31,7 +36,7 @@ def convert_to_student_info(row):
         }
     }
 
-def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text):
+def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text, current_prompt=None):
     """处理Excel数据并返回结果DataFrame"""
     df['序号'] = range(1, len(df) + 1)
     results = []
@@ -69,7 +74,7 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text)
             # 处理单个学生案例
             with st.expander(f"第 {idx + 1} 条：{row['毕业院校']} - {row['专业名称']}", expanded=False):
                 st.write("正在分析需求...")
-                result = process_student_case(student_info, tag_system)
+                result = process_student_case(student_info, tag_system, current_prompt)
                 
                 if result["status"] == "success":
                     st.write("✅ 需求分析完成")
@@ -100,21 +105,21 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text)
                     if "专业标签" in output_tags:
                         result_row["专业标签"] = ", ".join(tags.get("majors", []))
                     if "名校专家" in output_tags:
-                        result_row["名校专家"] = "是" if "名校专家" in tags.get("businessCapabilities", []) else "否"
+                        result_row["名校专家"] = "名校专家" if "名校专家" in tags.get("businessCapabilities", []) else ""
                     if "博士专家" in output_tags:
-                        result_row["博士专家"] = "是" if "博士专家" in tags.get("businessCapabilities", []) else "否"
+                        result_row["博士专家"] = "博士专家" if "博士专家" in tags.get("businessCapabilities", []) else ""
                     if "低龄留学专家" in output_tags:
-                        result_row["低龄留学专家"] = "是" if "低龄留学专家" in tags.get("businessCapabilities", []) else "否"
-                    if "签证能手" in output_tags:
-                        result_row["签证能手"] = "是" if "签证能手" in tags.get("serviceQualities", []) else "否"
+                        result_row["低龄留学专家"] = "低龄留学专家" if "低龄留学专家" in tags.get("businessCapabilities", []) else ""
+                    if "获签能手" in output_tags:
+                        result_row["获签能手"] = "获签能手" if "获签能手" in tags.get("serviceQualities", []) else ""
                     if "offer猎手" in output_tags:
-                        result_row["offer猎手"] = "是" if "offer猎手" in tags.get("serviceQualities", []) else "否"
+                        result_row["offer猎手"] = "offer猎手" if "offer猎手" in tags.get("serviceQualities", []) else ""
                     if "高效文案" in output_tags:
-                        result_row["高效文案"] = "是" if "高效文案" in tags.get("serviceQualities", []) else "否"
+                        result_row["高效文案"] = "高效文案" if "高效文案" in tags.get("serviceQualities", []) else ""
                     if "口碑文案" in output_tags:
-                        result_row["口碑文案"] = "是" if "口碑文案" in tags.get("serviceQualities", []) else "否"
+                        result_row["口碑文案"] = "口碑文案" if "口碑文案" in tags.get("serviceQualities", []) else ""
                     if "行业经验" in output_tags:
-                        result_row["行业经验"] = "资深" if "资深" in tags.get("stability", []) else "新晋"
+                        result_row["行业经验"] = "专家Lv. 6+" if "专家Lv. 6+" in tags.get("stability", []) else "资深Lv. 3+" if "资深Lv. 3+" in tags.get("stability", []) else "熟练Lv. 1+"
                 else:
                     st.write("❌ 处理失败")
                     st.error(result["error_message"])
@@ -190,30 +195,20 @@ def main():
         """)
     
     # 需求分析报告提取要求
-    analysis_requirements = st.sidebar.text_area(
+    new_prompt = st.sidebar.text_area(
         "需求分析报告提取要求",
-        value="""请基于以下维度分析学生申请需求，并生成结构化报告：
-
-1. 申请背景分析
-   - 学术背景：院校档次、专业情况、学历层次
-   - 申请意向：目标国家、专业方向、院校定位
-   - 特殊情况：跨专业申请、低龄留学等特殊要求
-
-2. 服务需求分析
-   - 核心需求：名校需求、专业匹配度要求、时间要求
-   - 特殊要求：地理位置、沟通方式、服务偏好
-   - 时间规划：申请截止日期、入学时间、时间紧迫度
-
-3. 风险评估
-   - 申请风险：背景匹配度、竞争情况、跨专业难度
-   - 服务风险：时间风险、期望管理、特殊要求的可行性
-
-4. 顾问匹配建议
-   - 优先考虑：最关键的匹配维度
-   - 必要条件：必须具备的服务能力
-   - 加分项：有助于提升服务质量的特长""",
+        value=prompt_templates.get_template('requirement_analyst'),
         height=300
     )
+    
+    # 添加生效按钮
+    if st.sidebar.button("更新提示词"):
+        # 更新提示词模板
+        prompt_templates.update_template('requirement_analyst', new_prompt)
+        st.sidebar.success("✅ 提示词已更新！")
+        # 可以选择性地添加提示词预览
+        with st.sidebar.expander("当前生效的提示词"):
+            st.write(prompt_templates.get_template('requirement_analyst'))
     
     # 标签系统配置
     st.sidebar.subheader("2. 标签系统配置")
@@ -241,10 +236,10 @@ def main():
         "选择需要输出的标签",
         options=[
             "国家标签", "专业标签", "名校专家", "博士专家", 
-            "低龄留学专家", "签证能手", "offer猎手", 
+            "低龄留学专家", "获签能手", "offer猎手", 
             "高效文案", "口碑文案", "行业经验"
         ],
-        default=["国家标签", "专业标签", "名校专家", "签证能手", "行业经验"]
+        default=["国家标签", "专业标签", "名校专家", "博士专家", "低龄留学专家","offer猎手", "获签能手", "高效文案", "口碑文案", "行业经验"]
     )
     
     # 文件上传和处理部分
@@ -287,14 +282,21 @@ def main():
                 status_text = st.empty()
                 
                 with st.spinner(f"正在处理第 {start_idx} 到第 {end_idx} 条数据..."):
-                    # 更新提示词
-                    prompt_templates.update_template('requirement_analyst', analysis_requirements)
+                    # 获取当前生效的提示词
+                    current_prompt = prompt_templates.get_template('requirement_analyst')
                     
                     # 选择指定范围的数据进行处理
                     selected_df = df.iloc[start_idx-1:end_idx]
                     
-                    # 处理选中的数据，传入进度条和状态文本
-                    results_df = process_excel_custom(selected_df, TAG_SYSTEM, output_tags, progress_bar, status_text)
+                    # 处理选中的数据，传入当前生效的提示词
+                    results_df = process_excel_custom(
+                        selected_df, 
+                        TAG_SYSTEM, 
+                        output_tags, 
+                        progress_bar, 
+                        status_text,
+                        current_prompt  # 传入当前生效的提示词
+                    )
                     
                     # 清除进度条和状态文本
                     progress_bar.empty()
