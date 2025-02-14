@@ -400,165 +400,73 @@ def main():
                 # 创建进度条
                 progress_bar = st.progress(0)
                 
-                # 计算选定范围的总数
-                selected_rows = end_idx - start_idx
+                # 添加分析按钮
+                analyze_button = st.button("开始分析")
                 
-                # 处理选定范围的数据
-                results = []
-                for i, idx in enumerate(range(start_idx, end_idx)):
-                    try:
-                        row = df.iloc[idx]
-                        # 计算当前进度（基于选定范围）
-                        current_progress = min(i / selected_rows, 1.0) if selected_rows > 0 else 1.0
-                        progress_bar.progress(current_progress)
-                        
-                        st.write(f"正在处理第 {idx + 1}/{len(df)} 条数据...")
-                        
-                        # 转换数据格式
-                        student_info = {
-                            "basic_info": {
-                                "name": str(row['序号']),
-                                "education": {
-                                    "school": row['毕业院校'],
-                                    "major": row['专业名称'],
-                                }
-                            },
-                            "application_intent": {
-                                "target_countries": [country.strip() for country in row['签约国家'].split(',')],
-                                "degree_level": row['办理类型'],
-                                "target_schools": {
-                                    "has_top_schools": "是" if row['是否包含名校'].lower() in ['yes', 'true', '是'] else "否"
-                                }
-                            },
-                            "special_requirements": {
-                                "special_notes": str(row.get('备注信息', '')),
-                                "study_type": row['留学类别唯一']
-                            }
-                        }
-                        
-                        # 处理单个学生案例
-                        with st.expander(f"第 {idx + 1} 条：{row['毕业院校']} - {row['专业名称']}", expanded=False):
-                            st.write("正在分析需求...")
-                            result = process_student_case(student_info, TAG_SYSTEM, prompt_templates.get_template('requirement_analyst'))
-                            
-                            if result["status"] == "success":
-                                st.write("✅ 需求分析完成")
-                                st.write("🏷️ 标签匹配结果：")
-                                tags = result["recommended_tags"]["recommended_tags"]
-                                
-                                # 简化标签显示
-                                st.write("国家标签：", ", ".join(tags.get("countries", [])))
-                                st.write("专业标签：", ", ".join(tags.get("majors", [])))
-                                
-                                # 其他标签直接显示存在的标签
-                                business_tags = []
-                                if "名校专家" in tags.get("businessCapabilities", []):
-                                    business_tags.append("名校专家")
-                                if "博士专家" in tags.get("businessCapabilities", []):
-                                    business_tags.append("博士专家")
-                                if "低龄留学专家" in tags.get("businessCapabilities", []):
-                                    business_tags.append("低龄留学专家")
-                                
-                                service_tags = []
-                                if "offer猎手" in tags.get("serviceQualities", []):
-                                    service_tags.append("offer猎手")
-                                if "获签能手" in tags.get("serviceQualities", []):
-                                    service_tags.append("获签能手")
-                                if "高效文案" in tags.get("serviceQualities", []):
-                                    service_tags.append("高效文案")
-                                if "口碑文案" in tags.get("serviceQualities", []):
-                                    service_tags.append("口碑文案")
-                                
-                                # 显示存在的标签
-                                if business_tags:
-                                    st.write("业务标签：", ", ".join(business_tags))
-                                if service_tags:
-                                    st.write("服务标签：", ", ".join(service_tags))
-                                
-                                # 显示行业经验
-                                stability = tags.get("stability", [])
-                                if stability:
-                                    st.write("行业经验：", stability[0])
-                                
-                                # 构建结果行
-                                result_row = {
-                                    "序号": row['序号'],
-                                    "毕业院校": row['毕业院校'],
-                                    "专业名称": row['专业名称'],
-                                    "签约国家": row['签约国家'],
-                                    "办理类型": row['办理类型']
-                                }
-                                
-                                # 添加选中的输出标签
-                                if "国家标签" in output_tags:
-                                    result_row["国家标签"] = ", ".join(tags.get("countries", []))
-                                if "专业标签" in output_tags:
-                                    result_row["专业标签"] = ", ".join(tags.get("majors", []))
-                                if "名校专家" in output_tags:
-                                    result_row["名校专家"] = "名校专家" if "名校专家" in tags.get("businessCapabilities", []) else ""
-                                if "博士专家" in output_tags:
-                                    result_row["博士专家"] = "博士专家" if "博士专家" in tags.get("businessCapabilities", []) else ""
-                                if "低龄留学专家" in output_tags:
-                                    result_row["低龄留学专家"] = "低龄留学专家" if "低龄留学专家" in tags.get("businessCapabilities", []) else ""
-                                if "获签能手" in output_tags:
-                                    result_row["获签能手"] = "获签能手" if "获签能手" in tags.get("serviceQualities", []) else ""
-                                if "offer猎手" in output_tags:
-                                    result_row["offer猎手"] = "offer猎手" if "offer猎手" in tags.get("serviceQualities", []) else ""
-                                if "高效文案" in output_tags:
-                                    result_row["高效文案"] = "高效文案" if "高效文案" in tags.get("serviceQualities", []) else ""
-                                if "口碑文案" in output_tags:
-                                    result_row["口碑文案"] = "口碑文案" if "口碑文案" in tags.get("serviceQualities", []) else ""
-                                if "行业经验" in output_tags:
-                                    result_row["行业经验"] = "专家Lv. 6+" if "专家Lv. 6+" in tags.get("stability", []) else "资深Lv. 3+" if "资深Lv. 3+" in tags.get("stability", []) else "熟练Lv. 1+"
-                            else:
-                                st.write("❌ 处理失败")
-                                st.error(result["error_message"])
-                                result_row = {
-                                    "序号": row['序号'],
-                                    "毕业院校": row['毕业院校'],
-                                    "专业名称": row['专业名称'],
-                                    "签约国家": row['签约国家'],
-                                    "办理类型": row['办理类型'],
-                                    "处理状态": "失败",
-                                    "错误信息": result["error_message"]
-                                }
-                        
-                        results.append(result_row)
-                        
-                    except Exception as e:
-                        st.error(f"处理失败: {str(e)}")
-                        continue
-                
-                # 显示结果预览
-                st.subheader("分析结果预览")
-                st.dataframe(pd.DataFrame(results))
-                
-                # 保存Excel文件
-                output_filename = f'标签分析结果_{start_idx}-{end_idx}.xlsx'
-                
-                # 使用BytesIO避免保存到磁盘
-                buffer = io.BytesIO()
-                with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                    pd.DataFrame(results).to_excel(writer, index=False, sheet_name='分析结果')
-                    # 获取workbook和worksheet对象
-                    workbook = writer.book
-                    worksheet = writer.sheets['分析结果']
+                if analyze_button:
+                    # 验证选择范围
+                    if start_idx > end_idx:
+                        st.error("起始位置不能大于结束位置")
+                        return
                     
-                    # 调整列宽
-                    for idx, col in enumerate(pd.DataFrame(results).columns):
-                        max_length = max(
-                            pd.DataFrame(results)[col].astype(str).apply(len).max(),
-                            len(str(col))
-                        ) + 2
-                        worksheet.set_column(idx, idx, max_length)
-                
-                # 下载按钮
-                st.download_button(
-                    label="下载Excel格式结果",
-                    data=buffer.getvalue(),
-                    file_name=output_filename,
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+                    # 创建进度条和状态文本
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+                    
+                    with st.spinner(f"正在处理第 {start_idx} 到第 {end_idx} 条数据..."):
+                        # 获取当前生效的提示词
+                        current_prompt = prompt_templates.get_template('requirement_analyst')
+                        
+                        # 选择指定范围的数据进行处理
+                        selected_df = df.iloc[start_idx-1:end_idx]
+                        
+                        # 处理选中的数据，传入整个prompt_templates对象
+                        results_df = process_excel_custom(
+                            selected_df, 
+                            TAG_SYSTEM, 
+                            output_tags, 
+                            progress_bar, 
+                            status_text,
+                            prompt_templates  # 传递整个prompt_templates对象
+                        )
+                        
+                        # 清除进度条和状态文本
+                        progress_bar.empty()
+                        status_text.empty()
+                        
+                        # 显示完成消息
+                        st.success("✅ 分析完成！")
+                        
+                        # 显示结果预览
+                        st.subheader("分析结果预览")
+                        st.dataframe(results_df)
+                        
+                        # 保存Excel文件
+                        output_filename = f'标签分析结果_{start_idx}-{end_idx}.xlsx'
+                        
+                        # 使用BytesIO避免保存到磁盘
+                        buffer = io.BytesIO()
+                        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                            results_df.to_excel(writer, index=False, sheet_name='分析结果')
+                            # 获取workbook和worksheet对象
+                            workbook = writer.book
+                            worksheet = writer.sheets['分析结果']
+                            
+                            # 调整列宽
+                            for idx, col in enumerate(results_df.columns):
+                                max_length = max(
+                                    results_df[col].astype(str).apply(len).max(),
+                                    len(str(col))
+                                ) + 2
+                                worksheet.set_column(idx, idx, max_length)
+                        
+                        # 下载按钮
+                        st.download_button(
+                            label="下载Excel格式结果",
+                            data=buffer.getvalue(),
+                            file_name=output_filename,
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
             
             except Exception as e:
                 st.error(f"处理文件时出错: {str(e)}")
