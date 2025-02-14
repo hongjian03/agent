@@ -1,10 +1,20 @@
-__import__('pysqlite3')
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+# 只在第一次运行时替换 sqlite3
+if 'sqlite_setup_done' not in st.session_state:
+    try:
+        __import__('pysqlite3')
+        sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+        st.session_state.sqlite_setup_done = True
+    except Exception as e:
+        print(f"SQLite setup error: {str(e)}")
+        # 如果失败，继续使用系统默认的 sqlite3
+        st.session_state.sqlite_setup_done = True  # 标记为已处理，避免重复尝试
 
 # 在所有其他导入之前，先初始化环境变量
 import streamlit as st
 import os
+
 
 # 立即设置所有需要的API keys
 try:
