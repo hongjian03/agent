@@ -319,7 +319,7 @@ def analyze_requirements_task(step_callback, current_prompt=None):
     return Task(
         description=current_prompt.get_template('requirement_task'),
         expected_output=requirement_analysis_structure,
-        agent=requirement_analyst(step_callback, current_prompt.get_template('requirement_analyst'))
+        agent=requirement_analyst(step_callback, current_prompt)
     )
 
 
@@ -359,7 +359,7 @@ def extract_tags_task(step_callback, current_prompt=None):
     return Task(
         description=current_prompt.get_template('tag_task'),
         expected_output=tag_recommendation_structure,
-        agent=tag_specialist(step_callback, current_prompt.get_template('tag_specialist'))
+        agent=tag_specialist(step_callback, current_prompt)
     )
 
 # 添加Excel处理函数
