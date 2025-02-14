@@ -169,45 +169,91 @@ TAG_SYSTEM = {
 class PromptTemplates:
     def __init__(self):
         self._templates = {
+            # Agent backstory 提示词
             'requirement_analyst': """
-            你是一位经验丰富的留学需求分析专家，需要从以下维度深入分析学生需求：
-
-            1. 申请背景分析
-               - 院校水平：985/211/普通本科/海外院校等
-               - 专业情况：专业难度、跨专业申请、专业匹配度
-               - 学术表现：GPA、科研/实习经历、获奖情况
-               - 语言成绩：TOEFL/IELTS/GRE/GMAT水平
-
-            2. 申请目标分析
-               - 目标国家：申请国家数量和难度
-               - 院校定位：Top30/50/100，名校占比
-               - 专业选择：是否跨专业，专业竞争度
-               - 申请类型：本科/硕士/博士/低龄留学
-
-            3. 时间需求分析
-               - 申请截止日期：是否有紧迫时间压力
-               - 入学时间：是否需要赶季
-               - 准备时间：材料准备充分度
-               - 沟通频率：是否需要密集沟通
-
-            4. 特殊要求分析
-               - 名校需求：是否强调名校申请
-               - 签证要求：是否有特殊签证考虑
-               - 文书要求：是否需要高质量文书
-               - 服务期望：是否需要高频互动
-
-            请确保分析结果能够支持后续的标签匹配工作。
+            你是一位经验丰富的留学需求分析专家，擅长：
+            1. 深入理解学生的申请背景和目标
+            2. 识别关键需求点和潜在挑战
+            3. 系统性思维和结构化分析
+            4. 准确把握服务重点和风险点
             """,
-            'tag_specialist': """
+            'tag_specialist': """      
             你是一位精通顾问标签体系的专家，擅长：
             1. 准确理解学生申请需求
-            2. 掌握三大维度标签体系：
-               - 业务专长（国家、专业）
-               - 服务质量（名校专家、博士专家、低龄留学专家、offer猎手、获签能手、高效文案、口碑文案）
-               - 行业经验（熟练Lv. 1+、资深Lv. 3+、专家Lv. 6+）
+            2. 掌握四大维度标签体系：
+                - 必选标签（国家、专业）
+                - 业务能力（名校专家、博士专家、低龄留学专家）
+                - 服务质量（offer猎手、获签能手、高效文案、口碑文案）
+                - 行业经验（熟练Lv. 1+、资深Lv. 3+、专家Lv. 6+）
             3. 精准进行需求到标签的映射
             4. 确保标签选择的优先级合理
-            """
+            """,
+            
+            # Task description 提示词
+            'requirement_task': """
+            基于学生背景信息，进行深入的需求分析，输出结构化报告。
+            
+            学生背景信息：
+            {student_info}
+            
+            分析要求：
+            1. 全面评估学生的申请背景和需求
+               - 分析院校和专业背景
+               - 评估语言和标化成绩
+               - 考虑名校占比要求
+               - 评估时间限制
+            """,
+            
+            'tag_task': """
+            需求分析报告：
+            {requirement_analysis}
+            
+            标签体系：
+            {tag_system}
+            
+            提取要求：
+            基于学生背景和标签体系，分析和输出必要的标签
+
+            #案件分析及匹配标签原则如下：
+            1. 国家标签 
+            - 根据签约国家直接匹配对应的国家标签
+            
+            2. 专业标签 
+            - 必须从 tag_system 中的 majors 列表中精确匹配专业标签
+            - 如果申请专业在 tag_system.majors 中没有完全相同的，选择最接近的专业类别
+            - 严禁输出不在 tag_system.majors 列表中的专业标签
+            - 例如：
+              * 申请"金融工程"，应选择"金融与会计"
+              * 申请"人工智能"，应选择"计算机与信息系统"
+              * 申请"机器人工程"，应选择"机械与工程"
+            
+            3. 名校专家标签
+            - 申请者毕业院校为顶尖院校(C9/藤校/G5等)或者备注信息中提及希望申请名校，输出"名校专家"
+
+            4.offer猎手标签
+            - 备注中体现对申请结果的成功率很关注的输出"offer猎手"
+
+            5.获签能手
+            -申请国家签证比较难获得的，或者备注中有对签证有要求的输出"获签能手"
+
+            6.博士专家标签
+            -留学类别唯一为博士或者研究型硕士输出"博士专家"
+
+            7.低龄留学专家标签
+            -留学类别唯一为k12（指从幼儿园到12年级的教育阶段（K-12，即Kindergarten到12th Grade）的留学），输出"低龄留学专家"
+
+            8.高效文案标签
+            -备注中提及希望定期沟通的，或者希望尽快的，或者有时间要求的输出"高效文案"
+
+            9.口碑文案标签
+            -备注中对文书有特殊要求的，输出"口碑文案"
+
+            10.行业经验标签
+            -备注中提及稳定性/经验要求，仅输出"专家Lv. 6+"
+            -申请者来自顶尖院校(C9/藤校/G5等)，仅输出"专家Lv. 6+"
+            -综合分析难度，较简单的输出"熟练Lv. 1+"，中等难度的输出"资深Lv. 3+"，高难度申请的输出"专家Lv. 6+"
+
+            """,
         }
     
     def get_template(self, key):
@@ -239,77 +285,41 @@ def requirement_analyst(step_callback, custom_prompt=None):
 
 
 
-def analyze_requirements_task(step_callback):
+def analyze_requirements_task(step_callback, current_prompts=None):
     """需求分析任务"""
     requirement_analysis_structure = """
-    {{  
+    {{
       "申请需求分析": {{
-        "基础背景": {{
-          "院校背景": "string",
-          "专业背景": "string",
-          "学术表现": "string",
-          "语言标化": "string"
+        "申请背景": {{
+            "院校背景": "string, 当前就读院校和专业情况",
+            "成绩水平": "string, GPA、语言和标化成绩情况",
+            "其他优势": "string, 科研、实习、竞赛等经历"
         }},
         "申请目标": {{
-          "国家倾向": "string",
-          "院校定位": "string",
-          "专业选择": "string",
-          "申请类型": "string"
+            "目标国家": "string, 计划申请的国家",
+            "目标专业": "string, 计划申请的专业",
+            "院校定位": "string, 目标院校层次和数量"
         }},
         "时间需求": {{
-          "时间紧迫度": "string",
-          "准备充分度": "string",
-          "沟通需求": "string"
+            "计划入学": "string, 目标入学时间",
+            "申请节点": "string, 重要时间节点",
+            "时间紧迫度": "string, 时间充裕度评估"
         }},
         "特殊要求": {{
-          "名校需求": "string",
-          "签证考虑": "string",
-          "文书要求": "string",
-          "服务期望": "string"
+            "重点关注": "string, 申请过程中需特别注意的方面",
+            "服务期望": "string, 对服务的特殊要求",
+            "其他说明": "string, 其他需要说明的特殊情况"
         }}
       }}
     }}
     """
-    
+    if current_prompts is None:
+        current_prompts = PromptTemplates()
+        
     return Task(
-        description="""
-        基于学生背景信息，进行深入的需求分析，输出结构化报告。
-        
-        学生背景信息：
-        {student_info}
-        
-        分析要求：
-        1. 全面评估学生的申请背景和需求
-           - 分析院校和专业背景
-           - 评估语言和标化成绩
-           - 考虑名校占比要求
-           - 评估时间限制
-
-        2. 识别关键服务需求点
-           - 基于客户画像问卷分析服务偏好
-           - 理解沟通需求和期望
-           - 确定服务重点和特殊要求
-
-        3. 评估潜在风险和挑战
-           - 分析申请难度和竞争情况
-           - 评估时间风险
-           - 考虑背景劣势
-           - 关注期望管理
-
-        4. 提供明确的服务建议
-           - 制定服务策略
-           - 给出匹配建议
-           - 提供风险管控方案
-        
-        注意事项：
-        1. 确保信息的完整性和准确性
-        2. 重点关注客户画像问卷反映的需求特点
-        3. 考虑名校占比对服务难度的影响
-        4. 评估时间限制的可行性
-        5. 根据客户特点定制服务建议
-        """,
+        description=current_prompts.get_template('requirement_task'),
         expected_output=requirement_analysis_structure,
-        agent=requirement_analyst(step_callback)
+        agent=requirement_analyst(step_callback, current_prompts.get_template('requirement_analyst'))
     )
 
 
@@ -326,6 +336,30 @@ def tag_specialist(step_callback, custom_prompt=None):
         allow_delegation=False,
         llm=default_llm,
         step_callback=step_callback
+    )
+
+
+    
+def extract_tags_task(step_callback, current_prompts=None):
+    """标签提取任务"""
+    tag_recommendation_structure = """
+    {{
+      "recommended_tags": {{
+        "countries": ["string, 国家标签"],
+        "majors": ["string, 专业标签"],
+        "businessCapabilities": ["string, 业务能力标签"],
+        "serviceQualities": ["string, 服务质量标签"],
+        "stability": ["string, 行业经验标签"]
+      }}
+    }}
+    """
+    if current_prompts is None:
+        current_prompts = PromptTemplates()
+        
+    return Task(
+        description=current_prompts.get_template('tag_task'),
+        expected_output=tag_recommendation_structure,
+        agent=tag_specialist(step_callback, current_prompts.get_template('tag_specialist'))
     )
 
 # 添加Excel处理函数
@@ -398,93 +432,6 @@ def process_excel(df):
             })
     
     return results
-
-    
-def extract_tags_task(step_callback):
-    """标签提取任务"""
-    tag_recommendation_structure = """
-    {{
-      "标签推荐": {
-        "必选标签": {
-          "countries": ["国家1", "国家2"],     // 必须匹配目标国家
-          "majors": ["专业1", "专业2"]        // 必须从专业列表选择
-        },
-        "业务能力": {
-          "selected": ["标签1", "标签2"],     // 选择的业务能力标签
-          "reason": "string"                  // 选择原因说明
-        },
-        "服务质量": {
-          "selected": ["标签1", "标签2"],     // 选择的服务质量标签
-          "reason": "string"                  // 选择原因说明
-        },
-        "行业经验": {
-          "level": "string",                 // 选择的经验等级
-          "reason": "string"                 // 选择原因说明
-        }
-      },
-      "匹配说明": {
-        "核心标签": "string",                // 最重要的标签说明
-        "匹配理由": "string",                // 整体匹配逻辑说明
-        "特别建议": "string"                 // 其他需要注意的事项
-      }
-    }}
-    """
-    
-    return Task(
-        description="""      
-        需求分析报告：
-        {requirement_analysis}
-        
-        标签体系：
-        {tag_system}
-        
-        提取要求：
-        基于学生背景和标签体系，分析和输出必要的标签
-
-        #案件分析及匹配标签原则如下：
-        1. 国家标签 
-        - 根据签约国家直接匹配对应的国家标签
-        
-        2. 专业标签 
-        - 必须从 tag_system 中的 majors 列表中精确匹配专业标签
-        - 如果申请专业在 tag_system.majors 中没有完全相同的，选择最接近的专业类别
-        - 严禁输出不在 tag_system.majors 列表中的专业标签
-        - 例如：
-          * 申请"金融工程"，应选择"金融与会计"
-          * 申请"人工智能"，应选择"计算机与信息系统"
-          * 申请"机器人工程"，应选择"机械与工程"
-        
-        3. 名校专家标签
-        - 申请者毕业院校为顶尖院校(C9/藤校/G5等)或者备注信息中提及希望申请名校，输出"名校专家"
-
-        4.offer猎手标签
-        - 备注中体现对申请结果的成功率很关注的输出"offer猎手"
-
-        5.获签能手
-        -申请国家签证比较难获得的，或者备注中有对签证有要求的输出"获签能手"
-
-        6.博士专家标签
-        -留学类别唯一为博士或者研究型硕士输出"博士专家"
-
-        7.低龄留学专家标签
-        -留学类别唯一为k12（指从幼儿园到12年级的教育阶段（K-12，即Kindergarten到12th Grade）的留学），输出"低龄留学专家"
-
-        8.高效文案标签
-        -备注中提及希望定期沟通的，或者希望尽快的，或者有时间要求的输出"高效文案"
-
-        9.口碑文案标签
-        -备注中对文书有特殊要求的，输出"口碑文案"
-
-        10.行业经验标签
-        -备注中提及稳定性/经验要求，仅输出"专家Lv. 6+"
-        -申请者来自顶尖院校(C9/藤校/G5等)，仅输出"专家Lv. 6+"
-        -综合分析难度，较简单的输出"熟练Lv. 1+"，中等难度的输出"资深Lv. 3+"，高难度申请的输出"专家Lv. 6+"
-
-        """,
-        expected_output=tag_recommendation_structure,
-        agent=tag_specialist(step_callback)
-    )
-
 
 
 def create_step_callback():
