@@ -2,19 +2,35 @@ __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-
+# 在所有其他导入之前，先初始化环境变量
 import streamlit as st
+import os
+
+# 立即设置所有需要的API keys
+try:
+    os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
+    os.environ['OPENAI_API_BASE'] = "https://openrouter.ai/api/v1"
+    os.environ['OPENAI_MODEL_NAME'] = "google/gemini-pro"
+    
+    # 如果有其他key，也在这里设置
+    if 'GROQ_API_KEY' in st.secrets:
+        os.environ['GROQ_API_KEY'] = st.secrets['GROQ_API_KEY']
+    if 'DEEPSEEK_API_KEY' in st.secrets:
+        os.environ['DEEPSEEK_API_KEY'] = st.secrets['DEEPSEEK_API_KEY']
+except Exception as e:
+    st.error(f"API密钥配置失败: {str(e)}")
+    st.stop()
+
+# 其他导入
 import pandas as pd
 from agent_case_match3 import (
     TAG_SYSTEM,
     process_student_case,
-    process_excel_custom,
     update_environment_variables,
     PromptTemplates
 )
 import json
 import io
-import os
 
 def convert_to_student_info(row):
     """将Excel行数据转换为标准的student_info格式"""
