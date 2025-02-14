@@ -65,37 +65,37 @@ class CustomSerperDevTool(SerperDevTool):
 
 
 
-def load_config():
+#def load_config():
     """加载配置文件"""
     # 获取当前文件所在目录
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+#    current_dir = os.path.dirname(os.path.abspath(__file__))
     # 配置文件路径
-    json_path = os.path.join(current_dir, 'api_config2.json')
+#    json_path = os.path.join(current_dir, 'api_config2.json')
     
-    try:
-        with open(json_path, 'r', encoding='utf-8') as config_file:
-            config = json.load(config_file)
-        return config
-    except FileNotFoundError:
-        raise FileNotFoundError(f"配置文件不存在: {json_path}\n请确保api_config2.json文件位于正确位置")
-    except json.JSONDecodeError:
-        raise ValueError(f"配置文件格式错误: {json_path}\n请确保是有效的JSON格式")
+#    try:
+#        with open(json_path, 'r', encoding='utf-8') as config_file:
+#            config = json.load(config_file)
+#        return config
+#    except FileNotFoundError:
+#        raise FileNotFoundError(f"配置文件不存在: {json_path}\n请确保api_config2.json文件位于正确位置")
+#    except json.JSONDecodeError:
+#        raise ValueError(f"配置文件格式错误: {json_path}\n请确保是有效的JSON格式")
 
-def update_environment_variables(config):
+#def update_environment_variables(config):
     """更新环境变量"""
-    if config and isinstance(config, dict):
-        os.environ['OPENAI_API_KEY'] = config.get('OPENAI_API_KEY', '')
-        os.environ['OPENAI_API_BASE'] = config.get('OPENAI_API_BASE', 'https://openrouter.ai/api/v1')
-        os.environ['OPENAI_MODEL_NAME'] = config.get('OPENAI_MODEL_NAME', 'openrouter/google/gemini-2.0-flash-001')
+#    if config and isinstance(config, dict):
+#        os.environ['OPENAI_API_KEY'] = config.get('OPENAI_API_KEY', '')
+#        os.environ['OPENAI_API_BASE'] = config.get('OPENAI_API_BASE', 'https://openrouter.ai/api/v1')
+#        os.environ['OPENAI_MODEL_NAME'] = config.get('OPENAI_MODEL_NAME', 'openrouter/google/gemini-2.0-flash-001')
 
 
-config = load_config()
-update_environment_variables(config)
+#config = load_config()
+#update_environment_variables(config)
 
 
-def initialize_config():
-    config = load_config()
-    update_environment_variables(config)
+#def initialize_config():
+#    config = load_config()
+#    update_environment_variables(config)
 
 
 
@@ -104,7 +104,7 @@ def initialize_config():
 
 llm_search_professor = ChatOpenAI(
     model="google/gemini-flash-1.5-8b",
-    api_key=config['OPENAI_API_KEY'],
+    api_key=os.environ.get('OPENAI_API_KEY'),
     base_url="https://openrouter.ai/api/v1"
 )
 
@@ -129,7 +129,7 @@ openai_api_key=os.getenv('OPENAI_API_KEY')
 
 # 创建 ChatOpenAI 实例
 default_llm = ChatOpenAI(
-    model=config['OPENAI_MODEL_NAME'],
+    model=os.getenv('OPENAI_MODEL_NAME'),
     api_key=openai_api_key,
     base_url="https://openrouter.ai/api/v1",
     model_kwargs={
@@ -935,6 +935,6 @@ def main():
 
 if __name__ == "__main__":
     # 初始化配置
-    initialize_config()
+    #initialize_config()
     # 运行主函数
     main()
