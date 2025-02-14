@@ -477,11 +477,16 @@ def clean_json_string(json_str):
         
     return json_str
 
-def process_student_case(student_info, tag_system=None):
+def process_student_case(student_info, tag_system=None, current_prompt=None):
     """处理单个学生案例"""
     # 如果没有传入tag_system，使用默认的TAG_SYSTEM
     if tag_system is None:
         tag_system = TAG_SYSTEM
+    
+    # 如果没有传入prompt_templates，使用默认的PromptTemplates
+    if current_prompt is None:
+        current_prompt = PromptTemplates()
+
         
     # Initialize result variables
     analysis_result = None
@@ -495,11 +500,11 @@ def process_student_case(student_info, tag_system=None):
             raise ValueError("OpenAI API key not configured")
             
         # 创建任务
-        analysis_task = analyze_requirements_task(callback)
+        analysis_task = analyze_requirements_task(callback, current_prompt)
         
         # 首先执行需求分析任务
         crew_analysis = Crew(
-            agents=[requirement_analyst(callback)],
+            agents=[requirement_analyst(callback, current_prompt)],
             tasks=[analysis_task],
             verbose=True
         )
@@ -530,11 +535,11 @@ def process_student_case(student_info, tag_system=None):
             raise
         
         # 创建标签提取任务
-        tag_task = extract_tags_task(callback)
+        tag_task = extract_tags_task(callback, current_prompt)
         
         # 创建新的crew执行标签提取
         crew_tags = Crew(
-            agents=[tag_specialist(callback)],
+            agents=[tag_specialist(callback,current_prompt)],
             tasks=[tag_task],
             verbose=True
         )
