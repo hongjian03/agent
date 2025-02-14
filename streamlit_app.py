@@ -6,8 +6,10 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import streamlit as st
 import pandas as pd
 from agent_case_match3 import (
+    TAG_SYSTEM,
     process_student_case,
-    initialize_config, 
+    process_excel_custom,
+    update_environment_variables,
     PromptTemplates
 )
 import json
@@ -179,34 +181,33 @@ def load_config():
     """加载配置文件"""
     try:
         # 首先尝试从 Streamlit secrets 获取配置
+        if not st.secrets.get("OPENAI_API_KEY"):
+            raise ValueError("未在 Streamlit secrets 中找到 OPENAI_API_KEY")
+            
         config = {
             "OPENAI_API_KEY": st.secrets["OPENAI_API_KEY"],
-            # 其他配置项可以继续从文件读取
             "OPENAI_API_BASE": "https://openrouter.ai/api/v1",
-            "OPENAI_MODEL_NAME": "google/gemini-pro",
-            # ... 其他配置 ...
+            "OPENAI_MODEL_NAME": "google/gemini-pro"
         }
         return config
-    except Exception as e:
-        # 如果无法从 secrets 获取，则从本地文件读取
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        json_path = os.path.join(current_dir, 'api_config2.json')
         
-        try:
-            with open(json_path, 'r', encoding='utf-8') as config_file:
-                config = json.load(config_file)
-            return config
-        except FileNotFoundError:
-            raise FileNotFoundError(f"配置文件不存在: {json_path}\n请确保api_config2.json文件位于正确位置")
-        except json.JSONDecodeError:
-            raise ValueError(f"配置文件格式错误: {json_path}\n请确保是有效的JSON格式")
+    except Exception as e:
+        st.error(f"从 Streamlit secrets 获取配置失败: {str(e)}")
+        return None
 
-def update_environment_variables(config):
-    """更新环境变量，优先使用 Streamlit secrets"""
-    os.environ['OPENAI_API_KEY'] = st.secrets.get("OPENAI_API_KEY", config.get('OPENAI_API_KEY', ''))
-    os.environ['OPENAI_API_BASE'] = config.get('OPENAI_API_BASE', 'https://openrouter.ai/api/v1')
-    os.environ['OPENAI_MODEL_NAME'] = config.get('OPENAI_MODEL_NAME', 'openrouter/google/gemini-2.0-flash-001')
-    # ... 其他环境变量 ...
+def initialize_config():
+    """初始化配置"""
+    try:
+        config = load_config()
+        if not config:
+            raise ValueError("无法加载配置")
+            
+        # 更新环境变量
+        update_environment_variables(config)
+        return config
+        
+    except Exception as e:
+        raise Exception(f"配置初始化失败: {str(e)}")
 
 def main():
     st.title("留学申请需求分析系统")
@@ -214,6 +215,10 @@ def main():
     # 初始化配置
     try:
         config = initialize_config()
+        if not config:
+            st.error("配置初始化失败：无法获取配置")
+            return
+            
         if not config.get("OPENAI_API_KEY"):
             st.error("未找到 OpenAI API 密钥，请检查配置")
             return
@@ -313,23 +318,6 @@ def main():
         
         # 标签系统配置
         
-        
-        # 定义固定的标签池
-        TAG_SYSTEM = {
-            "countries": [
-                "中国大陆", "中国澳门", "中国香港", "丹麦", "俄罗斯", "加拿大",
-                "匈牙利", "奥地利", "德国", "意大利", "挪威", "新加坡", 
-                "新西兰", "日本", "比利时", "法国", "泰国", "澳大利亚",
-                "爱尔兰", "瑞典", "瑞士", "美国", "芬兰", "英国",
-                "荷兰", "西班牙", "韩国", "马来西亚"
-            ],
-            "majors": [
-                "计算机与信息系统", "土木与环境", "生物与医学", "机械与工程",
-                "数学与统计", "法学", "国际关系与政策", "心理学",
-                "商科管理", "金融与会计", "经济学",
-                "传媒与新闻", "语言与文学", "人文学科", "教育学", "艺术学"
-            ]
-        }
         
         # 选择输出标签
         st.sidebar.subheader("2. 输出标签选择")

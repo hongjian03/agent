@@ -82,13 +82,11 @@ def load_config():
         raise ValueError(f"配置文件格式错误: {json_path}\n请确保是有效的JSON格式")
 
 def update_environment_variables(config):
-    os.environ['SERPER_API_KEY'] = config['SERPER_API_KEY']
-    os.environ['OPENAI_API_KEY'] = config['OPENAI_API_KEY']
-    os.environ['OPENAI_API_BASE'] = config['OPENAI_API_BASE']
-    os.environ['OPENAI_MODEL_NAME'] = config['OPENAI_MODEL_NAME']
-    os.environ['DEEPSEEK_API_KEY'] = config['DEEPSEEK_API_KEY']
-    os.environ['GROQ_API_KEY'] = config['GROQ_API_KEY']
-    os.environ['COHERE_API_KEY'] = config['COHERE_API_KEY']
+    """更新环境变量"""
+    if config and isinstance(config, dict):
+        os.environ['OPENAI_API_KEY'] = config.get('OPENAI_API_KEY', '')
+        os.environ['OPENAI_API_BASE'] = config.get('OPENAI_API_BASE', 'https://openrouter.ai/api/v1')
+        os.environ['OPENAI_MODEL_NAME'] = config.get('OPENAI_MODEL_NAME', 'openrouter/google/gemini-2.0-flash-001')
 
 
 config = load_config()
@@ -160,17 +158,12 @@ TAG_SYSTEM = {
         "爱尔兰", "瑞典", "瑞士", "美国", "芬兰", "英国",
         "荷兰", "西班牙", "韩国", "马来西亚"
     ],
-    
-    
-    
     "majors": [
         "计算机与信息系统", "土木与环境", "生物与医学", "机械与工程",
         "数学与统计", "法学", "国际关系与政策", "心理学",
         "商科管理", "金融与会计", "经济学",
         "传媒与新闻", "语言与文学", "人文学科", "教育学", "艺术学"
-    ],
-    
-
+    ]
 }
 # 添加新的配置类来管理提示词模板
 class PromptTemplates:
