@@ -10,7 +10,7 @@ import os
 try:
     os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
     os.environ['OPENAI_API_BASE'] = "https://openrouter.ai/api/v1"
-    os.environ['OPENAI_MODEL_NAME'] = "openrouter/google/gemini-2.0-flash-001"
+    os.environ['OPENAI_MODEL_NAME'] = st.secrets['OPENAI_MODEL_NAME']
     
     # 如果有其他key，也在这里设置
     if 'GROQ_API_KEY' in st.secrets:
