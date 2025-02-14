@@ -272,7 +272,7 @@ class PromptTemplates:
 
 def requirement_analyst(step_callback, custom_prompt=None):
     """需求分析专员"""
-    prompt = custom_prompt or PromptTemplates().get_template('requirement_analyst')
+    prompt = custom_prompt.get_template('requirement_analyst') 
     return Agent(
         role='需求分析专员',
         goal='深入分析学生申请需求并生成结构化分析报告',
@@ -285,7 +285,7 @@ def requirement_analyst(step_callback, custom_prompt=None):
 
 
 
-def analyze_requirements_task(step_callback, current_prompts=None):
+def analyze_requirements_task(step_callback, current_prompt=None):
     """需求分析任务"""
     requirement_analysis_structure = """
     {{
@@ -313,13 +313,13 @@ def analyze_requirements_task(step_callback, current_prompts=None):
       }}
     }}
     """
-    if current_prompts is None:
-        current_prompts = PromptTemplates()
+    if current_prompt is None:
+        current_prompt = PromptTemplates()
         
     return Task(
-        description=current_prompts.get_template('requirement_task'),
+        description=current_prompt.get_template('requirement_task'),
         expected_output=requirement_analysis_structure,
-        agent=requirement_analyst(step_callback, current_prompts.get_template('requirement_analyst'))
+        agent=requirement_analyst(step_callback, current_prompt.get_template('requirement_analyst'))
     )
 
 
@@ -327,7 +327,7 @@ def analyze_requirements_task(step_callback, current_prompts=None):
 
 def tag_specialist(step_callback, custom_prompt=None):
     """标签映射专员"""
-    prompt = custom_prompt or PromptTemplates().get_template('tag_specialist')
+    prompt = custom_prompt.get_template('tag_specialist')
     return Agent(
         role='标签映射专员',
         goal='将需求分析转化为标准化顾问标签',
@@ -340,7 +340,7 @@ def tag_specialist(step_callback, custom_prompt=None):
 
 
     
-def extract_tags_task(step_callback, current_prompts=None):
+def extract_tags_task(step_callback, current_prompt=None):
     """标签提取任务"""
     tag_recommendation_structure = """
     {{
@@ -353,13 +353,13 @@ def extract_tags_task(step_callback, current_prompts=None):
       }}
     }}
     """
-    if current_prompts is None:
-        current_prompts = PromptTemplates()
+    if current_prompt is None:
+        current_prompt = PromptTemplates()
         
     return Task(
-        description=current_prompts.get_template('tag_task'),
+        description=current_prompt.get_template('tag_task'),
         expected_output=tag_recommendation_structure,
-        agent=tag_specialist(step_callback, current_prompts.get_template('tag_specialist'))
+        agent=tag_specialist(step_callback, current_prompt.get_template('tag_specialist'))
     )
 
 # 添加Excel处理函数
