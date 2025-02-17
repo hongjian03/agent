@@ -252,6 +252,7 @@ def tag_specialist(step_callback, custom_prompt=None):
     
 def extract_tags_task(step_callback, current_prompt=None):
     """标签提取任务"""
+    # 定义预期输出格式
     tag_recommendation_structure = {
         "recommended_tags": {
             "countries": ["国家标签"],
@@ -261,12 +262,13 @@ def extract_tags_task(step_callback, current_prompt=None):
             "stability": ["行业经验标签"]
         }
     }
+    
     if current_prompt is None:
         current_prompt = PromptTemplates()
-        
+    
     return Task(
         description=current_prompt.get_template('tag_task'),
-        expected_output=tag_recommendation_structure,
+        expected_output=json.dumps(tag_recommendation_structure, ensure_ascii=False),
         agent=tag_specialist(step_callback, current_prompt)
     )
 
