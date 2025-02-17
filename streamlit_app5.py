@@ -81,7 +81,7 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
             
             # 转换数据格式
             student_info = convert_to_student_info(row)
-            
+            print(student_info)
             # 处理单个学生案例
             with st.expander(f"第 {idx + 1} 条：{row['毕业院校']} - {row['专业名称']}", expanded=False):
                 st.write("正在分析标签...")
