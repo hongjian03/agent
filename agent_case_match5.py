@@ -438,6 +438,10 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
         )
         
         try:
+            # 打印输入信息
+            print("处理学生信息:", json.dumps(student_info, ensure_ascii=False, indent=2))
+            print("使用的标签系统:", json.dumps(tag_system, ensure_ascii=False, indent=2))
+            
             tag_result = crew_tags.kickoff(
                 inputs={
                     "student_info": student_info,
@@ -446,7 +450,8 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
             )
             
             # 打印原始结果，用于调试
-            print("API返回的原始结果:", repr(tag_result))
+            print("API返回的原始结果类型:", type(tag_result))
+            print("API返回的原始结果:", tag_result)
             
             # 处理标签结果
             if hasattr(tag_result, 'raw_output'):
