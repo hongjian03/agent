@@ -480,7 +480,11 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
                 
                 return {
                     "status": "success",
-                    "recommended_tags": recommended_tags
+                    "recommended_tags": recommended_tags,
+                    "process_info": {
+                        "tag_info": str(tag_result),  # 保存AI的原始响应
+                        "cleaned_json": cleaned_json   # 保存清理后的JSON
+                    }
                 }
             
             except json.JSONDecodeError as e:
@@ -497,6 +501,10 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
                             "serviceQualities": [],
                             "stability": []
                         }
+                    },
+                    "process_info": {
+                        "tag_info": "无原始响应",
+                        "cleaned_json": cleaned_json
                     }
                 }
                 
