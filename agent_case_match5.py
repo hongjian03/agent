@@ -378,7 +378,8 @@ def clean_json_string(json_str):
     
     # 处理可能的转义字符
     json_str = json_str.replace('\\"', '"')
-    json_str = json_str.replace('\\n', ' ')
+    json_str = json_str.replace('\\n', '')
+    json_str = json_str.replace('\n', '')
     
     # 如果字符串不是以 { 开始，尝试找到第一个有效的 JSON 开始位置
     start_idx = json_str.find('{')
@@ -389,7 +390,13 @@ def clean_json_string(json_str):
     end_idx = json_str.rfind('}')
     if end_idx != -1:
         json_str = json_str[:end_idx+1]
-        
+    
+    # 移除多余的空格和换行
+    json_str = ' '.join(json_str.split())
+    
+    # 确保键名使用双引号
+    json_str = re.sub(r'([{,]\s*)(\w+)(\s*:)', r'\1"\2"\3', json_str)
+    
     return json_str
 
 def process_student_case(student_info, tag_system=None, current_prompt=None):
@@ -403,11 +410,9 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
     try:
         callback = create_step_callback()
         
-        # Validate OpenAI configuration
         if not os.getenv('OPENAI_API_KEY'):
             raise ValueError("OpenAI API key not configured")
             
-        # 创建标签提取任务
         tag_task = extract_tags_task(callback, current_prompt)
         
         # 创建crew执行标签提取
@@ -433,34 +438,38 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
                 cleaned_json = clean_json_string(str(tag_result))
                 
             try:
+                # 添加错误处理和日志
+                print(f"清理后的JSON字符串: {cleaned_json}")
+                
                 recommended_tags = json.loads(cleaned_json)
                 
-                # 添加结果验证
+                # 确保结果格式正确
                 if isinstance(recommended_tags, dict):
                     if "recommended_tags" not in recommended_tags:
                         recommended_tags = {"recommended_tags": recommended_tags}
                     
+                    # 确保所有必要的字段都存在
                     for category in ["countries", "majors", "businessCapabilities", 
                                    "serviceQualities", "stability"]:
                         if category not in recommended_tags["recommended_tags"]:
                             recommended_tags["recommended_tags"][category] = []
                         elif not isinstance(recommended_tags["recommended_tags"][category], list):
                             recommended_tags["recommended_tags"][category] = [recommended_tags["recommended_tags"][category]]
+                
+                return {
+                    "status": "success",
+                    "recommended_tags": recommended_tags
+                }
             
             except json.JSONDecodeError as e:
-                print(f"标签JSON解析错误: {str(e)}")
-                print(f"清理后的标签JSON字符串: {cleaned_json}")
+                print(f"JSON解析错误: {str(e)}")
+                print(f"问题JSON字符串: {cleaned_json}")
                 raise
                 
         except Exception as api_error:
-            print(f"API Error during tag extraction: {str(api_error)}")
+            print(f"API调用错误: {str(api_error)}")
             raise
             
-        return {
-            "status": "success",
-            "recommended_tags": recommended_tags
-        }
-        
     except Exception as e:
         error_info = {
             "status": "error",
@@ -470,7 +479,7 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
                 "traceback": traceback.format_exc()
             }
         }
-        print(f"Error processing case: {json.dumps(error_info, indent=2)}")
+        print(f"处理错误: {json.dumps(error_info, indent=2)}")
         return error_info
 
 
