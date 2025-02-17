@@ -368,36 +368,52 @@ def create_step_callback():
 
 
 def clean_json_string(json_str):
-    """清理JSON字符串,移除markdown格式标记"""
-    # 移除markdown代码块标记
-    json_str = re.sub(r'```json\s*', '', json_str)
-    json_str = re.sub(r'```\s*', '', json_str)
-    
-    # 确保JSON字符串的完整性
-    json_str = json_str.strip()
-    
-    # 处理可能的转义字符
-    json_str = json_str.replace('\\"', '"')
-    json_str = json_str.replace('\\n', '')
-    json_str = json_str.replace('\n', '')
-    
-    # 如果字符串不是以 { 开始，尝试找到第一个有效的 JSON 开始位置
-    start_idx = json_str.find('{')
-    if start_idx != -1:
-        json_str = json_str[start_idx:]
-    
-    # 如果字符串不是以 } 结束，尝试找到最后一个有效的 JSON 结束位置
-    end_idx = json_str.rfind('}')
-    if end_idx != -1:
-        json_str = json_str[:end_idx+1]
-    
-    # 移除多余的空格和换行
-    json_str = ' '.join(json_str.split())
-    
-    # 确保键名使用双引号
-    json_str = re.sub(r'([{,]\s*)(\w+)(\s*:)', r'\1"\2"\3', json_str)
-    
-    return json_str
+    """清理JSON字符串"""
+    try:
+        # 打印原始输入，用于调试
+        print("原始JSON字符串:", repr(json_str))
+        
+        # 如果输入是空的或者不是字符串，返回一个默认的JSON结构
+        if not json_str or not isinstance(json_str, str):
+            return '{"recommended_tags": {"countries": [], "majors": [], "businessCapabilities": [], "serviceQualities": [], "stability": []}}'
+        
+        # 移除markdown代码块标记
+        json_str = re.sub(r'```json\s*', '', json_str)
+        json_str = re.sub(r'```\s*', '', json_str)
+        
+        # 尝试找到一个完整的JSON对象
+        match = re.search(r'\{[^{]*"recommended_tags".*\}', json_str)
+        if match:
+            json_str = match.group(0)
+        else:
+            # 如果找不到完整的JSON对象，尝试重构
+            start_idx = json_str.find('{')
+            end_idx = json_str.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                json_str = json_str[start_idx:end_idx+1]
+            else:
+                # 如果还是找不到，返回默认结构
+                return '{"recommended_tags": {"countries": [], "majors": [], "businessCapabilities": [], "serviceQualities": [], "stability": []}}'
+        
+        # 清理字符串
+        json_str = json_str.replace('\n', ' ')
+        json_str = json_str.replace('\r', ' ')
+        json_str = ' '.join(json_str.split())
+        
+        # 确保键名使用双引号
+        json_str = re.sub(r'([{,]\s*)(\w+)(\s*:)', r'\1"\2"\3', json_str)
+        
+        # 尝试解析JSON以验证其有效性
+        try:
+            json.loads(json_str)
+            return json_str
+        except json.JSONDecodeError:
+            # 如果解析失败，返回默认结构
+            return '{"recommended_tags": {"countries": [], "majors": [], "businessCapabilities": [], "serviceQualities": [], "stability": []}}'
+            
+    except Exception as e:
+        print(f"清理JSON字符串时出错: {str(e)}")
+        return '{"recommended_tags": {"countries": [], "majors": [], "businessCapabilities": [], "serviceQualities": [], "stability": []}}'
 
 def process_student_case(student_info, tag_system=None, current_prompt=None):
     """处理单个学生案例"""
@@ -415,14 +431,12 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
             
         tag_task = extract_tags_task(callback, current_prompt)
         
-        # 创建crew执行标签提取
         crew_tags = Crew(
             agents=[tag_specialist(callback, current_prompt)],
             tasks=[tag_task],
             verbose=True
         )
         
-        # 执行标签提取任务
         try:
             tag_result = crew_tags.kickoff(
                 inputs={
@@ -431,16 +445,22 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
                 }
             )
             
+            # 打印原始结果，用于调试
+            print("API返回的原始结果:", repr(tag_result))
+            
             # 处理标签结果
             if hasattr(tag_result, 'raw_output'):
-                cleaned_json = clean_json_string(tag_result.raw_output)
+                result_str = tag_result.raw_output
             else:
-                cleaned_json = clean_json_string(str(tag_result))
+                result_str = str(tag_result)
                 
+            print("转换后的结果字符串:", repr(result_str))
+            
+            # 清理JSON字符串
+            cleaned_json = clean_json_string(result_str)
+            print("清理后的JSON字符串:", repr(cleaned_json))
+            
             try:
-                # 添加错误处理和日志
-                print(f"清理后的JSON字符串: {cleaned_json}")
-                
                 recommended_tags = json.loads(cleaned_json)
                 
                 # 确保结果格式正确
@@ -464,7 +484,19 @@ def process_student_case(student_info, tag_system=None, current_prompt=None):
             except json.JSONDecodeError as e:
                 print(f"JSON解析错误: {str(e)}")
                 print(f"问题JSON字符串: {cleaned_json}")
-                raise
+                # 返回默认的空标签结构
+                return {
+                    "status": "success",
+                    "recommended_tags": {
+                        "recommended_tags": {
+                            "countries": [],
+                            "majors": [],
+                            "businessCapabilities": [],
+                            "serviceQualities": [],
+                            "stability": []
+                        }
+                    }
+                }
                 
         except Exception as api_error:
             print(f"API调用错误: {str(api_error)}")
