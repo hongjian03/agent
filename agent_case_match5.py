@@ -194,35 +194,30 @@ class PromptTemplates:
             #案件分析及匹配标签原则如下：
             1. 国家标签 
             - 根据签约国家直接匹配对应的国家标签
+            - 必须从tag_system.countries中选择精准匹配国家标签
+            - 严禁输出不在 tag_system.countries 列表中的国家标签
             
             2. 专业标签 
             - 必须从 tag_system 中的 majors 列表中精确匹配专业标签
             - 如果申请专业在 tag_system.majors 中没有完全相同的，选择最接近的专业类别
             - 严禁输出不在 tag_system.majors 列表中的专业标签
             
-            3. 名校专家标签
-            - 申请者毕业院校为顶尖院校(C9/藤校/G5等)或者has_top_schools为是或者special_notes中提及希望申请名校，输出"名校专家"
+            3. 业务能力标签
+            - 以下标签为可选项，可多选可不选，满足条件才输出对应标签
+            - 名校专家标签：申请者毕业院校为顶尖院校(C9/藤校/G5等)或者has_top_schools为是或者special_notes中提及希望申请名校，输出"名校专家"
+            - 博士专家标签：degree_level为博士或者研究型硕士输出"博士专家"
+            - 低龄留学专家标签：degree_level为k12（从幼儿园（Kindergarten，简称K）到高中十二年级（12th Grade）的教育体系）输出"低龄留学专家"
 
-            4.offer猎手标签
-            - special_notes中体现对申请结果的成功率很关注的输出"offer猎手"
+            4.服务质量标签
+            - 以下标签为可选项，可多选可不选，满足条件才输出对应标签
+            - offer猎手：special_notes中体现对申请结果的成功率很关注的输出"offer猎手"
+            - 获签能手：申请国家签证比较难获得的，或者备注中有对签证有要求的输出"获签能手"
+            - 高效文案：special_notes提及希望定期沟通的，或者希望尽快的，或者有时间要求的输出"高效文案"
+            - 口碑文案：special_notes中对文书有特殊要求的，输出"口碑文案"
 
-            5.获签能手
-            -申请国家签证比较难获得的，或者备注中有对签证有要求的输出"获签能手"
-
-            6.博士专家标签
-            -degree_level为博士或者研究型硕士输出"博士专家"
-
-            7.低龄留学专家标签
-            -degree_level为k12（从幼儿园（Kindergarten，简称K）到高中十二年级（12th Grade）的教育体系）输出"低龄留学专家"
-
-            8.高效文案标签
-            -special_notes提及希望定期沟通的，或者希望尽快的，或者有时间要求的输出"高效文案"
-
-            9.口碑文案标签
-            -special_notes中对文书有特殊要求的，输出"口碑文案"
-
-            10.行业经验标签
-            -综合分析难度，较简单的输出"熟练Lv. 1+"，中等难度的输出"资深Lv. 3+"，高难度申请的输出"专家Lv. 6+"
+            5.行业经验标签
+            - 必须输出"熟练Lv. 1+"、"资深Lv. 3+"、"专家Lv. 6+"其中一个
+            - 综合分析难度，较简单的输出"熟练Lv. 1+"，中等难度的输出"资深Lv. 3+"，高难度申请的输出"专家Lv. 6+"
             """
         }
     
@@ -257,17 +252,15 @@ def tag_specialist(step_callback, custom_prompt=None):
     
 def extract_tags_task(step_callback, current_prompt=None):
     """标签提取任务"""
-    tag_recommendation_structure = """
-    {
-      "recommended_tags": {
-        "countries": ["string, 国家标签"],
-        "majors": ["string, 专业标签"],
-        "businessCapabilities": ["string, 业务能力标签"],
-        "serviceQualities": ["string, 服务质量标签"],
-        "stability": ["string, 行业经验标签"]
-      }
+    tag_recommendation_structure = {
+        "recommended_tags": {
+            "countries": ["国家标签"],
+            "majors": ["专业标签"],
+            "businessCapabilities": ["业务能力标签"],
+            "serviceQualities": ["服务质量标签"],
+            "stability": ["行业经验标签"]
+        }
     }
-    """
     if current_prompt is None:
         current_prompt = PromptTemplates()
         
