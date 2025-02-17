@@ -189,7 +189,7 @@ class PromptTemplates:
             {tag_system}
             
             提取要求：
-            基于学生背景和标签体系，分析和输出必要的标签
+            基于学生背景和标签体系，分析和输出必要的标签，严格按照格式输出
 
             #案件分析及匹配标签原则如下：
             1. 国家标签 
@@ -253,22 +253,24 @@ def tag_specialist(step_callback, custom_prompt=None):
 def extract_tags_task(step_callback, current_prompt=None):
     """标签提取任务"""
     # 定义预期输出格式
-    tag_recommendation_structure = {
-        "recommended_tags": {
-            "countries": ["国家标签"],
-            "majors": ["专业标签"],
-            "businessCapabilities": ["业务能力标签"],
-            "serviceQualities": ["服务质量标签"],
-            "stability": ["行业经验标签"]
-        }
-    }
+    tag_recommendation_structure = """
+    {{
+      "recommended_tags": {{
+        "countries": ["string, 国家标签"],
+        "majors": ["string, 专业标签"],
+        "businessCapabilities": ["string, 业务能力标签"],
+        "serviceQualities": ["string, 服务质量标签"],
+        "stability": ["string, 行业经验标签"]
+      }}
+    }}
+    """
     
     if current_prompt is None:
         current_prompt = PromptTemplates()
     
     return Task(
         description=current_prompt.get_template('tag_task'),
-        expected_output=json.dumps(tag_recommendation_structure, ensure_ascii=False),
+        expected_output=tag_recommendation_structure,
         agent=tag_specialist(step_callback, current_prompt)
     )
 
