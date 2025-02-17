@@ -412,6 +412,7 @@ def main():
         return
 
 if __name__ == "__main__":
+    print("开始运行")
     main() 
 
 #streamlit run agent/streamlit_app.py
