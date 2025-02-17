@@ -51,7 +51,7 @@ except Exception as e:
 
 # 其他导入
 import pandas as pd
-from agent_case_match5 import (
+from agent_case_match6 import (
     TAG_SYSTEM,
     process_student_case,
     PromptTemplates
@@ -88,9 +88,6 @@ def convert_to_student_info(row):
 
 def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text, current_prompt):
     """处理Excel数据并返回结果DataFrame"""
-    # 创建一个简单的日志显示区域
-    log_container = st.expander("AI响应日志", expanded=True)
-    
     df['序号'] = range(1, len(df) + 1)
     results = []
     
@@ -104,98 +101,99 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
             
             # 转换数据格式
             student_info = convert_to_student_info(row)
-            
-            # 在处理每条数据前添加分隔线
-            with log_container:
-                st.markdown("---")
-                st.write(f"🔄 正在处理：{row['毕业院校']} - {row['专业名称']}")
-            
-            # 处理数据并获取结果
-            result = process_student_case(student_info, tag_system, current_prompt)
-            
-            # 显示AI的响应
-            with log_container:
-                st.code(str(result))
-            
-            # 继续处理结果...
-            if result["status"] == "success":
-                result_row = {
-                    "序号": row['序号'],
-                    "毕业院校": row['毕业院校'],
-                    "专业名称": row['专业名称'],
-                    "签约国家": row['签约国家'],
-                    "办理类型": row['办理类型']
-                }
+            print(student_info)
+            # 处理单个学生案例
+            with st.expander(f"第 {idx + 1} 条：{row['毕业院校']} - {row['专业名称']}", expanded=False):
+                st.write("正在分析标签...")
+                result = process_student_case(student_info, tag_system, current_prompt)
                 
-                # 添加标签到结果中
-                tags = result["recommended_tags"]["recommended_tags"]
-                
-                # 简化标签显示
-                st.write("国家标签：", ", ".join(tags.get("countries", [])))
-                st.write("专业标签：", ", ".join(tags.get("majors", [])))
-                
-                # 其他标签直接显示存在的标签
-                business_tags = [tag for tag in ["名校专家", "博士专家", "低龄留学专家"] 
-                               if tag in tags.get("businessCapabilities", [])]
-                if business_tags:
-                    st.write("业务标签：", ", ".join(business_tags))
-                
-                service_tags = [tag for tag in ["offer猎手", "获签能手", "高效文案", "口碑文案"] 
-                              if tag in tags.get("serviceQualities", [])]
-                if service_tags:
-                    st.write("服务标签：", ", ".join(service_tags))
-                
-                # 显示行业经验
-                stability = tags.get("stability", [])
-                if stability:
-                    st.write("行业经验：", stability[0])
-                
-                # 构建结果行
-                result_row = {
-                    "序号": row['序号'],
-                    "毕业院校": row['毕业院校'],
-                    "专业名称": row['专业名称'],
-                    "签约国家": row['签约国家'],
-                    "办理类型": row['办理类型']
-                }
-                
-                # 添加选中的输出标签
-                if "国家标签" in output_tags:
-                    result_row["国家标签"] = ", ".join(tags.get("countries", []))
-                if "专业标签" in output_tags:
-                    result_row["专业标签"] = ", ".join(tags.get("majors", []))
-                if "名校专家" in output_tags:
-                    result_row["名校专家"] = "名校专家" if "名校专家" in tags.get("businessCapabilities", []) else ""
-                if "博士专家" in output_tags:
-                    result_row["博士专家"] = "博士专家" if "博士专家" in tags.get("businessCapabilities", []) else ""
-                if "低龄留学专家" in output_tags:
-                    result_row["低龄留学专家"] = "低龄留学专家" if "低龄留学专家" in tags.get("businessCapabilities", []) else ""
-                if "获签能手" in output_tags:
-                    result_row["获签能手"] = "获签能手" if "获签能手" in tags.get("serviceQualities", []) else ""
-                if "offer猎手" in output_tags:
-                    result_row["offer猎手"] = "offer猎手" if "offer猎手" in tags.get("serviceQualities", []) else ""
-                if "高效文案" in output_tags:
-                    result_row["高效文案"] = "高效文案" if "高效文案" in tags.get("serviceQualities", []) else ""
-                if "口碑文案" in output_tags:
-                    result_row["口碑文案"] = "口碑文案" if "口碑文案" in tags.get("serviceQualities", []) else ""
-                if "行业经验" in output_tags:
-                    result_row["行业经验"] = "专家Lv. 6+" if "专家Lv. 6+" in tags.get("stability", []) else "资深Lv. 3+" if "资深Lv. 3+" in tags.get("stability", []) else "熟练Lv. 1+"
-            else:
-                result_row = {
-                    "序号": row['序号'],
-                    "毕业院校": row['毕业院校'],
-                    "专业名称": row['专业名称'],
-                    "签约国家": row['签约国家'],
-                    "办理类型": row['办理类型'],
-                    "处理状态": "失败",
-                    "错误信息": result["error_message"]
-                }
+                if result["status"] == "success":
+                    st.write("✅ 标签匹配完成")
+                    st.write("🏷️ 标签匹配结果：")
+                    tags = result["recommended_tags"]["recommended_tags"]
+                    
+                    # 简化标签显示
+                    st.write("国家标签：", ", ".join(tags.get("countries", [])))
+                    st.write("专业标签：", ", ".join(tags.get("majors", [])))
+                    
+                    # 其他标签直接显示存在的标签
+                    business_tags = [tag for tag in ["名校专家", "博士专家", "低龄留学专家"] 
+                                   if tag in tags.get("businessCapabilities", [])]
+                    if business_tags:
+                        st.write("业务标签：", ", ".join(business_tags))
+                    
+                    service_tags = [tag for tag in ["offer猎手", "获签能手", "高效文案", "口碑文案"] 
+                                  if tag in tags.get("serviceQualities", [])]
+                    if service_tags:
+                        st.write("服务标签：", ", ".join(service_tags))
+                    
+                    # 显示行业经验
+                    stability = tags.get("stability", [])
+                    if stability:
+                        st.write("行业经验：", stability[0])
+                    
+                    # 显示院校层次
+                    schoolLevel = tags.get("schoolLevel", [])
+                    if schoolLevel:
+                        st.write("院校层次：", schoolLevel[0])
+                    
+                    # 显示业务单位所在地    
+                    businessLocation = tags.get("businessLocation", [])
+                    if businessLocation:
+                        st.write("业务单位所在地：", businessLocation[0])
+                    
+                    # 构建结果行
+                    result_row = {
+                        "序号": row['序号'],
+                        "毕业院校": row['毕业院校'],
+                        "专业名称": row['专业名称'],
+                        "签约国家": row['签约国家'],
+                        "办理类型": row['办理类型']
+                    }
+                    
+                    # 添加选中的输出标签
+                    if "国家标签" in output_tags:
+                        result_row["国家标签"] = ", ".join(tags.get("countries", []))
+                    if "专业标签" in output_tags:
+                        result_row["专业标签"] = ", ".join(tags.get("majors", []))
+                    if "名校专家" in output_tags:
+                        result_row["名校专家"] = "名校专家" if "名校专家" in tags.get("businessCapabilities", []) else ""
+                    if "博士专家" in output_tags:
+                        result_row["博士专家"] = "博士专家" if "博士专家" in tags.get("businessCapabilities", []) else ""
+                    if "低龄留学专家" in output_tags:
+                        result_row["低龄留学专家"] = "低龄留学专家" if "低龄留学专家" in tags.get("businessCapabilities", []) else ""
+                    if "获签能手" in output_tags:
+                        result_row["获签能手"] = "获签能手" if "获签能手" in tags.get("serviceQualities", []) else ""
+                    if "offer猎手" in output_tags:
+                        result_row["offer猎手"] = "offer猎手" if "offer猎手" in tags.get("serviceQualities", []) else ""
+                    if "高效文案" in output_tags:
+                        result_row["高效文案"] = "高效文案" if "高效文案" in tags.get("serviceQualities", []) else ""
+                    if "口碑文案" in output_tags:
+                        result_row["口碑文案"] = "口碑文案" if "口碑文案" in tags.get("serviceQualities", []) else ""
+                    if "行业经验" in output_tags:
+                        result_row["行业经验"] = "专家Lv. 6+" if "专家Lv. 6+" in tags.get("stability", []) else "资深Lv. 3+" if "资深Lv. 3+" in tags.get("stability", []) else "熟练Lv. 1+"
+                    if "院校层次" in output_tags:
+                        result_row["院校层次"] = ", ".join(tags.get("schoolLevel", []))
+                    if "业务单位所在地" in output_tags:
+                        result_row["业务单位所在地"] = ", ".join(tags.get("businessLocation", []))
+
+                else:
+                    st.write("❌ 处理失败")
+                    st.error(result["error_message"])
+                    result_row = {
+                        "序号": row['序号'],
+                        "毕业院校": row['毕业院校'],
+                        "专业名称": row['专业名称'],
+                        "签约国家": row['签约国家'],
+                        "办理类型": row['办理类型'],
+                        "处理状态": "失败",
+                        "错误信息": result["error_message"]
+                    }
             
             results.append(result_row)
             
         except Exception as e:
-            with log_container:
-                st.error(f"处理错误: {str(e)}")
+            st.error(f"处理第 {idx + 1} 条数据时出错: {str(e)}")
             results.append({
                 "序号": row.get('序号', idx + 1),
                 "毕业院校": row.get('毕业院校', ''),
@@ -334,7 +332,9 @@ def main():
                 "majors": ["计算机与信息系统"],
                 "businessCapabilities": ["名校专家"],
                 "serviceQualities": ["高效文案", "口碑文案"],
-                "stability": ["资深Lv. 3+"]
+                "stability": ["资深Lv. 3+"],
+                "schoolLevel": ["985院校"],
+                "businessLocation": ["北京"]
               }
             }
             ```
@@ -347,10 +347,10 @@ def main():
             options=[
                 "国家标签", "专业标签", "名校专家", "博士专家", 
                 "低龄留学专家", "获签能手", "offer猎手", 
-                "高效文案", "口碑文案", "行业经验"
+                "高效文案", "口碑文案", "行业经验", "院校层次", "业务单位所在地"
             ],
             default=["国家标签", "专业标签", "名校专家", "博士专家", "低龄留学专家",
-                    "offer猎手", "获签能手", "高效文案", "口碑文案", "行业经验"]
+                    "offer猎手", "获签能手", "高效文案", "口碑文案", "行业经验", "院校层次", "业务单位所在地"]
         )
         
         # 文件上传和处理部分
@@ -455,7 +455,8 @@ def main():
         return
 
 if __name__ == "__main__":
-    
-    main() 
+    logger.info("开始运行应用")
+    main()
+    logger.info("应用运行结束")
 
 #streamlit run agent/streamlit_app.py
