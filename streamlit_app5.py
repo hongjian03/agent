@@ -1,21 +1,39 @@
 import sys
 import streamlit as st
 import os
+import logging
+
+# 配置日志记录
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+# 记录程序启动
+logger.info("程序开始运行")
+
 # 只在第一次运行时替换 sqlite3
 if 'sqlite_setup_done' not in st.session_state:
     try:
+        logger.info("尝试设置 SQLite")
         __import__('pysqlite3')
         sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
         st.session_state.sqlite_setup_done = True
+        logger.info("SQLite 设置成功")
     except Exception as e:
-        print(f"SQLite setup error: {str(e)}")
-        # 如果失败，继续使用系统默认的 sqlite3
-        st.session_state.sqlite_setup_done = True  # 标记为已处理，避免重复尝试
+        logger.error(f"SQLite 设置错误: {str(e)}")
+        st.session_state.sqlite_setup_done = True
 
 # 在所有其他导入之前，先初始化环境变量
 
 # 立即设置所有需要的API keys
 try:
+    logger.info("开始设置 API keys")
     os.environ['OPENAI_API_KEY'] = st.secrets['OPENAI_API_KEY']
     os.environ['OPENAI_API_BASE'] = "https://openrouter.ai/api/v1"
     os.environ['OPENAI_MODEL_NAME'] = st.secrets['OPENAI_MODEL_NAME']
@@ -25,7 +43,9 @@ try:
         os.environ['GROQ_API_KEY'] = st.secrets['GROQ_API_KEY']
     if 'DEEPSEEK_API_KEY' in st.secrets:
         os.environ['DEEPSEEK_API_KEY'] = st.secrets['DEEPSEEK_API_KEY']
+    logger.info("API keys 设置成功")
 except Exception as e:
+    logger.error(f"API 密钥配置失败: {str(e)}")
     st.error(f"API密钥配置失败: {str(e)}")
     st.stop()
 
@@ -205,6 +225,7 @@ def initialize_config():
 
 def main():
     """主函数"""
+    logger.info("进入主函数")
     st.title("留学申请标签匹配系统")
     
     # 初始化配置
@@ -220,10 +241,12 @@ def main():
             
         # 验证 API 密钥是否有效
         if st.secrets.get("OPENAI_API_KEY"):
+            logger.info("API 配置验证成功")
             st.success("✅ API配置成功")
         
         # 创建提示词模板实例并存储在session_state中
         if 'prompt_templates' not in st.session_state:
+            logger.info("初始化提示词模板")
             st.session_state.prompt_templates = PromptTemplates()
         
         # 使用session_state中的prompt_templates
@@ -318,6 +341,7 @@ def main():
         
         if uploaded_file is not None:
             try:
+                logger.info(f"开始处理上传的文件: {uploaded_file.name}")
                 # 读取Excel文件
                 df = pd.read_excel(uploaded_file)
                 st.write("原始数据预览：")
@@ -405,14 +429,17 @@ def main():
                         )
             
             except Exception as e:
+                logger.error(f"处理文件时出错: {str(e)}")
                 st.error(f"处理文件时出错: {str(e)}")
 
     except Exception as e:
+        logger.error(f"配置初始化失败: {str(e)}")
         st.error(f"配置初始化失败: {str(e)}")
         return
 
 if __name__ == "__main__":
-    print("开始运行")
-    main() 
+    logger.info("开始运行应用")
+    main()
+    logger.info("应用运行结束")
 
 #streamlit run agent/streamlit_app.py
