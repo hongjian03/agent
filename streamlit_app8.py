@@ -164,6 +164,8 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
                         ]
                         
                         result_row["业务单位所在地"] = ", ".join(business_locations)
+                    if "做过该生所在院校的客户" in output_tags:
+                        result_row["做过该生所在院校的客户"] = ""
 
                 else:
                     st.write("❌ 处理失败")
@@ -341,10 +343,10 @@ def main():
             "选择需要输出的标签",
             options=[
                 "国家标签", "专业标签", "名校专家", "顶级名校猎手", "博士专家", "博士攻坚手",
-                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地"
+                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地",'做过该生所在院校的客户'
             ],
             default=["国家标签","专业标签", "名校专家", "顶级名校猎手", "博士专家", "博士攻坚手",
-                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地"]
+                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地","做过该生所在院校的客户"]
         )
         
         # 添加选项卡来切换输入方式
@@ -488,7 +490,7 @@ def main():
                         height: auto ;
                         white-space: pre-wrap;
                         word-wrap: break-word;
-                        overflow: visible ;
+                        overflow-wrap: break-word !important;  ;
                     }
                     
                     /* 调整列容器样式 */
