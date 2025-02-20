@@ -596,10 +596,12 @@ def main():
                     
                     /* 输入框样式统一 */
                     .stTextInput input {
-                        width: 100% !important;
-                        min-width: unset !important;
-                        padding: 8px 12px !important;
-                        box-sizing: border-box !important;
+                        min-width: 100px !important;
+                        width: 100px !important;
+                        padding: 8px 12px;
+                        font-size: 14px;
+                        height: auto !important;
+                        white-space: pre-wrap !important;
                     }
                     
                     /* 表单容器样式 */
@@ -608,41 +610,66 @@ def main():
                         padding: 20px;
                         margin: 10px 0;
                         width: 100%;
+                        min-width: 1500px;  /* 设置一个合适的最小宽度 */
+                        overflow-x: scroll !important;  /* 强制显示水平滚动条 */
+                        display: block;  /* 确保容器正确显示 */
+                    }
+                    
+                    /* 输入区域容器样式 */
+                    .input-container {
+                        width: 100%;
+                        min-width: 1500px;
                         overflow-x: auto;
+                        padding: 10px;
                     }
                     
-                    /* 确保标题和输入框对齐 */
-                    .stMarkdown div {
-                        margin-bottom: 0 !important;
-                        padding: 8px 0 !important;
-                    }
-                    
-                    /* 调整不同字段的宽度 */
-                    /* 使用grid布局确保对齐 */
-                    .input-grid {
-                        display: grid;
-                        grid-template-columns: 
-                            minmax(100px, 15fr)  /* 毕业院校 */
-                            minmax(100px, 15fr)  /* 专业名称 */
-                            minmax(100px, 15fr)  /* 专业方向 */
-                            minmax(40px, 8fr)   /* GPA */
-                            minmax(60px, 10fr)  /* 语言成绩 */
-                            minmax(60px, 10fr)  /* 标化成绩 */
-                            minmax(80px, 10fr)  /* 签约国家 */
-                            minmax(60px, 8fr)   /* 办理类型 */
-                            minmax(60px, 8fr)   /* 留学类别 */
-                            minmax(40px, 8fr)   /* 是否名校 */
-                            minmax(120px, 10fr) /* 备注信息 */
-                            minmax(20px, 5fr);  /* 删除按钮 */
+                    /* 输入行样式 */
+                    .input-row {
+                        display: flex !important;
+                        flex-wrap: nowrap !important;
                         gap: 10px;
-                        align-items: center;
+                        margin-bottom: 10px;
+                        min-width: max-content;
                     }
-                    
+
+                    /* 调整不同字段的宽度 */
+                    .stColumn:nth-child(1) { width: 150px !important; }  /* 毕业院校 */
+                    .stColumn:nth-child(2) { width: 150px !important; }  /* 专业名称 */
+                    .stColumn:nth-child(3) { width: 150px !important; }  /* 专业方向 */
+                    .stColumn:nth-child(4) { width: 80px !important; }   /* GPA */
+                    .stColumn:nth-child(5) { width: 120px !important; }  /* 语言成绩 */
+                    .stColumn:nth-child(6) { width: 120px !important; }  /* 标化成绩 */
+                    .stColumn:nth-child(7) { width: 120px !important; }  /* 签约国家 */
+                    .stColumn:nth-child(8) { width: 120px !important; }  /* 办理类型 */
+                    .stColumn:nth-child(9) { width: 120px !important; }  /* 留学类别 */
+                    .stColumn:nth-child(10) { width: 100px !important; } /* 是否包含名校 */
+                    .stColumn:nth-child(11) { width: 200px !important; } /* 备注信息 */
+                    .stColumn:nth-child(12) { width: 60px !important; }  /* 删除按钮 */
+
                     /* 确保内容不会溢出 */
                     .stTextInput {
                         overflow: hidden;
                         text-overflow: ellipsis;
                         white-space: nowrap;
+                    }
+
+                    /* 添加滚动条样式 */
+                    [data-testid="stForm"]::-webkit-scrollbar {
+                        height: 8px;
+                    }
+
+                    [data-testid="stForm"]::-webkit-scrollbar-track {
+                        background: #f1f1f1;
+                        border-radius: 4px;
+                    }
+
+                    [data-testid="stForm"]::-webkit-scrollbar-thumb {
+                        background: #888;
+                        border-radius: 4px;
+                    }
+
+                    [data-testid="stForm"]::-webkit-scrollbar-thumb:hover {
+                        background: #555;
                     }
                 </style>
             """, unsafe_allow_html=True)
