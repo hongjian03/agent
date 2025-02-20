@@ -451,38 +451,73 @@ def main():
             # 添加自定义CSS来调整输入框宽度和样式
             st.markdown("""
                 <style>
-                    /* 调整整体容器的宽度 */
+                    /* 调整整体容器的宽度和可调整性 */
                     .main .block-container {
-                        max-width: 95%;
-                        padding-top: 2rem;
-                        padding-right: 2rem;
-                        padding-left: 2rem;
-                        padding-bottom: 2rem;
+                        max-width: 100%;
+                        padding: 2rem;
+                        resize: horizontal;  /* 允许水平方向调整大小 */
+                        overflow: auto;
+                        min-width: 50%;
                     }
                     
                     /* 调整输入框样式 */
                     .stTextInput input {
-                        min-width: 150px;
+                        min-width: 180px !important;  /* 设置最小宽度 */
+                        width: 100% !important;
                         padding: 8px 12px;
                         font-size: 14px;
+                        height: auto !important;
+                        white-space: normal;  /* 允许文本换行 */
+                        overflow-wrap: break-word;  /* 长单词换行 */
+                        resize: both;  /* 允许双向调整大小 */
+                        min-height: 40px;
                     }
                     
                     /* 调整下拉框样式 */
                     .stSelectbox select {
-                        min-width: 150px;
+                        min-width: 180px !important;
+                        width: 100% !important;
                         padding: 8px 12px;
                         font-size: 14px;
                     }
                     
-                    /* 调整列间距 */
+                    /* 调整复选框容器样式 */
+                    .stCheckbox {
+                        min-width: 100px;
+                    }
+                    
+                    /* 调整列间距和列容器 */
                     .stColumn {
                         padding: 0 5px;
+                        min-width: fit-content;
                     }
                     
                     /* 添加滚动样式 */
                     [data-testid="stForm"] {
                         max-height: 800px;
-                        overflow-y: auto;
+                        overflow: auto;
+                        resize: both;  /* 允许表单区域调整大小 */
+                        min-height: 400px;
+                        border: 1px solid #ddd;
+                        padding: 10px;
+                    }
+                    
+                    /* 确保输入框文字可见 */
+                    .stTextInput input:focus {
+                        min-height: 40px;
+                        height: auto !important;
+                    }
+                    
+                    /* 调整表单网格布局 */
+                    .stForm > div {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                        gap: 10px;
+                    }
+                    
+                    /* 输入框hover效果 */
+                    .stTextInput input:hover {
+                        border-color: #09f;
                     }
                 </style>
             """, unsafe_allow_html=True)
