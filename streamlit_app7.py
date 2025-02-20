@@ -448,145 +448,160 @@ def main():
                     st.error(f"处理文件时出错: {str(e)}")
 
         with tab2:
+            # 添加自定义CSS来调整输入框宽度
+            st.markdown("""
+                <style>
+                    /* 调整文本输入框的宽度 */
+                    .stTextInput input {
+                        width: 100%;
+                        padding: 8px 12px;
+                    }
+                    
+                    /* 调整下拉选择框的宽度 */
+                    .stSelectbox select {
+                        width: 100%;
+                        padding: 8px 12px;
+                    }
+                    
+                    /* 调整复选框的大小 */
+                    .stCheckbox label {
+                        min-width: 50px;
+                    }
+                    
+                    /* 调整列间距 */
+                    .stColumn {
+                        padding: 0 5px;
+                    }
+                    
+                    /* 如果需要调整输入框高度 */
+                    .stTextInput input {
+                        min-height: 40px;
+                    }
+                </style>
+            """, unsafe_allow_html=True)
+            
             # 初始化session state
             if 'data_rows' not in st.session_state:
                 st.session_state.data_rows = 1
             
-            # 添加行按钮
+            # 添加行按钮（在表单外部）
             col1, col2 = st.columns([8,2])
             with col2:
                 if st.button("➕ 添加新行", type="primary"):
                     st.session_state.data_rows += 1
             
-            # 创建滚动容器
-            with st.container():
-                # 如果行数超过10，添加固定高度和滚动条
-                max_height = "800px" if st.session_state.data_rows > 10 else None
+            # 创建表单
+            with st.form("manual_input_form"):
+                # 创建表头
+                cols = st.columns(12)
+                headers = ["毕业院校", "专业名称", "专业方向", "GPA成绩", "语言考试成绩", 
+                          "标化考试成绩", "签约国家", "办理类型", "留学类别唯一", 
+                          "是否包含名校", "备注信息", "删除"]
+                for col, header in zip(cols, headers):
+                    col.markdown(f"**{header}**")
                 
-                with st.form("manual_input_form"):
-                    # 使用container创建可滚动区域
-                    with st.container():
-                        manual_data_list = []
-                        
-                        # 创建表头（固定在顶部）
-                        st.markdown("""
+                # 如果行数超过10，添加滚动样式
+                if st.session_state.data_rows > 10:
+                    st.markdown("""
                         <style>
-                            .stMarkdown {
-                                position: sticky;
-                                top: 0;
-                                background-color: white;
-                                z-index: 999;
+                            [data-testid="stForm"] {
+                                max-height: 800px;
+                                overflow-y: auto;
                             }
                         </style>
                         """, unsafe_allow_html=True)
-                        
-                        cols = st.columns(12)
-                        headers = ["毕业院校", "专业名称", "专业方向", "GPA成绩", "语言考试成绩", 
-                                "标化考试成绩", "签约国家", "办理类型", "留学类别唯一", 
-                                "是否包含名校", "备注信息", "操作"]
-                        for col, header in zip(cols, headers):
-                            col.markdown(f"**{header}**")
-                        
-                        # 创建可滚动的数据输入区域
-                        with st.container():
-                            if max_height:
-                                st.markdown(f"""
-                                <style>
-                                    [data-testid="stForm"] {{
-                                        max-height: {max_height};
-                                        overflow-y: auto;
-                                    }}
-                                </style>
-                                """, unsafe_allow_html=True)
-                            
-                            # 为每行创建输入字段
-                            rows_to_delete = []
-                            for i in range(st.session_state.data_rows):
-                                row_data = {}
-                                cols = st.columns(12)
-                                
-                                with cols[0]:
-                                    row_data["毕业院校"] = st.text_input(
-                                        f"毕业院校_{i}", 
-                                        key=f"school_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[1]:
-                                    row_data["专业名称"] = st.text_input(
-                                        f"专业名称_{i}", 
-                                        key=f"major_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[2]:
-                                    row_data["专业方向"] = st.text_input(
-                                        f"专业方向_{i}", 
-                                        key=f"major_direction_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[3]:
-                                    row_data["GPA成绩"] = st.text_input(
-                                        f"GPA成绩_{i}", 
-                                        key=f"gpa_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[4]:
-                                    row_data["语言考试成绩"] = st.text_input(
-                                        f"语言考试成绩_{i}", 
-                                        key=f"language_score_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[5]:
-                                    row_data["标化考试成绩"] = st.text_input(
-                                        f"标化考试成绩_{i}", 
-                                        key=f"standardized_score_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[6]:
-                                    row_data["签约国家"] = st.text_input(
-                                        f"签约国家_{i}", 
-                                        key=f"countries_{i}", 
-                                        placeholder="用逗号分隔",
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[7]:
-                                    row_data["办理类型"] = st.text_input(
-                                        f"办理类型_{i}", 
-                                        key=f"type_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[8]:
-                                    row_data["留学类别唯一"] = st.text_input(
-                                        f"留学类别_{i}", 
-                                        key=f"study_type_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[9]:
-                                    row_data["是否包含名校"] = st.selectbox(
-                                        f"名校_{i}", 
-                                        ["是", "否"], 
-                                        key=f"top_school_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                with cols[10]:
-                                    row_data["备注信息"] = st.text_input(
-                                        f"备注_{i}", 
-                                        key=f"notes_{i}", 
-                                        label_visibility="collapsed"
-                                    )
-                                
-                                # 添加删除按钮
-                                with cols[11]:
-                                    if st.button("❌", key=f"delete_{i}"):
-                                        rows_to_delete.append(i)
-                                
-                                if i not in rows_to_delete:
-                                    manual_data_list.append(row_data)
-                            
-                            # 更新行数（删除被标记的行）
-                            st.session_state.data_rows -= len(rows_to_delete)
+                
+                # 输入字段
+                manual_data_list = []
+                rows_to_delete = []
+                
+                for i in range(st.session_state.data_rows):
+                    row_data = {}
+                    cols = st.columns(12)
                     
-                    # 提交按钮
-                    submit_button = st.form_submit_button("分析输入数据")
+                    with cols[0]:
+                        row_data["毕业院校"] = st.text_input(
+                            f"毕业院校_{i}", 
+                            key=f"school_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[1]:
+                        row_data["专业名称"] = st.text_input(
+                            f"专业名称_{i}", 
+                            key=f"major_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[2]:
+                        row_data["专业方向"] = st.text_input(
+                            f"专业方向_{i}", 
+                            key=f"major_direction_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[3]:
+                        row_data["GPA成绩"] = st.text_input(
+                            f"GPA成绩_{i}", 
+                            key=f"gpa_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[4]:
+                        row_data["语言考试成绩"] = st.text_input(
+                            f"语言考试成绩_{i}", 
+                            key=f"language_score_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[5]:
+                        row_data["标化考试成绩"] = st.text_input(
+                            f"标化考试成绩_{i}", 
+                            key=f"standardized_score_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[6]:
+                        row_data["签约国家"] = st.text_input(
+                            f"签约国家_{i}", 
+                            key=f"countries_{i}", 
+                            placeholder="用逗号分隔",
+                            label_visibility="collapsed"
+                        )
+                    with cols[7]:
+                        row_data["办理类型"] = st.text_input(
+                            f"办理类型_{i}", 
+                            key=f"type_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[8]:
+                        row_data["留学类别唯一"] = st.text_input(
+                            f"留学类别_{i}", 
+                            key=f"study_type_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[9]:
+                        row_data["是否包含名校"] = st.selectbox(
+                            f"名校_{i}", 
+                            ["是", "否"], 
+                            key=f"top_school_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[10]:
+                        row_data["备注信息"] = st.text_input(
+                            f"备注_{i}", 
+                            key=f"notes_{i}", 
+                            label_visibility="collapsed"
+                        )
+                    with cols[11]:
+                        # 使用 checkbox 替代 button
+                        if st.checkbox("删除", key=f"delete_{i}", label_visibility="collapsed"):
+                            rows_to_delete.append(i)
+                    
+                    if i not in rows_to_delete:
+                        manual_data_list.append(row_data)
+                
+                # 提交按钮
+                submit_button = st.form_submit_button("分析输入数据")
+            
+            # 在表单外处理删除操作
+            if rows_to_delete:
+                st.session_state.data_rows -= len(rows_to_delete)
+                # 重新组织数据...
 
             # 处理提交的数据
             if submit_button:
