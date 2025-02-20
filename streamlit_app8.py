@@ -154,8 +154,6 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
                         result_row["行业经验"] = "专家Lv. 6+" if "专家Lv. 6+" in tags.get("DemandOriented", []) else "资深Lv. 3+" if "资深Lv. 3+" in tags.get("stability", []) else "熟练Lv. 1+"
                     if "文案背景" in output_tags:
                         result_row["文案背景"] = "海归" if "海归" in tags.get("DemandOriented", []) else "名校" if "名校" in tags.get("DemandOriented", []) else ""
-                    if "是否做过同校" in output_tags:
-                        result_row["是否做过同校"] = "是" if "是" in tags.get("DemandOriented", []) else "否"
                     if "业务单位所在地" in output_tags:
                         # 先定义需要排除的标签
                         exclude_tags = ["专家Lv. 6+", "资深Lv. 3+", "熟练Lv. 1+","海归", "名校","是","否"]
@@ -343,10 +341,10 @@ def main():
             "选择需要输出的标签",
             options=[
                 "国家标签", "专业标签", "名校专家", "顶级名校猎手", "博士专家", "博士攻坚手",
-                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地","是否做过同校"
+                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地"
             ],
             default=["国家标签","专业标签", "名校专家", "顶级名校猎手", "博士专家", "博士攻坚手",
-                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地","是否做过同校"]
+                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地"]
         )
         
         # 添加选项卡来切换输入方式
