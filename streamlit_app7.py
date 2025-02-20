@@ -448,24 +448,30 @@ def main():
                     st.error(f"处理文件时出错: {str(e)}")
 
         with tab2:
-            # 添加自定义CSS来调整输入框宽度
+            # 添加自定义CSS来调整输入框宽度和样式
             st.markdown("""
                 <style>
-                    /* 调整文本输入框的宽度 */
+                    /* 调整整体容器的宽度 */
+                    .main .block-container {
+                        max-width: 95%;
+                        padding-top: 2rem;
+                        padding-right: 2rem;
+                        padding-left: 2rem;
+                        padding-bottom: 2rem;
+                    }
+                    
+                    /* 调整输入框样式 */
                     .stTextInput input {
-                        width: 100%;
+                        min-width: 150px;
                         padding: 8px 12px;
+                        font-size: 14px;
                     }
                     
-                    /* 调整下拉选择框的宽度 */
+                    /* 调整下拉框样式 */
                     .stSelectbox select {
-                        width: 100%;
+                        min-width: 150px;
                         padding: 8px 12px;
-                    }
-                    
-                    /* 调整复选框的大小 */
-                    .stCheckbox label {
-                        min-width: 50px;
+                        font-size: 14px;
                     }
                     
                     /* 调整列间距 */
@@ -473,9 +479,10 @@ def main():
                         padding: 0 5px;
                     }
                     
-                    /* 如果需要调整输入框高度 */
-                    .stTextInput input {
-                        min-height: 40px;
+                    /* 添加滚动样式 */
+                    [data-testid="stForm"] {
+                        max-height: 800px;
+                        overflow-y: auto;
                     }
                 </style>
             """, unsafe_allow_html=True)
@@ -492,32 +499,24 @@ def main():
             
             # 创建表单
             with st.form("manual_input_form"):
-                # 创建表头
-                cols = st.columns(12)
+                # 调整列宽比例
+                col_widths = [15, 15, 15, 8, 10, 10, 10, 8, 8, 8, 10, 5]  # 总和为122
+                cols = st.columns(col_widths)
+                
                 headers = ["毕业院校", "专业名称", "专业方向", "GPA成绩", "语言考试成绩", 
                           "标化考试成绩", "签约国家", "办理类型", "留学类别唯一", 
                           "是否包含名校", "备注信息", "删除"]
+                
                 for col, header in zip(cols, headers):
                     col.markdown(f"**{header}**")
                 
-                # 如果行数超过10，添加滚动样式
-                if st.session_state.data_rows > 10:
-                    st.markdown("""
-                        <style>
-                            [data-testid="stForm"] {
-                                max-height: 800px;
-                                overflow-y: auto;
-                            }
-                        </style>
-                        """, unsafe_allow_html=True)
-                
-                # 输入字段
+                # 输入字段部分也使用相同的列宽比例
                 manual_data_list = []
                 rows_to_delete = []
                 
                 for i in range(st.session_state.data_rows):
+                    cols = st.columns(col_widths)
                     row_data = {}
-                    cols = st.columns(12)
                     
                     with cols[0]:
                         row_data["毕业院校"] = st.text_input(
