@@ -450,22 +450,22 @@ def main():
                     st.error(f"处理文件时出错: {str(e)}")
 
         with tab2:
-            # 添加自定义CSS来调整输入框宽度和样式
             st.markdown("""
                 <style>
                     /* 调整整体容器的宽度和可调整性 */
                     .main .block-container {
                         max-width: 100%;
                         padding: 2rem;
-                        resize: both;  /* 允许双向调整大小 */
+                        resize: both;
                         overflow: auto;
                         min-width: 1200px;
-                        border-left: 1px solid #ddd;  /* 添加左边界，使其可见 */
-                        margin-left: 10px;  /* 给左边留出一些空间 */
                     }
                     
                     /* 固定表头样式 */
                     .header-row {
+                        display: flex !important;
+                        flex-wrap: nowrap !important;
+                        width: 100%;
                         position: sticky;
                         top: 0;
                         background-color: white;
@@ -476,61 +476,51 @@ def main():
                     .input-row {
                         display: flex !important;
                         flex-wrap: nowrap !important;
-                        width: 90%;
+                        width: 100%;
+                        align-items: center;  /* 垂直居中对齐 */
                     }
                     
                     /* 调整输入框样式 */
                     .stTextInput input {
                         min-width: 100px !important;
-                        width: auto !important;  /* 改为自动宽度 */
-                        max-width: 300px !important;  /* 设置最大宽度 */
+                        width: 100px !important;  /* 固定宽度 */
+                        max-width: 100px !important;  /* 限制最大宽度 */
                         padding: 8px 12px;
                         font-size: 14px;
-                        height: auto !important;  /* 允许高度自动调整 */
-                        white-space: normal;  /* 允许文本换行 */
-                        word-wrap: break-word;  /* 确保长单词也能换行 */
-                        overflow-wrap: break-word;  /* 现代浏览器的换行支持 */
-                    }
-                    
-                    /* 调整下拉框样式 */
-                    .stSelectbox select {
-                        min-width: 150px !important;
-                        width: 100% !important;
-                        padding: 8px 12px;
-                        font-size: 14px;
-                        height: 40px !important;
+                        height: auto ;
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
+                        overflow: visible ;
                     }
                     
                     /* 调整列容器样式 */
                     .stColumn {
                         min-width: fit-content !important;
-                        flex: 1 1 auto !important;  /* 允许列自动增长 */
+                        flex: 0 0 auto !important;  /* 防止列自动增长 */
                         margin: 0 5px;
-                        overflow: visible !important;  /* 允许内容溢出显示 */
+                        padding: 0 !important;
                     }
                     
-                    /* 添加滚动样式 */
-                    [data-testid="stForm"] {
-                        max-height: 800px;
-                        overflow-x: auto;  /* 允许水平滚动 */
-                        overflow-y: auto;  /* 允许垂直滚动 */
-                        resize: both;  /* 允许调整大小 */
-                        min-height: 400px;
-                        border: 1px solid #ddd;
-                        padding: 10px;
-                    }
-                    
-                    /* 确保表格结构不会被破坏 */
+                    /* 表格结构样式 */
                     .stForm > div {
                         display: table !important;
                         width: 100%;
                         min-width: max-content;
                     }
                     
-                    /* 输入框hover效果 */
-                    .stTextInput input:hover {
-                        border-color: #09f;
-                    }
+                    /* 调整不同字段的宽度 */
+                    .stColumn:nth-child(1) { width: 100px !important; }  /* 毕业院校 */
+                    .stColumn:nth-child(2) { width: 100px !important; }  /* 专业名称 */
+                    .stColumn:nth-child(3) { width: 100px !important; }  /* 专业方向 */
+                    .stColumn:nth-child(4) { width: 40px !important; }  /* GPA */
+                    .stColumn:nth-child(5) { width: 40px !important; }  /* 语言成绩 */
+                    .stColumn:nth-child(6) { width: 40px !important; }  /* 标化成绩 */
+                    .stColumn:nth-child(7) { width: 80px !important; }  /* 签约国家 */
+                    .stColumn:nth-child(8) { width: 80px !important; }  /* 办理类型 */
+                    .stColumn:nth-child(9) { width: 80px !important; }  /* 留学类别 */
+                    .stColumn:nth-child(10) { width: 40px !important; } /* 是否包含名校 */
+                    .stColumn:nth-child(11) { width: 200px !important; } /* 备注信息 */
+                    .stColumn:nth-child(12) { width: 20px !important; }  /* 删除按钮 */
                 </style>
             """, unsafe_allow_html=True)
             
