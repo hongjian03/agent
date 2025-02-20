@@ -455,64 +455,71 @@ def main():
                     .main .block-container {
                         max-width: 100%;
                         padding: 2rem;
-                        resize: horizontal;  /* 允许水平方向调整大小 */
+                        resize: both;  /* 允许双向调整大小 */
                         overflow: auto;
-                        min-width: 50%;
+                        min-width: 1200px;
+                        border-left: 1px solid #ddd;  /* 添加左边界，使其可见 */
+                        margin-left: 10px;  /* 给左边留出一些空间 */
+                    }
+                    
+                    /* 固定表头样式 */
+                    .header-row {
+                        position: sticky;
+                        top: 0;
+                        background-color: white;
+                        z-index: 1;
+                    }
+                    
+                    /* 保持每行输入框在同一行 */
+                    .input-row {
+                        display: flex !important;
+                        flex-wrap: nowrap !important;
+                        width: 100%;
                     }
                     
                     /* 调整输入框样式 */
                     .stTextInput input {
-                        min-width: 180px !important;  /* 设置最小宽度 */
+                        min-width: 150px !important;
                         width: 100% !important;
                         padding: 8px 12px;
                         font-size: 14px;
-                        height: auto !important;
-                        white-space: normal;  /* 允许文本换行 */
-                        overflow-wrap: break-word;  /* 长单词换行 */
-                        resize: both;  /* 允许双向调整大小 */
-                        min-height: 40px;
+                        height: 40px !important;  /* 固定高度 */
+                        white-space: nowrap;  /* 防止文本换行 */
+                        overflow-x: auto;  /* 允许文本水平滚动 */
                     }
                     
                     /* 调整下拉框样式 */
                     .stSelectbox select {
-                        min-width: 180px !important;
+                        min-width: 150px !important;
                         width: 100% !important;
                         padding: 8px 12px;
                         font-size: 14px;
+                        height: 40px !important;
                     }
                     
-                    /* 调整复选框容器样式 */
-                    .stCheckbox {
-                        min-width: 100px;
-                    }
-                    
-                    /* 调整列间距和列容器 */
+                    /* 调整列宽度 */
                     .stColumn {
-                        padding: 0 5px;
-                        min-width: fit-content;
+                        min-width: fit-content !important;
+                        flex: 0 0 auto !important;  /* 防止列收缩 */
+                        margin: 0 5px;
                     }
                     
                     /* 添加滚动样式 */
                     [data-testid="stForm"] {
                         max-height: 800px;
-                        overflow: auto;
-                        resize: both;  /* 允许表单区域调整大小 */
+                        overflow-x: auto;  /* 允许水平滚动 */
+                        overflow-y: auto;  /* 允许垂直滚动 */
+                        resize: both;  /* 允许调整大小 */
                         min-height: 400px;
                         border: 1px solid #ddd;
                         padding: 10px;
                     }
                     
-                    /* 确保输入框文字可见 */
-                    .stTextInput input:focus {
-                        min-height: 40px;
-                        height: auto !important;
-                    }
-                    
-                    /* 调整表单网格布局 */
+                    /* 确保表格结构不会被破坏 */
                     .stForm > div {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                        gap: 10px;
+                        display: table !important;
+                        width: 100%;
+                        min-width: max-content;
                     }
                     
                     /* 输入框hover效果 */
