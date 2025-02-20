@@ -479,13 +479,15 @@ def main():
                     
                     /* 调整输入框样式 */
                     .stTextInput input {
-                        min-width: 150px !important;
-                        width: 100% !important;
+                        min-width: 80px !important;
+                        width: auto !important;  /* 宽度自动适应内容 */
+                        max-width: 160px !important;  /* 设置最大宽度限制 */
                         padding: 8px 12px;
                         font-size: 14px;
-                        height: 40px !important;  /* 固定高度 */
-                        white-space: nowrap;  /* 防止文本换行 */
-                        overflow-x: auto;  /* 允许文本水平滚动 */
+                        height: auto !important;  /* 允许高度自动调整 */
+                        white-space: normal;  /* 允许文本换行 */
+                        word-wrap: break-word;  /* 确保长单词也能换行 */
+                        overflow-wrap: break-word;  /* 现代浏览器的换行支持 */
                     }
                     
                     /* 调整下拉框样式 */
