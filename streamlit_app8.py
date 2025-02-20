@@ -476,7 +476,7 @@ def main():
                     .input-row {
                         display: flex !important;
                         flex-wrap: nowrap !important;
-                        width: 100%;
+                        width: 90%;
                     }
                     
                     /* 调整输入框样式 */
@@ -621,9 +621,8 @@ def main():
                             label_visibility="collapsed"
                         )
                     with cols[9]:
-                        row_data["是否包含名校"] = st.selectbox(
-                            f"名校_{i}", 
-                            ["是", "否"], 
+                        row_data["是否包含名校"] = st.text_input(
+                            f"是否包含名校_{i}", 
                             key=f"top_school_{i}", 
                             label_visibility="collapsed"
                         )
