@@ -674,241 +674,148 @@ def main():
                 </style>
             """, unsafe_allow_html=True)
             
-            # 初始化session state
-            if 'data_rows' not in st.session_state:
-                st.session_state.data_rows = 1
-            
-            # 添加行按钮（在表单外部）
-            col1, col2, col3, col4 = st.columns([6,2,2,2])
-            with col2:
-                if st.button("➕ 添加新行", type="primary"):
-                    st.session_state.data_rows += 1
-            with col3:
+            # 创建初始数据框架
+            if 'df_input' not in st.session_state:
+                # 创建一个空的DataFrame，包含所有需要的列
+                st.session_state.df_input = pd.DataFrame({
+                    "毕业院校": [""],
+                    "专业名称": [""],
+                    "专业方向": [""],
+                    "GPA成绩": [""],
+                    "语言考试成绩": [""],
+                    "标化考试成绩": [""],
+                    "签约国家": [""],
+                    "办理类型": [""],
+                    "留学类别唯一": [""],
+                    "是否包含名校": [""],
+                    "备注信息": [""]
+                })
+
+            # 使用data_editor创建可编辑的表格
+            edited_df = st.data_editor(
+                st.session_state.df_input,
+                num_rows="dynamic",  # 允许动态添加行
+                use_container_width=True,  # 使用容器宽度
+                column_config={
+                    "毕业院校": st.column_config.TextColumn(
+                        "毕业院校",
+                        width="medium",
+                        required=True
+                    ),
+                    "专业名称": st.column_config.TextColumn(
+                        "专业名称",
+                        width="medium",
+                        required=True
+                    ),
+                    "专业方向": st.column_config.TextColumn(
+                        "专业方向",
+                        width="medium"
+                    ),
+                    "GPA成绩": st.column_config.TextColumn(
+                        "GPA成绩",
+                        width="small"
+                    ),
+                    "语言考试成绩": st.column_config.TextColumn(
+                        "语言考试成绩",
+                        width="medium"
+                    ),
+                    "标化考试成绩": st.column_config.TextColumn(
+                        "标化考试成绩",
+                        width="medium"
+                    ),
+                    "签约国家": st.column_config.TextColumn(
+                        "签约国家",
+                        width="medium",
+                        help="多个国家用逗号分隔"
+                    ),
+                    "办理类型": st.column_config.TextColumn(
+                        "办理类型",
+                        width="small",
+                    ),
+                    "留学类别唯一": st.column_config.TextColumn(
+                        "留学类别唯一",
+                        width="small",
+                    ),
+                    "是否包含名校": st.column_config.TextColumn(
+                        "是否包含名校",
+                        width="small",
+                    ),
+                    "备注信息": st.column_config.TextColumn(
+                        "备注信息",
+                        width="large"
+                    )
+                },
+                hide_index=True,
+            )
+
+            # 创建两列布局来放置按钮
+            col1, col2 = st.columns(2)
+
+            # 添加导入测试数据按钮
+            with col1:
                 if st.button("📥 导入测试数据"):
-                    # 获取测试数据
-                    test_data = generate_test_data()
-                    # 设置行数
-                    st.session_state.data_rows = len(test_data)
-                    # 将测试数据存入session state，使用正确的key映射
-                    key_mapping = {
-                        "毕业院校": "school",
-                        "专业名称": "major",
-                        "专业方向": "major_direction",
-                        "GPA成绩": "gpa",
-                        "语言考试成绩": "language_score",
-                        "标化考试成绩": "standardized_score",
-                        "签约国家": "countries",
-                        "办理类型": "type",
-                        "留学类别唯一": "study_type",
-                        "是否包含名校": "top_school",
-                        "备注信息": "notes"
-                    }
-                    
-                    for i, data in enumerate(test_data):
-                        for zh_key, value in data.items():
-                            if zh_key in key_mapping:
-                                en_key = key_mapping[zh_key]
-                                session_key = f"{en_key}_{i}"
-                                st.session_state[session_key] = value
-                    st.rerun()
-            with col4:
+                    test_data = generate_test_data()  # 使用已有的测试数据生成函数
+                    st.session_state.df_input = pd.DataFrame(test_data)
+                    st.rerun()  # 重新运行以更新界面
+
+            # 添加清空数据按钮
+            with col2:
                 if st.button("🗑️ 清空数据"):
-                    # 清空所有输入框的数据
-                    for i in range(st.session_state.data_rows):
-                        for key in ["school", "major", "major_direction", "gpa", 
-                                  "language_score", "standardized_score", "countries", 
-                                  "type", "study_type", "top_school", "notes"]:
-                            session_key = f"{key}_{i}"
-                            if session_key in st.session_state:
-                                st.session_state[session_key] = ""
-                    st.session_state.data_rows = 1
-                    st.rerun()
+                    # 创建一个只有一行空值的DataFrame
+                    st.session_state.df_input = pd.DataFrame({
+                        "毕业院校": [""],
+                        "专业名称": [""],
+                        "专业方向": [""],
+                        "GPA成绩": [""],
+                        "语言考试成绩": [""],
+                        "标化考试成绩": [""],
+                        "签约国家": [""],
+                        "办理类型": [""],
+                        "留学类别唯一": [""],
+                        "是否包含名校": [""],
+                        "备注信息": [""]
+                    })
+                    st.rerun()  # 重新运行以更新界面
 
-            # 创建表单
-            with st.form("manual_input_form"):
-                # 调整列宽比例
-                col_widths = [15, 15, 15, 8, 10, 10, 10, 8, 8, 8, 10, 5]  # 总和为122
-                cols = st.columns(col_widths)
-                
-                headers = ["毕业院校", "专业名称", "专业方向", "GPA成绩", "语言考试成绩", 
-                          "标化考试成绩", "签约国家", "办理类型", "留学类别唯一", 
-                          "是否包含名校", "备注信息", "删除"]
-                
-                # 使用容器确保标题对齐
-                with st.container():
-                    # 标题行
-                    for col, header in zip(cols, headers):
-                        # 使用固定宽度的div包装标题文本
-                        col.markdown(f"""
-                            <div style='
-                                width: 100%;
-                                text-align: left;
-                                overflow: hidden;
-                                white-space: nowrap;
-                                text-overflow: ellipsis;
-                                font-weight: bold;
-                                margin-bottom: 5px;
-                            '>
-                                {header}
-                            </div>
-                        """, unsafe_allow_html=True)
-                
-                # 输入字段部分也使用相同的列宽比例
-                manual_data_list = []
-                rows_to_delete = []
-                
-                for i in range(st.session_state.data_rows):
-                    cols = st.columns(col_widths)
-                    row_data = {}
-                    
-                    with cols[0]:
-                        row_data["毕业院校"] = st.text_input(
-                            f"毕业院校_{i}", 
-                            key=f"school_{i}", 
-                            label_visibility="collapsed",
-                            placeholder="输入学校名称"  # 添加占位符提示
-                        )
-                    with cols[1]:
-                        row_data["专业名称"] = st.text_input(
-                            f"专业名称_{i}", 
-                            key=f"major_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[2]:
-                        row_data["专业方向"] = st.text_input(
-                            f"专业方向_{i}", 
-                            key=f"major_direction_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[3]:
-                        row_data["GPA成绩"] = st.text_input(
-                            f"GPA成绩_{i}", 
-                            key=f"gpa_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[4]:
-                        row_data["语言考试成绩"] = st.text_input(
-                            f"语言考试成绩_{i}", 
-                            key=f"language_score_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[5]:
-                        row_data["标化考试成绩"] = st.text_input(
-                            f"标化考试成绩_{i}", 
-                            key=f"standardized_score_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[6]:
-                        row_data["签约国家"] = st.text_input(
-                            f"签约国家_{i}", 
-                            key=f"countries_{i}", 
-                            placeholder="用逗号分隔",
-                            label_visibility="collapsed"
-                        )
-                    with cols[7]:
-                        row_data["办理类型"] = st.text_input(
-                            f"办理类型_{i}", 
-                            key=f"type_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[8]:
-                        row_data["留学类别唯一"] = st.text_input(
-                            f"留学类别_{i}", 
-                            key=f"study_type_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[9]:
-                        row_data["是否包含名校"] = st.text_input(
-                            f"是否包含名校_{i}", 
-                            key=f"top_school_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[10]:
-                        row_data["备注信息"] = st.text_input(
-                            f"备注_{i}", 
-                            key=f"notes_{i}", 
-                            label_visibility="collapsed"
-                        )
-                    with cols[11]:
-                        # 使用 checkbox 替代 button
-                        if st.checkbox("删除", key=f"delete_{i}", label_visibility="collapsed"):
-                            rows_to_delete.append(i)
-                    
-                    if i not in rows_to_delete:
-                        manual_data_list.append(row_data)
-                
-                # 提交按钮
-                submit_button = st.form_submit_button("分析输入数据")
-            
-            # 在表单外处理删除操作
-            if rows_to_delete:
-                st.session_state.data_rows -= len(rows_to_delete)
-                # 重新组织数据...
-
-            # 处理提交的数据
-            if submit_button:
-                try:
-                    # 过滤掉空行（至少要有毕业院校和专业名称）
-                    valid_data = [
-                        {**data, "序号": i+1} 
-                        for i, data in enumerate(manual_data_list) 
-                        if data["毕业院校"].strip() and data["专业名称"].strip()
-                    ]
-                    
-                    if not valid_data:
-                        st.error("请至少输入一行有效数据（必须包含毕业院校和专业名称）")
-                        return
-                    
-                    # 创建DataFrame
-                    manual_data = pd.DataFrame(valid_data)
-                    
-                    st.write("输入数据预览：")
-                    st.dataframe(manual_data)
-                    
-                    # 处理数据
-                    with st.spinner("正在分析数据..."):
-                        current_prompt = st.session_state.prompt_templates
-                        progress_bar = st.empty()
-                        status_text = st.empty()
-                        
-                        results_df = process_excel_custom(
-                            manual_data,
-                            TAG_SYSTEM,
-                            output_tags,
-                            progress_bar,
-                            status_text,
-                            current_prompt
-                        )
-                        
-                        # 显示结果
-                        st.success("✅ 分析完成！")
-                        st.subheader("分析结果")
-                        st.dataframe(results_df)
-                        
-                        # 提供下载选项
-                        buffer = io.BytesIO()
-                        with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                            results_df.to_excel(writer, index=False, sheet_name='分析结果')
-                            workbook = writer.book
-                            worksheet = writer.sheets['分析结果']
+            # 分析按钮
+            if st.button("分析输入数据"):
+                if len(edited_df) > 0 and not edited_df.iloc[0].isna().all():
+                    try:
+                        with st.spinner("正在分析数据..."):
+                            current_prompt = st.session_state.prompt_templates
+                            progress_bar = st.empty()
+                            status_text = st.empty()
                             
-                            for idx, col in enumerate(results_df.columns):
-                                max_length = max(
-                                    results_df[col].astype(str).apply(len).max(),
-                                    len(str(col))
-                                ) + 2
-                                worksheet.set_column(idx, idx, max_length)
-                        
-                        st.download_button(
-                            label="下载Excel格式结果",
-                            data=buffer.getvalue(),
-                            file_name="手动输入分析结果.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
-                        
-                except Exception as e:
-                    logger.error(f"处理手动输入数据时出错: {str(e)}")
-                    st.error(f"处理数据时出错: {str(e)}")
+                            results_df = process_excel_custom(
+                                edited_df,
+                                TAG_SYSTEM,
+                                output_tags,
+                                progress_bar,
+                                status_text,
+                                current_prompt
+                            )
+                            
+                            # 显示结果
+                            st.success("✅ 分析完成！")
+                            st.subheader("分析结果")
+                            st.dataframe(results_df)
+                            
+                            # 提供下载选项
+                            buffer = io.BytesIO()
+                            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                                results_df.to_excel(writer, index=False, sheet_name='分析结果')
+                            
+                            st.download_button(
+                                label="下载Excel格式结果",
+                                data=buffer.getvalue(),
+                                file_name="手动输入分析结果.xlsx",
+                                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            )
+                    except Exception as e:
+                        logger.error(f"处理数据时出错: {str(e)}")
+                        st.error(f"处理数据时出错: {str(e)}")
+                else:
+                    st.warning("请至少输入一行有效数据")
 
     except Exception as e:
         logger.error(f"配置初始化失败: {str(e)}")
