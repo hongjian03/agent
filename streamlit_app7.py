@@ -450,13 +450,156 @@ def main():
                     st.error(f"处理文件时出错: {str(e)}")
 
         with tab2:
+
+            def generate_test_data():
+                test_data = [
+                    {
+                        "毕业院校": "浙江大学",
+                        "专业名称": "计算机科学与技术",
+                        "专业方向": "人工智能",
+                        "GPA成绩": "3.8",
+                        "语言考试成绩": "托福100",
+                        "标化考试成绩": "GRE320",
+                        "签约国家": "美国",
+                        "办理类型": "全套服务",
+                        "留学类别唯一": "硕士",
+                        "是否包含名校": "是",
+                        "备注信息": "希望申请TOP30院校"
+                    },
+                    {
+                        "毕业院校": "复旦大学",
+                        "专业名称": "金融学",
+                        "专业方向": "金融工程",
+                        "GPA成绩": "3.9",
+                        "语言考试成绩": "雅思7.5",
+                        "标化考试成绩": "GMAT720",
+                        "签约国家": "英国",
+                        "办理类型": "文书服务",
+                        "留学类别唯一": "MBA",
+                        "是否包含名校": "是",
+                        "备注信息": "目标伦敦商学院"
+                    },
+                    {
+                        "毕业院校": "上海交通大学",
+                        "专业名称": "机械工程",
+                        "专业方向": "智能制造",
+                        "GPA成绩": "3.7",
+                        "语言考试成绩": "托福95",
+                        "标化考试成绩": "GRE315",
+                        "签约国家": "德国",
+                        "办理类型": "全套服务",
+                        "留学类别唯一": "硕士",
+                        "是否包含名校": "否",
+                        "备注信息": "想申请TU9高校"
+                    },
+                    {
+                        "毕业院校": "武汉大学",
+                        "专业名称": "生物技术",
+                        "专业方向": "基因工程",
+                        "GPA成绩": "3.6",
+                        "语言考试成绩": "雅思7.0",
+                        "标化考试成绩": "无",
+                        "签约国家": "澳大利亚",
+                        "办理类型": "申请服务",
+                        "留学类别唯一": "博士",
+                        "是否包含名校": "是",
+                        "备注信息": "有研究经历和论文发表"
+                    },
+                    {
+                        "毕业院校": "南京大学",
+                        "专业名称": "环境科学",
+                        "专业方向": "环境评估",
+                        "GPA成绩": "3.5",
+                        "语言考试成绩": "托福90",
+                        "标化考试成绩": "GRE310",
+                        "签约国家": "加拿大",
+                        "办理类型": "全套服务",
+                        "留学类别唯一": "硕士",
+                        "是否包含名校": "否",
+                        "备注信息": "希望同时申请CO-OP项目"
+                    },
+                    {
+                        "毕业院校": "中山大学",
+                        "专业名称": "市场营销",
+                        "专业方向": "数字营销",
+                        "GPA成绩": "3.4",
+                        "语言考试成绩": "雅思6.5",
+                        "标化考试成绩": "GMAT680",
+                        "签约国家": "新加坡",
+                        "办理类型": "文书服务",
+                        "留学类别唯一": "硕士",
+                        "是否包含名校": "是",
+                        "备注信息": "想申请新加坡国立大学"
+                    },
+                    {
+                        "毕业院校": "北京师范大学",
+                        "专业名称": "教育学",
+                        "专业方向": "教育技术",
+                        "GPA成绩": "3.8",
+                        "语言考试成绩": "托福98",
+                        "标化考试成绩": "GRE318",
+                        "签约国家": "美国",
+                        "办理类型": "全套服务",
+                        "留学类别唯一": "博士",
+                        "是否包含名校": "是",
+                        "备注信息": "有教学经验和研究成果"
+                    },
+                    {
+                        "毕业院校": "四川大学",
+                        "专业名称": "软件工程",
+                        "专业方向": "云计算",
+                        "GPA成绩": "3.6",
+                        "语言考试成绩": "雅思7.0",
+                        "标化考试成绩": "无",
+                        "签约国家": "英国",
+                        "办理类型": "申请服务",
+                        "留学类别唯一": "硕士",
+                        "是否包含名校": "否",
+                        "备注信息": "有实习经验"
+                    },
+                    {
+                        "毕业院校": "华东师范大学",
+                        "专业名称": "心理学",
+                        "专业方向": "认知心理学",
+                        "GPA成绩": "3.9",
+                        "语言考试成绩": "托福105",
+                        "标化考试成绩": "GRE325",
+                        "签约国家": "美国",
+                        "办理类型": "全套服务",
+                        "留学类别唯一": "博士",
+                        "是否包含名校": "是",
+                        "备注信息": "有多篇论文发表"
+                    },
+                    {
+                        "毕业院校": "东南大学",
+                        "专业名称": "电子工程",
+                        "专业方向": "集成电路",
+                        "GPA成绩": "3.7",
+                        "语言考试成绩": "雅思7.5",
+                        "标化考试成绩": "GRE315",
+                        "签约国家": "香港",
+                        "办理类型": "文书服务",
+                        "留学类别唯一": "硕士",
+                        "是否包含名校": "是",
+                        "备注信息": "希望申请港大或港科大"
+                    }
+                ]
+                return test_data
+
             st.markdown("""
                 <style>
-                    /* 调整整体容器的宽度和可调整性 */
-                    .main .block-container {
-                        max-width: 100%;
-                        padding: 2rem;
-                        overflow-x: scroll !important;  /* 强制显示水平滚动条 */
+                    /* 确保列宽一致性 */
+                    .stColumn {
+                        padding: 0 5px !important;
+                        margin: 0 !important;
+                    }
+                    
+                    /* 输入框样式统一 */
+                    .stTextInput input {
+                        width: 100% !important;
+                        min-width: unset !important;
+                        padding: 8px 12px !important;
+                        box-sizing: border-box !important;
                     }
                     
                     /* 表单容器样式 */
@@ -465,65 +608,42 @@ def main():
                         padding: 20px;
                         margin: 10px 0;
                         width: 100%;
-                        min-width: 1500px;  /* 设置一个合适的最小宽度 */
-                        overflow-x: scroll !important;  /* 强制显示水平滚动条 */
-                        display: block;  /* 确保容器正确显示 */
-                    }
-                    
-                    /* 输入区域容器样式 */
-                    .input-container {
-                        width: 100%;
-                        min-width: 1500px;
                         overflow-x: auto;
-                        padding: 10px;
                     }
                     
-                    /* 输入行样式 */
-                    .input-row {
-                        display: flex !important;
-                        flex-wrap: nowrap !important;
-                        gap: 10px;
-                        margin-bottom: 10px;
-                        min-width: max-content;
-                    }
-                    
-                    /* 输入框样式 */
-                    .stTextInput input {
-                        min-width: 100px !important;
-                        width: 100px !important;
-                        padding: 8px 12px;
-                        font-size: 14px;
-                        height: auto !important;
-                        white-space: pre-wrap !important;
-                    }
-                    
-                    /* 列样式 */
-                    .stColumn {
-                        min-width: fit-content !important;
-                        flex: 0 0 auto !important;
-                        margin: 0 5px;
-                    }
-                    
-                    /* 确保表单内容不会溢出 */
-                    form {
-                        width: 100%;
-                        min-width: 1500px;
-                        overflow-x: auto;
+                    /* 确保标题和输入框对齐 */
+                    .stMarkdown div {
+                        margin-bottom: 0 !important;
+                        padding: 8px 0 !important;
                     }
                     
                     /* 调整不同字段的宽度 */
-                    .stColumn:nth-child(1) { width: 100px !important; }  /* 毕业院校 */
-                    .stColumn:nth-child(2) { width: 100px !important; }  /* 专业名称 */
-                    .stColumn:nth-child(3) { width: 100px !important; }  /* 专业方向 */
-                    .stColumn:nth-child(4) { width: 40px !important; }  /* GPA */
-                    .stColumn:nth-child(5) { width: 40px !important; }  /* 语言成绩 */
-                    .stColumn:nth-child(6) { width: 40px !important; }  /* 标化成绩 */
-                    .stColumn:nth-child(7) { width: 80px !important; }  /* 签约国家 */
-                    .stColumn:nth-child(8) { width: 80px !important; }  /* 办理类型 */
-                    .stColumn:nth-child(9) { width: 80px !important; }  /* 留学类别 */
-                    .stColumn:nth-child(10) { width: 40px !important; } /* 是否包含名校 */
-                    .stColumn:nth-child(11) { width: 200px !important; } /* 备注信息 */
-                    .stColumn:nth-child(12) { width: 20px !important; }  /* 删除按钮 */
+                    /* 使用grid布局确保对齐 */
+                    .input-grid {
+                        display: grid;
+                        grid-template-columns: 
+                            minmax(100px, 15fr)  /* 毕业院校 */
+                            minmax(100px, 15fr)  /* 专业名称 */
+                            minmax(100px, 15fr)  /* 专业方向 */
+                            minmax(40px, 8fr)   /* GPA */
+                            minmax(60px, 10fr)  /* 语言成绩 */
+                            minmax(60px, 10fr)  /* 标化成绩 */
+                            minmax(80px, 10fr)  /* 签约国家 */
+                            minmax(60px, 8fr)   /* 办理类型 */
+                            minmax(60px, 8fr)   /* 留学类别 */
+                            minmax(40px, 8fr)   /* 是否名校 */
+                            minmax(120px, 10fr) /* 备注信息 */
+                            minmax(20px, 5fr);  /* 删除按钮 */
+                        gap: 10px;
+                        align-items: center;
+                    }
+                    
+                    /* 确保内容不会溢出 */
+                    .stTextInput {
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
                 </style>
             """, unsafe_allow_html=True)
             
@@ -532,11 +652,51 @@ def main():
                 st.session_state.data_rows = 1
             
             # 添加行按钮（在表单外部）
-            col1, col2 = st.columns([8,2])
+            col1, col2, col3, col4 = st.columns([6,2,2,2])
             with col2:
                 if st.button("➕ 添加新行", type="primary"):
                     st.session_state.data_rows += 1
-            
+            with col3:
+                if st.button("📥 导入测试数据"):
+                    # 获取测试数据
+                    test_data = generate_test_data()
+                    # 设置行数
+                    st.session_state.data_rows = len(test_data)
+                    # 将测试数据存入session state，使用正确的key映射
+                    key_mapping = {
+                        "毕业院校": "school",
+                        "专业名称": "major",
+                        "专业方向": "major_direction",
+                        "GPA成绩": "gpa",
+                        "语言考试成绩": "language_score",
+                        "标化考试成绩": "standardized_score",
+                        "签约国家": "countries",
+                        "办理类型": "type",
+                        "留学类别唯一": "study_type",
+                        "是否包含名校": "top_school",
+                        "备注信息": "notes"
+                    }
+                    
+                    for i, data in enumerate(test_data):
+                        for zh_key, value in data.items():
+                            if zh_key in key_mapping:
+                                en_key = key_mapping[zh_key]
+                                session_key = f"{en_key}_{i}"
+                                st.session_state[session_key] = value
+                    st.rerun()
+            with col4:
+                if st.button("🗑️ 清空数据"):
+                    # 清空所有输入框的数据
+                    for i in range(st.session_state.data_rows):
+                        for key in ["school", "major", "major_direction", "gpa", 
+                                  "language_score", "standardized_score", "countries", 
+                                  "type", "study_type", "top_school", "notes"]:
+                            session_key = f"{key}_{i}"
+                            if session_key in st.session_state:
+                                st.session_state[session_key] = ""
+                    st.session_state.data_rows = 1
+                    st.rerun()
+
             # 创建表单
             with st.form("manual_input_form"):
                 # 调整列宽比例
@@ -547,8 +707,24 @@ def main():
                           "标化考试成绩", "签约国家", "办理类型", "留学类别唯一", 
                           "是否包含名校", "备注信息", "删除"]
                 
-                for col, header in zip(cols, headers):
-                    col.markdown(f"**{header}**")
+                # 使用容器确保标题对齐
+                with st.container():
+                    # 标题行
+                    for col, header in zip(cols, headers):
+                        # 使用固定宽度的div包装标题文本
+                        col.markdown(f"""
+                            <div style='
+                                width: 100%;
+                                text-align: left;
+                                overflow: hidden;
+                                white-space: nowrap;
+                                text-overflow: ellipsis;
+                                font-weight: bold;
+                                margin-bottom: 5px;
+                            '>
+                                {header}
+                            </div>
+                        """, unsafe_allow_html=True)
                 
                 # 输入字段部分也使用相同的列宽比例
                 manual_data_list = []
@@ -562,7 +738,8 @@ def main():
                         row_data["毕业院校"] = st.text_input(
                             f"毕业院校_{i}", 
                             key=f"school_{i}", 
-                            label_visibility="collapsed"
+                            label_visibility="collapsed",
+                            placeholder="输入学校名称"  # 添加占位符提示
                         )
                     with cols[1]:
                         row_data["专业名称"] = st.text_input(
