@@ -51,7 +51,7 @@ except Exception as e:
 
 # 其他导入
 import pandas as pd
-from agent_case_match7 import (
+from agent_case_match8 import (
     TAG_SYSTEM,
     process_student_case,
     PromptTemplates
@@ -156,7 +156,7 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
                         result_row["文案背景"] = "海归" if "海归" in tags.get("DemandOriented", []) else "名校" if "名校" in tags.get("DemandOriented", []) else ""
                     if "业务单位所在地" in output_tags:
                         # 先定义需要排除的标签
-                        exclude_tags = ["专家Lv. 6+", "资深Lv. 3+", "熟练Lv. 1+","海归", "名校"]
+                        exclude_tags = ["专家Lv. 6+", "资深Lv. 3+", "熟练Lv. 1+","海归", "名校","是","否"]
                         # 从DemandOriented中筛选出不在排除列表中的标签
                         business_locations = [
                             tag for tag in tags.get("DemandOriented", [])
@@ -164,6 +164,8 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
                         ]
                         
                         result_row["业务单位所在地"] = ", ".join(business_locations)
+                    if "做过该生所在院校的客户" in output_tags:
+                        result_row["做过该生所在院校的客户"] = ""
 
                 else:
                     st.write("❌ 处理失败")
@@ -341,10 +343,10 @@ def main():
             "选择需要输出的标签",
             options=[
                 "国家标签", "专业标签", "名校专家", "顶级名校猎手", "博士专家", "博士攻坚手",
-                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地"
+                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地",'做过该生所在院校的客户'
             ],
             default=["国家标签","专业标签", "名校专家", "顶级名校猎手", "博士专家", "博士攻坚手",
-                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地"]
+                "低龄留学专家", "低龄留学攻坚手", "行业经验","文案背景", "业务单位所在地","做过该生所在院校的客户"]
         )
         
         # 添加选项卡来切换输入方式
@@ -448,86 +450,80 @@ def main():
                     st.error(f"处理文件时出错: {str(e)}")
 
         with tab2:
-            # 添加自定义CSS来调整输入框宽度和样式
             st.markdown("""
                 <style>
                     /* 调整整体容器的宽度和可调整性 */
                     .main .block-container {
                         max-width: 100%;
                         padding: 2rem;
-                        resize: both;  /* 允许双向调整大小 */
-                        overflow: auto;
-                        min-width: 1200px;
-                        border-left: 1px solid #ddd;  /* 添加左边界，使其可见 */
-                        margin-left: 10px;  /* 给左边留出一些空间 */
+                        overflow-x: scroll !important;  /* 强制显示水平滚动条 */
                     }
                     
-                    /* 固定表头样式 */
-                    .header-row {
-                        position: sticky;
-                        top: 0;
-                        background-color: white;
-                        z-index: 1;
-                    }
-                    
-                    /* 保持每行输入框在同一行 */
-                    .input-row {
-                        display: flex !important;
-                        flex-wrap: nowrap !important;
-                        width: 100%;
-                    }
-                    
-                    /* 调整输入框样式 */
-                    .stTextInput input {
-                        min-width: 80px !important;
-                        width: auto !important;  /* 宽度自动适应内容 */
-                        max-width: 160px !important;  /* 设置最大宽度限制 */
-                        padding: 8px 12px;
-                        font-size: 14px;
-                        height: auto !important;  /* 允许高度自动调整 */
-                        white-space: normal;  /* 允许文本换行 */
-                        word-wrap: break-word;  /* 确保长单词也能换行 */
-                        overflow-wrap: break-word;  /* 现代浏览器的换行支持 */
-                    }
-                    
-                    /* 调整下拉框样式 */
-                    .stSelectbox select {
-                        min-width: 150px !important;
-                        width: 100% !important;
-                        padding: 8px 12px;
-                        font-size: 14px;
-                        height: 40px !important;
-                    }
-                    
-                    /* 调整列宽度 */
-                    .stColumn {
-                        min-width: fit-content !important;
-                        flex: 0 0 auto !important;  /* 防止列收缩 */
-                        margin: 0 5px;
-                    }
-                    
-                    /* 添加滚动样式 */
+                    /* 表单容器样式 */
                     [data-testid="stForm"] {
-                        max-height: 800px;
-                        overflow-x: auto;  /* 允许水平滚动 */
-                        overflow-y: auto;  /* 允许垂直滚动 */
-                        resize: both;  /* 允许调整大小 */
-                        min-height: 400px;
                         border: 1px solid #ddd;
+                        padding: 20px;
+                        margin: 10px 0;
+                        width: 100%;
+                        min-width: 1500px;  /* 设置一个合适的最小宽度 */
+                        overflow-x: scroll !important;  /* 强制显示水平滚动条 */
+                        display: block;  /* 确保容器正确显示 */
+                    }
+                    
+                    /* 输入区域容器样式 */
+                    .input-container {
+                        width: 100%;
+                        min-width: 1500px;
+                        overflow-x: auto;
                         padding: 10px;
                     }
                     
-                    /* 确保表格结构不会被破坏 */
-                    .stForm > div {
-                        display: table !important;
-                        width: 100%;
+                    /* 输入行样式 */
+                    .input-row {
+                        display: flex !important;
+                        flex-wrap: nowrap !important;
+                        gap: 10px;
+                        margin-bottom: 10px;
                         min-width: max-content;
                     }
                     
-                    /* 输入框hover效果 */
-                    .stTextInput input:hover {
-                        border-color: #09f;
+                    /* 输入框样式 */
+                    .stTextInput input {
+                        min-width: 100px !important;
+                        width: 100px !important;
+                        padding: 8px 12px;
+                        font-size: 14px;
+                        height: auto !important;
+                        white-space: pre-wrap !important;
                     }
+                    
+                    /* 列样式 */
+                    .stColumn {
+                        min-width: fit-content !important;
+                        flex: 0 0 auto !important;
+                        margin: 0 5px;
+                    }
+                    
+                    /* 确保表单内容不会溢出 */
+                    form {
+                        width: 100%;
+                        min-width: 1500px;
+                        overflow-x: auto;
+                    }
+                    
+                    /* 调整不同字段的宽度 */
+                    .stColumn:nth-child(1) { width: 100px !important; }  /* 毕业院校 */
+                    .stColumn:nth-child(2) { width: 100px !important; }  /* 专业名称 */
+                    .stColumn:nth-child(3) { width: 100px !important; }  /* 专业方向 */
+                    .stColumn:nth-child(4) { width: 40px !important; }  /* GPA */
+                    .stColumn:nth-child(5) { width: 40px !important; }  /* 语言成绩 */
+                    .stColumn:nth-child(6) { width: 40px !important; }  /* 标化成绩 */
+                    .stColumn:nth-child(7) { width: 80px !important; }  /* 签约国家 */
+                    .stColumn:nth-child(8) { width: 80px !important; }  /* 办理类型 */
+                    .stColumn:nth-child(9) { width: 80px !important; }  /* 留学类别 */
+                    .stColumn:nth-child(10) { width: 40px !important; } /* 是否包含名校 */
+                    .stColumn:nth-child(11) { width: 200px !important; } /* 备注信息 */
+                    .stColumn:nth-child(12) { width: 20px !important; }  /* 删除按钮 */
                 </style>
             """, unsafe_allow_html=True)
             
@@ -618,9 +614,8 @@ def main():
                             label_visibility="collapsed"
                         )
                     with cols[9]:
-                        row_data["是否包含名校"] = st.selectbox(
-                            f"名校_{i}", 
-                            ["是", "否"], 
+                        row_data["是否包含名校"] = st.text_input(
+                            f"是否包含名校_{i}", 
                             key=f"top_school_{i}", 
                             label_visibility="collapsed"
                         )
