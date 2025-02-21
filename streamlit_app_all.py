@@ -854,8 +854,12 @@ def main():
 
     with tab2:
         # 导入 match.py 的主函数并执行
-        from match import main as match_main
-        match_main()
+        from match import match_main
+        try:
+            match_main()
+        except Exception as e:
+            logger.error(f"匹配系统运行失败: {str(e)}")
+            st.error(f"匹配系统运行失败: {str(e)}")
 
 if __name__ == "__main__":
     logger.info("开始运行应用")

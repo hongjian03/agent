@@ -381,7 +381,7 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
  # 调用 find_best_matches 函数并返回结果
     return find_best_matches(consultant_tags_file, sample_df, merge_df)
 
-def main():
+def match_main():
     st.title("顾问匹配系统")
     
     # 初始化 session_state
@@ -521,7 +521,7 @@ def main():
             st.write("顾问匹配状态:", "✅ 完成" if 'matching_results' in locals() else "⏳ 待处理")
 
 if __name__ == "__main__":
-    main()
+    match_main()
 
 #cd agent
 #streamlit run match.py
