@@ -122,7 +122,9 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
                     st.write("📚 专业标签：", ", ".join(tags.get("majors", [])))
                     st.write("🏫 院校层次：", ", ".join(tags.get("schoolLevel", [])))
                     st.write("🎯 特殊项目标签：", ", ".join(tags.get("SpecialProjects", [])))
-                    st.write("📋 需求导向标签：", ", ".join(tags.get("DemandOriented", [])))
+                    st.write("📋 行业经验标签：", ", ".join(tags.get("Industryexperience", [])))
+                    st.write("📋 顾问背景标签：", ", ".join(tags.get("Consultantbackground", [])))
+                    st.write("📋 业务所在地：", ", ".join(tags.get("businessLocation", [])))
                     
                     # 构建结果行
                     result_row = {
