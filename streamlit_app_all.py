@@ -227,9 +227,9 @@ def main():
     logger.info("进入主函数")
     
     # 创建两个标签页
-    tab1, tab2 = st.tabs(["标签匹配系统", "顾问匹配系统"])
+    system_tab1, system_tab2 = st.tabs(["标签匹配系统", "顾问匹配系统"])
     
-    with tab1:
+    with system_tab1:
         st.title("留学申请标签匹配系统")
         # 初始化配置
         try:
@@ -381,9 +381,9 @@ def main():
             )
             
             # 添加选项卡来切换输入方式
-            tab1, tab2 = st.tabs(["Excel文件上传", "手动输入"])
+            input_tab1, input_tab2 = st.tabs(["Excel文件上传", "手动输入"])
             
-            with tab1:
+            with input_tab1:
                 # 文件上传和处理部分
                 uploaded_file = st.file_uploader("上传Excel文件", type=['xlsx', 'xls'])
                 
@@ -480,7 +480,7 @@ def main():
                         logger.error(f"处理文件时出错: {str(e)}")
                         st.error(f"处理文件时出错: {str(e)}")
 
-            with tab2:
+            with input_tab2:
 
                 def generate_test_data():
                     test_data = [
@@ -852,7 +852,7 @@ def main():
             st.error(f"配置初始化失败: {str(e)}")
             return
 
-    with tab2:
+    with system_tab2:
         # 导入 match.py 的主函数并执行
         from match import (
             Label_processing,
