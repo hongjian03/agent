@@ -854,13 +854,156 @@ def main():
 
     with tab2:
         # 导入 match.py 的主函数并执行
-        from match import match_main
+        from match import (
+            Label_processing,
+            label_merge,
+            Consultant_matching
+        )
         try:
-            match_main()
-        except Exception as e:
-            logger.error(f"匹配系统运行失败: {str(e)}")
-            st.error(f"匹配系统运行失败: {str(e)}")
+            # 导入核心功能函数
+            
+            st.title("顾问匹配系统")
+            
+            # 初始化 session_state
+            if 'processed_df' not in st.session_state:
+                st.session_state.processed_df = None
+            if 'merged_df' not in st.session_state:
+                st.session_state.merged_df = None
+            
+            # 文件上传区域
+            with st.container():
+                st.subheader("数据上传")
+                uploaded_sample_data = st.file_uploader("请上传案例数据", type=['xlsx'], key='sample')
+                uploaded_merge_data = st.file_uploader("请上传需要合并的主体数据表", type=['xlsx'], key='merge')
+                uploaded_consultant_tags = st.file_uploader("请上传文案顾问标签汇总", type=['xlsx'], key='consultant')
+                
+                # 读取所有上传的文件
+                if uploaded_sample_data is not None:
+                    sample_df = pd.read_excel(uploaded_sample_data)
+                    st.success("案例数据上传成功")
+                    
+                if uploaded_merge_data is not None:
+                    merge_df = pd.read_excel(uploaded_merge_data)
+                    st.success("主体数据表上传成功")
+                    
+                if uploaded_consultant_tags is not None:
+                    consultant_tags_df = pd.read_excel(uploaded_consultant_tags)
+                    st.success("顾问标签汇总上传成功")
+            
+            # 处理按钮区域
+            with st.container():
+                st.subheader("数据处理")
+                col1, col2, col3 = st.columns(3)
+                
+                # 标签处理按钮
+                with col1:
+                    if st.button("开始标签处理"):
+                        if uploaded_sample_data is not None:
+                            try:
+                                st.session_state.processed_df = Label_processing(sample_df)
+                                st.success("标签处理完成！")
+                                # 显示处理后的数据预览
+                                st.write("处理后数据预览：")
+                                st.dataframe(st.session_state.processed_df.head())
+                                
+                                # 添加下载按钮
+                                buffer = io.BytesIO()
+                                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                                    st.session_state.processed_df.to_excel(writer, index=False, sheet_name='标签处理结果')
+                                st.download_button(
+                                    label="下载标签处理结果",
+                                    data=buffer.getvalue(),
+                                    file_name="标签处理结果.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                )
+                            except Exception as e:
+                                st.error(f"标签处理出错: {str(e)}")
+                        else:
+                            st.warning("请先上传案例数据")
+                
+                # 标签合并按钮
+                with col2:
+                    if st.button("开始标签合并"):
+                        if st.session_state.processed_df is not None and uploaded_merge_data is not None:
+                            try:
+                                st.session_state.merged_df = label_merge(st.session_state.processed_df, merge_df)
+                                st.success("标签合并完成！")
+                                # 显示合并后的数据预览
+                                st.write("合并后数据预览：")
+                                st.dataframe(st.session_state.merged_df.head())
+                                
+                                # 添加下载按钮
+                                buffer = io.BytesIO()
+                                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                                    st.session_state.merged_df.to_excel(writer, index=False, sheet_name='标签合并结果')
+                                st.download_button(
+                                    label="下载标签合并结果",
+                                    data=buffer.getvalue(),
+                                    file_name="标签合并结果.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                )
+                            except Exception as e:
+                                st.error(f"标签合并出错: {str(e)}")
+                        else:
+                            st.warning("请先完成标签处理并上传主体数据表")
+                
+                # 顾问匹配按钮
+                with col3:
+                    if st.button("开始顾问匹配"):
+                        if st.session_state.merged_df is not None and uploaded_consultant_tags is not None:
+                            try:
+                                # 调用顾问匹配函数
+                                matching_results = Consultant_matching(
+                                    consultant_tags_df,
+                                    sample_df,
+                                    st.session_state.merged_df
+                                )
+                                st.success("顾问匹配完成！")
+                                
+                                # 将匹配结果添加到原始sample数据中
+                                result_df = sample_df.copy()
+                                result_df['匹配文案列表'] = ''
+                                
+                                # 将匹配结果填入对应行
+                                for case, consultants in matching_results.items():
+                                    idx = int(case.replace('案例', '')) - 1
+                                    consultant_str = '；'.join(consultants)
+                                    result_df.loc[idx, '匹配文案列表'] = consultant_str
+                                
+                                # 显示结果预览
+                                st.write("匹配结果预览：")
+                                st.dataframe(result_df)
+                                
+                                # 添加下载按钮
+                                buffer = io.BytesIO()
+                                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                                    result_df.to_excel(writer, index=False, sheet_name='顾问匹配结果')
+                                st.download_button(
+                                    label="下载顾问匹配结果",
+                                    data=buffer.getvalue(),
+                                    file_name="顾问匹配结果.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                )
+                            except Exception as e:
+                                st.error(f"顾问匹配出错: {str(e)}")
+                        else:
+                            st.warning("请先完成标签合并并上传顾问标签汇总")
+            
+            # 显示处理状态
+            with st.container():
+                st.subheader("处理状态")
+                status_col1, status_col2, status_col3 = st.columns(3)
+                with status_col1:
+                    st.write("标签处理状态:", "✅ 完成" if st.session_state.processed_df is not None else "⏳ 待处理")
+                with status_col2:
+                    st.write("标签合并状态:", "✅ 完成" if st.session_state.merged_df is not None else "⏳ 待处理")
+                with status_col3:
+                    st.write("顾问匹配状态:", "✅ 完成" if 'matching_results' in locals() else "⏳ 待处理")
 
+            
+        except Exception as e:
+            logger.error(f"顾问匹配系统加载失败: {str(e)}")
+            st.error(f"顾问匹配系统加载失败: {str(e)}")
 if __name__ == "__main__":
     logger.info("开始运行应用")
     main()
