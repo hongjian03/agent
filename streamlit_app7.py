@@ -151,19 +151,11 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
                     if "低龄留学攻坚手" in output_tags:
                         result_row["低龄留学攻坚手"] = "低龄留学攻坚手" if "低龄留学攻坚手" in tags.get("SpecialProjects", []) else ""
                     if "行业经验" in output_tags:
-                        result_row["行业经验"] = "专家Lv. 6+" if "专家Lv. 6+" in tags.get("DemandOriented", []) else "资深Lv. 3+" if "资深Lv. 3+" in tags.get("stability", []) else "熟练Lv. 1+"
+                        result_row["行业经验"] = "专家Lv. 6+" if "专家Lv. 6+" in tags.get("Industryexperience", []) else "资深Lv. 3+" if "资深Lv. 3+" in tags.get("Industryexperience", []) else "熟练Lv. 1+"
                     if "文案背景" in output_tags:
-                        result_row["文案背景"] = "海归" if "海归" in tags.get("DemandOriented", []) else "名校" if "名校" in tags.get("DemandOriented", []) else ""
+                        result_row["文案背景"] = "海归" if "海归" in tags.get("Consultantbackground", []) else "名校" if "名校" in tags.get("Consultantbackground", []) else ""
                     if "业务单位所在地" in output_tags:
-                        # 先定义需要排除的标签
-                        exclude_tags = ["专家Lv. 6+", "资深Lv. 3+", "熟练Lv. 1+","海归", "名校","是","否"]
-                        # 从DemandOriented中筛选出不在排除列表中的标签
-                        business_locations = [
-                            tag for tag in tags.get("DemandOriented", [])
-                            if tag not in exclude_tags
-                        ]
-                        
-                        result_row["业务单位所在地"] = ", ".join(business_locations)
+                        result_row["业务单位所在地"] = tags.get("businessLocation", [])
                     if "做过该生所在院校的客户" in output_tags:
                         result_row["做过该生所在院校的客户"] = ""
 
@@ -322,8 +314,39 @@ def main():
                     }
                 }
             ```
-
-            **2. 标签提取结果示例：**
+            **2. 标签体系示例：**
+            ```json
+            TAG_SYSTEM = {
+                "countries": [
+                    "中国大陆", "中国澳门", "中国香港", "丹麦", "俄罗斯", "加拿大",
+                    "匈牙利", "奥地利", "德国", "意大利", "挪威", "新加坡", 
+                    "新西兰", "日本", "比利时", "法国", "泰国", "澳大利亚",
+                    "爱尔兰", "瑞典", "瑞士", "美国", "芬兰", "英国",
+                    "荷兰", "西班牙", "韩国", "马来西亚"
+                ],
+                "majors": [
+                    "计算机与信息系统", "土木与环境", "生物与医学", "机械与工程",
+                    "数学与统计", "法学", "国际关系与政策", "心理学",
+                    "商科管理", "金融与会计", "经济学",
+                    "传媒与新闻", "语言与文学", "人文学科", "教育学", "艺术学"
+                ],
+                "schoolLevel": [
+                    "名校专家", "顶级名校猎手"
+                ],
+                "SpecialProjects": [
+                    "博士攻坚手", "博士专家", "低龄留学攻坚手", "低龄留学专家"
+                ],
+                "Industryexperience": [
+                    "熟练Lv. 1+", "资深Lv. 3+", "专家Lv. 6+"
+                ],
+                "Consultantbackground": [
+                    "海归", "名校"
+                ],
+                "businessLocation": [
+                    "业务单位所在地"
+                ]
+            }
+            **3. 标签提取结果示例：**
             ```json
             {
               "recommended_tags": {
@@ -331,8 +354,10 @@ def main():
                 "majors": ["string, 专业标签"],
                 "schoolLevel": ["string, 院校层次"],
                 "SpecialProjects": ["string, 特殊项目标签"],
-                "DemandOriented": ["string, 需求导向标签"],
-                }
+                "Industryexperience": ["string, 行业经验标签"],
+                "Consultantbackground  ": ["string, 顾问背景标签"],
+                "businessLocation": ["string, 业务所在地"],
+              }
             }
             ```
             """)
