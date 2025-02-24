@@ -554,13 +554,12 @@ def main():
                                 
                                 with thinking_area:
                                     process_placeholder = st.empty()
+                                    messages = []  # 创建一个列表来存储所有消息
                                     
-                                    # 修改更新处理过程的函数
                                     def update_process(message):
-                                        # 使用 markdown 方法替代 text 方法
-                                        current_content = process_placeholder.markdown or ""
-                                        new_content = current_content + "\n\n" + message
-                                        process_placeholder.markdown(new_content)
+                                        messages.append(message)  # 将新消息添加到列表中
+                                        # 使用换行符连接所有消息并显示
+                                        process_placeholder.markdown("\n\n".join(messages))
                                     
                                     # 在处理过程中更新状态
                                     update_process("🔍 开始分析学生案例...")
