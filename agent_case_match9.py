@@ -489,6 +489,7 @@ def process_student_case2(student_case, callback=None):
             输出格式要求：
             {st.session_state.prompt_templates.get_template('tag_recommendation_structure')}
             """,
+            expected_output=st.session_state.prompt_templates.get_template('tag_recommendation_structure'),
             agent=expert
         )
         
