@@ -520,6 +520,7 @@ def main():
                 )
                 
                 # 添加示例按钮
+                '''
                 if st.button("加载示例案例", key="load_example"):
                     example_case = """这是一位来自浙江大学的大四学生，就读于计算机科学与技术专业，专业方向是人工智能。
                         学术表现优秀，GPA达到3.8/4.0，托福成绩100分，GRE总分320分。
@@ -539,7 +540,7 @@ def main():
                     
                     st.session_state.student_case = example_case
                     st.rerun()
-                
+                '''
                 # 添加处理按钮
                 if st.button("开始分析", key="start_analysis") and student_case:
                     with st.spinner("正在分析学生案例..."):
