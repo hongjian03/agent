@@ -488,10 +488,7 @@ def process_student_case2(student_case, callback=None):
         # 执行任务并直接返回结果
         result = task.execute()
         
-        if callback:
-            callback("5️⃣ 获取分析结果...")
-            callback(f"📝 模型返回结果：\n{result}")
-            callback("✅ 分析完成！")
+
         
         return {
             "status": "success",

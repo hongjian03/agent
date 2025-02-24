@@ -572,7 +572,7 @@ def main():
                                     update_process("✅ 分析完成！")
 
                             if result["status"] == "success":
-                                st.success("✅ 分析完成！")
+                                
                                 
                                 # 显示原始输出
                                 st.subheader("模型输出结果")
