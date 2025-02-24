@@ -555,10 +555,10 @@ def main():
                                 with thinking_area:
                                     process_placeholder = st.empty()
                                     
-                                    # 创建一个函数来更新处理过程
+                                    # 修改更新处理过程的函数
                                     def update_process(message):
                                         # 获取现有内容并添加新消息
-                                        current_content = process_placeholder.text or ""
+                                        current_content = process_placeholder.text() if process_placeholder.text() is not None else ""
                                         new_content = current_content + "\n\n" + message
                                         process_placeholder.text(new_content)
                                     
