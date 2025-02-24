@@ -464,6 +464,8 @@ def clean_json_string(json_str):
 def process_student_case2(student_case, callback=None):
     try:
         if callback:
+            callback("🔍 开始分析学生案例...")
+            callback("1️⃣ 提取关键信息...")
             callback("2️⃣ 创建分析专家...")
         
         # 创建专家代理
@@ -485,9 +487,6 @@ def process_student_case2(student_case, callback=None):
             
             学生案例信息：
             {student_case}
-            
-            输出格式要求：
-            {st.session_state.prompt_templates.get_template('tag_recommendation_structure')}
             """,
             expected_output=st.session_state.prompt_templates.get_template('tag_recommendation_structure'),
             agent=expert
@@ -496,26 +495,18 @@ def process_student_case2(student_case, callback=None):
         if callback:
             callback("4️⃣ 生成标签建议...")
         
-        # 执行任务
+        # 执行任务并直接返回结果
         result = task.execute()
         
         if callback:
-            callback("5️⃣ 解析分析结果...")
+            callback("5️⃣ 获取分析结果...")
+            callback(f"📝 模型返回结果：\n{result}")
+            callback("✅ 分析完成！")
         
-        # 解析JSON结果
-        try:
-            tags = json.loads(result)
-            return {
-                "status": "success",
-                "recommended_tags": tags["recommended_tags"]
-            }
-        except json.JSONDecodeError:
-            if callback:
-                callback("❌ JSON解析失败，尝试重新格式化结果...")
-            return {
-                "status": "error",
-                "error_message": "结果格式解析失败"
-            }
+        return {
+            "status": "success",
+            "raw_output": result  # 直接返回原始输出
+        }
             
     except Exception as e:
         if callback:
@@ -524,7 +515,6 @@ def process_student_case2(student_case, callback=None):
             "status": "error",
             "error_message": str(e)
         }
-
 
 
 
