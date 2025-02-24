@@ -265,17 +265,7 @@ class PromptTemplates:
             """,
 
             'tag_recommendation_structure': """
-            {{
-            "recommended_tags": {{
-                "countries": ["string, 国家标签"],
-                "majors": ["string, 专业标签"],
-                "schoolLevel": ["string, 院校层次"],
-                "SpecialProjects": ["string, 特殊项目标签"],
-                "Industryexperience": ["string, 行业经验标签"],
-                "Consultantbackground  ": ["string, 顾问背景标签"],
-                "businessLocation": ["string, 业务所在地"],
-              }}
-            }}
+            按照任务要求，用中文输出标签，并说明原因
             """
         }
     

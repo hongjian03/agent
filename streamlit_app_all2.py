@@ -577,27 +577,27 @@ def main():
                                 st.subheader("模型输出结果")
                                 st.code(result["raw_output"], language="json")
                                 
-                                # 创建DataFrame来展示结果
-                                result_df = pd.DataFrame([{
-                                    "案例描述": student_case,
-                                    **result["recommended_tags"]
-                                }])
+                                # 不再创建 DataFrame
+                                # result_df = pd.DataFrame([{
+                                #     "案例描述": student_case,
+                                #     **result["recommended_tags"]  # 删除这行
+                                # }])
                                 
-                                # 显示结果表格
-                                st.subheader("分析结果")
-                                st.dataframe(result_df)
+                                # # 不再显示结果表格
+                                # st.subheader("分析结果")
+                                # st.dataframe(result_df)
                                 
-                                # 提供下载选项
-                                buffer = io.BytesIO()
-                                with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                                    result_df.to_excel(writer, index=False, sheet_name='分析结果')
+                                # # 不再提供下载选项
+                                # buffer = io.BytesIO()
+                                # with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                                #     result_df.to_excel(writer, index=False, sheet_name='分析结果')
                                 
-                                st.download_button(
-                                    label="下载Excel格式结果",
-                                    data=buffer.getvalue(),
-                                    file_name="标签分析结果.xlsx",
-                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                )
+                                # st.download_button(
+                                #     label="下载Excel格式结果",
+                                #     data=buffer.getvalue(),
+                                #     file_name="标签分析结果.xlsx",
+                                #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                # )
                             else:
                                 st.error(f"处理失败: {result['error_message']}")
                         
