@@ -566,7 +566,7 @@ def main():
                                     update_process("1️⃣ 提取关键信息...")
                                     
                                     # 直接将文本传给大模型处理，并获取处理过程
-                                    result = process_student_case(student_case, callback=update_process)
+                                    result = process_student_case2(student_case, callback=update_process)
                                     
                                     update_process("✅ 分析完成！")
 
