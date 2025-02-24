@@ -141,17 +141,24 @@ def process_excel_custom(df, tag_system, output_tags, progress_bar, status_text,
                     if "专业标签" in output_tags:
                         result_row["专业标签"] = ", ".join(tags.get("majors", []))
                     if "名校申请经验丰富" in output_tags:
-                        result_row["名校申请经验丰富"] = "名校申请经验丰富" if "名校申请经验丰富" in tags.get("schoolLevel", []) else ""
+                        # 使用列表推导式找出所有包含"名校申请经验丰富"的标签
+                        matching_tags = [tag for tag in tags.get("schoolLevel", []) if "名校申请经验丰富" in tag]
+                        result_row["名校申请经验丰富"] = "、".join(matching_tags) if matching_tags else ""
                     if "顶级名校成功案例" in output_tags:
-                        result_row["顶级名校成功案例"] = "顶级名校成功案例" if "顶级名校成功案例" in tags.get("schoolLevel", []) else ""
+                        matching_tags = [tag for tag in tags.get("schoolLevel", []) if "顶级名校成功案例" in tag]
+                        result_row["顶级名校成功案例"] = "、".join(matching_tags) if matching_tags else ""
                     if "博士成功案例" in output_tags:
-                        result_row["博士成功案例"] = "博士成功案例" if "博士成功案例" in tags.get("SpecialProjects", []) else ""
+                        matching_tags = [tag for tag in tags.get("SpecialProjects", []) if "博士成功案例" in tag]
+                        result_row["博士成功案例"] = "、".join(matching_tags) if matching_tags else ""
                     if "博士申请经验" in output_tags:
-                        result_row["博士申请经验"] = "博士申请经验" if "博士申请经验" in tags.get("SpecialProjects", []) else ""
+                        matching_tags = [tag for tag in tags.get("SpecialProjects", []) if "博士申请经验" in tag]
+                        result_row["博士申请经验"] = "、".join(matching_tags) if matching_tags else ""
                     if "低龄留学成功案例" in output_tags:
-                        result_row["低龄留学成功案例"] = "低龄留学成功案例" if "低龄留学成功案例" in tags.get("SpecialProjects", []) else ""
+                        matching_tags = [tag for tag in tags.get("SpecialProjects", []) if "低龄留学成功案例" in tag]
+                        result_row["低龄留学成功案例"] = "、".join(matching_tags) if matching_tags else ""
                     if "低龄留学申请经验" in output_tags:
-                        result_row["低龄留学申请经验"] = "低龄留学申请经验" if "低龄留学申请经验" in tags.get("SpecialProjects", []) else ""
+                        matching_tags = [tag for tag in tags.get("SpecialProjects", []) if "低龄留学申请经验" in tag]
+                        result_row["低龄留学申请经验"] = "、".join(matching_tags) if matching_tags else ""
                     if "行业经验" in output_tags:
                         result_row["行业经验"] = "专家Lv. 6+" if "专家Lv. 6+" in tags.get("Industryexperience", []) else "资深Lv. 3+" if "资深Lv. 3+" in tags.get("Industryexperience", []) else "熟练Lv. 1+"
                     if "文案背景" in output_tags:
