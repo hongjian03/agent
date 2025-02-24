@@ -557,10 +557,10 @@ def main():
                                     
                                     # 修改更新处理过程的函数
                                     def update_process(message):
-                                        # 获取现有内容并添加新消息
-                                        current_content = process_placeholder.text() if process_placeholder.text() is not None else ""
+                                        # 使用 markdown 方法替代 text 方法
+                                        current_content = process_placeholder.markdown or ""
                                         new_content = current_content + "\n\n" + message
-                                        process_placeholder.text(new_content)
+                                        process_placeholder.markdown(new_content)
                                     
                                     # 在处理过程中更新状态
                                     update_process("🔍 开始分析学生案例...")
