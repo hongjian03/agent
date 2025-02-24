@@ -299,7 +299,7 @@ def main():
                 )
 
             # 更新按钮
-            if st.sidebar.button("更新提示词"):
+            if st.sidebar.button("更新提示词", key="update_prompts"):
                 prompt_templates.update_template('tag_specialist', tag_backstory)
                 prompt_templates.update_template('tag_task', tag_task)
                 prompt_templates.update_template('tag_recommendation_structure', tag_recommendation_structure)
@@ -520,7 +520,7 @@ def main():
                 )
                 
                 # 添加示例按钮
-                if st.button("加载示例案例"):
+                if st.button("加载示例案例", key="load_example"):
                     example_case = """这是一位来自浙江大学的大四学生，就读于计算机科学与技术专业，专业方向是人工智能。
                         学术表现优秀，GPA达到3.8/4.0，托福成绩100分，GRE总分320分。
 
@@ -541,10 +541,11 @@ def main():
                     st.rerun()
                 
                 # 添加处理按钮
-                if st.button("开始分析") and student_case:
+                if st.button("开始分析", key="start_analysis") and student_case:
                     with st.spinner("正在分析学生案例..."):
                         try:
                             # 创建一个展示区来显示处理过程
+                            thinking_process = st.empty()
                             process_container = st.container()
                             
                             with process_container:
@@ -566,7 +567,7 @@ def main():
                                     update_process("1️⃣ 提取关键信息...")
                                     
                                     # 直接将文本传给大模型处理，并获取处理过程
-                                    result = process_student_case2(student_case, callback=update_process)
+                                    result = process_student_case(student_case, callback=update_process)
                                     
                                     update_process("✅ 分析完成！")
 
