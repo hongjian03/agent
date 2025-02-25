@@ -154,11 +154,17 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         # 1. 国家标签匹配
         if '国家标签' in case and pd.notna(case['国家标签']):
-            case_countries = set(re.split(r'[、,，]', case['国家标签']))
+            # 处理案例国家，去除空格
+            case_countries = {country.strip() for country in re.split(r'[、,，\s]+', case['国家标签'])}
+            
+            # 处理顾问国家，去除空格
+            absolute_high_freq = {country.strip() for country in re.split(r'[、,，\s]+', consultant['绝对高频国家'])} if pd.notna(consultant['绝对高频国家']) else set()
+            relative_high_freq = {country.strip() for country in re.split(r'[、,，\s]+', consultant['相对高频国家'])} if pd.notna(consultant['相对高频国家']) else set()
+            
             st.write(f"案例国家: {case_countries}")
             # 获取顾问的各级别国家集合
-            absolute_high_freq = set(re.split(r'[、,，]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
-            relative_high_freq = set(re.split(r'[、,，]', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
+            absolute_high_freq = set(re.split(r'[、,，\s]+', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
+            relative_high_freq = set(re.split(r'[、,，\s]+', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
             st.write(f"顾问绝对高频国家: {absolute_high_freq}")
             st.write(f"顾问相对高频国家: {relative_high_freq}")
             # 检查是否完全包含目标国家
@@ -175,9 +181,9 @@ def Consultant_matching(consultant_tags_file, merge_df):
 
         # 2. 专业标签匹配
         if '专业标签' in case and pd.notna(case['专业标签']):
-            case_majors = set(re.split(r'[、,，]', case['专业标签']))
-            absolute_high_freq_majors = set(re.split(r'[、,，]', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
-            relative_high_freq_majors = set(re.split(r'[、,，]', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
+            case_majors = set(re.split(r'[、,，\s]+', case['专业标签']))
+            absolute_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
+            relative_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
             
             if case_majors.issubset(absolute_high_freq_majors):
                 tag_score_dict['绝对高频专业'] = tag_weights['绝对高频专业']
@@ -193,8 +199,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
         for tag in special_tags:
             if pd.notna(case[tag]) and pd.notna(consultant[tag]) and case[tag] != '':
                 # 将case和consultant的标签都分割成集合
-                case_tags = set(re.split(r'[、,，]', case[tag]))
-                consultant_tags = set(re.split(r'[、,，]', consultant[tag]))
+                case_tags = set(re.split(r'[、,，\s]+', case[tag]))
+                consultant_tags = set(re.split(r'[、,，\s]+', consultant[tag]))
                 
                 # 检查consultant的标签是否包含case所需的所有标签
                 if case_tags.issubset(consultant_tags):
@@ -203,8 +209,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
 
         # 4. 行业经验标签匹配（反向包含关系：consultant的标签要包含在case中）
         if pd.notna(case['行业经验']) and pd.notna(consultant['行业经验']) and case['行业经验'] != '':
-            case_industry = set(re.split(r'[、,，]', case['行业经验']))
-            consultant_industry = set(re.split(r'[、,，]', consultant['行业经验']))
+            case_industry = set(re.split(r'[、,，\s]+', case['行业经验']))
+            consultant_industry = set(re.split(r'[、,，\s]+', consultant['行业经验']))
             
             # 检查consultant的行业经验是否被case的行业经验包含
             if consultant_industry.issubset(case_industry):
