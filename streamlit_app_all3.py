@@ -714,13 +714,12 @@ def main():
                                 # 调用顾问匹配函数
                                 matching_results = Consultant_matching(
                                     consultant_tags_df,
-                                    st.session_state.case_data,  # 使用session中的原始案例数据
                                     st.session_state.merged_df
                                 )
                                 st.success("顾问匹配完成！")
                                 
                                 # 将匹配结果添加到原始案例数据中
-                                result_df = st.session_state.case_data.copy()
+                                result_df = st.session_state.tagged_data.copy()
                                 result_df['匹配文案列表'] = ''
                                 
                                 # 将匹配结果填入对应行
@@ -746,17 +745,15 @@ def main():
                             except Exception as e:
                                 st.error(f"顾问匹配出错: {str(e)}")
                         else:
-                            st.warning("请先完成标签合并并上传顾问标签汇总")
+                            st.warning("请先完成标签处理并上传顾问标签汇总")
             
             # 显示处理状态
             with st.container():
                 st.subheader("处理状态")
-                status_col1, status_col2, status_col3 = st.columns(3)
+                status_col1, status_col2,  = st.columns(3)
                 with status_col1:
-                    st.write("标签处理状态:", "✅ 完成" if st.session_state.processed_df is not None else "⏳ 待处理")
+                    st.write("标签处理状态:", "✅ 完成" if st.session_state.merged_df is not None else "⏳ 待处理")
                 with status_col2:
-                    st.write("标签合并状态:", "✅ 完成" if st.session_state.merged_df is not None else "⏳ 待处理")
-                with status_col3:
                     st.write("顾问匹配状态:", "✅ 完成" if 'matching_results' in locals() else "⏳ 待处理")
 
             

@@ -322,7 +322,7 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
         
         return final_tag_score  + final_workload_score + final_personal_score
 
-    def find_best_matches(consultant_tags_file, sample_df, merge_df):
+    def find_best_matches(consultant_tags_file, merge_df):
         """找到每条案例得分最高的顾问们
         Args:
             consultant_tags_file: 顾问标签DataFrame
