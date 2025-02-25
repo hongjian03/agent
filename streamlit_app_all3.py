@@ -657,7 +657,6 @@ def main():
 
     with system_tab2:
         from match import (
-            Label_processing,
             label_merge,
             Consultant_matching
         )
