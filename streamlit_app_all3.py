@@ -234,11 +234,13 @@ def main():
     """主函数"""
     logger.info("进入主函数")
     
-    # 初始化 session_state
-    if 'case_data' not in st.session_state:
-        st.session_state.case_data = None  # 存储案例数据
+    # 初始化 session_state 变量
     if 'tagged_data' not in st.session_state:
-        st.session_state.tagged_data = None  # 存储带标签的数据
+        st.session_state.tagged_data = None
+    if 'merged_df' not in st.session_state:
+        st.session_state.merged_df = None
+    if 'prompt_templates' not in st.session_state:
+        st.session_state.prompt_templates = PromptTemplates()
     
     # 初始化模型选择的session state
     if 'current_model' not in st.session_state:
