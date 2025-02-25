@@ -662,8 +662,8 @@ def main():
         st.title("顾问匹配系统")
         
         # 检查是否有必要的数据
-        if st.session_state.case_data is None:
-            st.warning("请先在标签匹配系统中上传案例数据")
+        if st.session_state.tagged_data is None:
+            st.warning("请先在标签匹配系统中处理数据")
             return
             
         # 文件上传区域
