@@ -130,7 +130,7 @@ openai_api_key=os.getenv('OPENAI_API_KEY')
 
 # 创建 ChatOpenAI 实例
 default_llm = ChatOpenAI(
-    model=st.session_state.current_model,
+    model=os.environ.get('OPENAI_MODEL_NAME'),
     api_key=openai_api_key,
     base_url="https://openrouter.ai/api/v1",
     model_kwargs={
