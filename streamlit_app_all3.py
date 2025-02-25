@@ -617,6 +617,7 @@ def main():
                                 json_str = result["raw_output"].replace('```json', '').replace('```', '').strip()
                                 # 解析JSON
                                 output_dict = json.loads(json_str)
+                                st.write(output_dict)
                                 
                                 # 创建DataFrame
                                 df = pd.DataFrame({
