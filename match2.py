@@ -155,13 +155,13 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 1. 国家标签匹配
         if '国家标签' in case and pd.notna(case['国家标签']):
             case_countries = set(re.split(r'[、,，]', case['国家标签']))
-            st.write(case_countries)
             
             # 获取顾问的各级别国家集合
             absolute_high_freq = set(re.split(r'[、,，]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
             relative_high_freq = set(re.split(r'[、,，]', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
-            
             # 检查是否完全包含目标国家
+            st.write(absolute_high_freq)
+            st.write(relative_high_freq)
             if case_countries.issubset(absolute_high_freq):
                 tag_score_dict['绝对高频国家'] = tag_weights['绝对高频国家']
             elif case_countries.issubset(absolute_high_freq.union(relative_high_freq)):
