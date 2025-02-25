@@ -674,7 +674,7 @@ def main():
             uploaded_consultant_tags = st.file_uploader("请上传文案顾问标签汇总", type=['xlsx'], key='consultant')
                 
             if uploaded_consultant_tags is not None:
-                consultant_tags_df = pd.read_excel(uploaded_consultant_tags)
+                consultant_tags_file = pd.read_excel(uploaded_consultant_tags)
                 st.success("顾问标签汇总上传成功")
             
         # 处理按钮区域
@@ -711,12 +711,12 @@ def main():
                 # 顾问匹配按钮
                 with col2:
                     if st.button("开始顾问匹配"):
-                        if uploaded_consultant_tags is not None and st.session_state.tagged_data is not None:
+                        if uploaded_consultant_tags is not None and st.session_state.merged_df is not None:
                             try:
-                                # 调用顾问匹配函数，只需要两个参数：consultant_tags_df 和 tagged_data
+                                merge_df = st.session_state.merged_df
                                 matching_results = Consultant_matching(
-                                    consultant_tags_df,  # 顾问标签数据
-                                    st.session_state.merged_df  # 已处理的标签数据
+                                    consultant_tags_file,  # 顾问标签数据
+                                    merge_df  # 已处理的标签数据
                                 )
                                 st.success("顾问匹配完成！")
                                 

@@ -105,7 +105,7 @@ def label_merge(merge_df):
     
     return result_df
 
-def Consultant_matching(consultant_tags_file, sample_df, merge_df):
+def Consultant_matching(consultant_tags_file, merge_df):
     """顾问匹配"""
         
     # 定义标签权重
@@ -383,7 +383,7 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
         return all_matches
     
  # 调用 find_best_matches 函数并返回结果
-    return find_best_matches(consultant_tags_file, sample_df, merge_df)
+    return find_best_matches(consultant_tags_file, merge_df)
 
 def match_main():
     st.title("顾问匹配系统")
