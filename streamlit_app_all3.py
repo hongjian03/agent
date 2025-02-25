@@ -621,14 +621,14 @@ def main():
                                 
                                 # 创建DataFrame
                                 df = pd.DataFrame({
-                                    "序号": output_dict["recommended_tags"]["index"],
-                                    "国家标签": [', '.join(countries) for countries in output_dict["recommended_tags"]["countries"]],
-                                    "专业标签": [', '.join(majors) for majors in output_dict["recommended_tags"]["majors"]],
-                                    "院校层次": [', '.join(levels) for levels in output_dict["recommended_tags"]["schoolLevel"]],
-                                    "特殊项目标签": [', '.join(projects) for projects in output_dict["recommended_tags"]["SpecialProjects"]],
-                                    "行业经验": [', '.join(exp) for exp in output_dict["recommended_tags"]["Industryexperience"]],
-                                    "文案背景": [', '.join(bg) for bg in output_dict["recommended_tags"]["Consultantbackground"]],
-                                    "业务单位所在地": [', '.join(loc) for loc in output_dict["recommended_tags"]["businessLocation"]]
+                                    "序号": [', '.join(output_dict["recommended_tags"]["index"])],
+                                    "国家标签": [', '.join(output_dict["recommended_tags"]["countries"])],  # 直接join整个列表
+                                    "专业标签": [', '.join(output_dict["recommended_tags"]["majors"])],
+                                    "院校层次": [', '.join(output_dict["recommended_tags"]["schoolLevel"])],
+                                    "特殊项目标签": [', '.join(output_dict["recommended_tags"]["SpecialProjects"])],
+                                    "行业经验": [', '.join(output_dict["recommended_tags"]["Industryexperience"])],
+                                    "文案背景": [', '.join(output_dict["recommended_tags"]["Consultantbackground"])],
+                                    "业务单位所在地": [', '.join(output_dict["recommended_tags"]["businessLocation"])],
                                 })
                                 
                                 # 存入session_state
