@@ -2,114 +2,80 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from io import BytesIO
+import re
 
 
-def Label_processing(sample_df):
-    """标签处理"""
 
-    def create_result_df(data_df):
-        """创建结果DataFrame"""
-        # 初始化结果DataFrame，包含所有原始数据
-        result_df = data_df.copy()
+
+
+def label_merge(merge_df):
+    """标签转换"""
+    result_df = merge_df.copy()
     
-        # 初始化标签列
-        tag_columns = ['国家标签', '名校专家', '博士专家', '低龄留学专家', '签证能手', ]
     
-        for col in tag_columns:
+    # 从院校层次提取标签
+    def extract_school_level_tags(row):
+        if pd.isna(row['院校层次']):
+            return pd.Series({'名校申请经验丰富': '', '顶级名校成功案例': ''})
+        
+        tags = str(row['院校层次']).split('、')
+        return pd.Series({
+            '名校申请经验丰富': '名校申请经验丰富' if '名校申请经验丰富' in tags else '',
+            '顶级名校成功案例': '顶级名校成功案例' if '顶级名校成功案例' in tags else ''
+        })
+    
+    # 从特殊项目标签提取标签
+    def extract_special_project_tags(row):
+        if pd.isna(row['特殊项目标签']):
+            return pd.Series({
+                '博士成功案例': '', 
+                '博士申请经验': '', 
+                '低龄留学成功案例': '', 
+                '低龄留学申请经验': ''
+            })
+        
+        tags = str(row['特殊项目标签']).split('、')
+        return pd.Series({
+            '博士成功案例': '博士成功案例' if '博士成功案例' in tags else '',
+            '博士申请经验': '博士申请经验' if '博士申请经验' in tags else '',
+            '低龄留学成功案例': '低龄留学成功案例' if '低龄留学成功案例' in tags else '',
+            '低龄留学申请经验': '低龄留学申请经验' if '低龄留学申请经验' in tags else ''
+        })
+    
+    # 提取标签
+    school_level_tags = result_df.apply(extract_school_level_tags, axis=1)
+    special_project_tags = result_df.apply(extract_special_project_tags, axis=1)
+    
+    # 合并所有标签
+    result_df = pd.concat([
+        result_df['序号'],
+        result_df['国家标签'],
+        result_df['专业标签'],
+        school_level_tags,
+        special_project_tags,
+        result_df['行业经验'],
+        result_df['文案背景'],
+        result_df['业务单位所在地']
+    ], axis=1)
+    
+    # 确保列的顺序正确
+    desired_columns = [
+        "序号", "国家标签", "专业标签", 
+        "名校申请经验丰富", "顶级名校成功案例",
+        "博士成功案例", "博士申请经验", 
+        "低龄留学成功案例", "低龄留学申请经验",
+        "行业经验", "文案背景", "业务单位所在地"
+    ]
+    
+    # 确保所有列都存在，如果不存在则添加空列
+    for col in desired_columns:
+        if col not in result_df.columns:
             result_df[col] = ''
     
-        return result_df
-
-    def process_country_tags(df):
-        """处理国家标签"""
-        def split_countries(x):
-            if pd.isna(x):
-                return ''
-            countries = [country.strip() for country in str(x).split(',')]
-            return ','.join(set(countries))
-        
-        temp_tags = pd.DataFrame(index=df.index)
-        temp_tags['国家标签'] = df['签约国家'].apply(split_countries)
-        return temp_tags
-
-    def process_elite_school_tags(df):
-        """处理名校专家标签"""
-        # 创建临时DataFrame存储标签
-        temp_tags = pd.DataFrame(index=df.index)
-            
-        # 根据"是否包含名校"列的值来标记名校专家
-        temp_tags['名校专家'] = df['是否包含名校'].apply(
-            lambda x: '名校专家' if str(x).lower() == 'yes' else ''
-        )
-            
-        return temp_tags
-
-    def process_education_level_tags(df):
-        """处理博士专家和低龄留学专家标签"""
-        # 创建临时DataFrame存储标签
-        temp_tags = pd.DataFrame(index=df.index)
-            
-        # 处理博士专家标签
-        temp_tags['博士专家'] = df['留学类别唯一'].apply(
-            lambda x: '博士专家' if x == '博士/研究型硕士' else ''
-        )
-            
-        # 处理低龄留学专家标签
-        temp_tags['低龄留学专家'] = df['留学类别唯一'].apply(
-            lambda x: '低龄留学专家' if x == 'k12' else ''
-        )
-            
-        return temp_tags
-
-    def process_visa_expert_tags(df):
-        """处理签证能手标签"""
-        temp_tags = pd.DataFrame(index=df.index)
-        temp_tags['签证能手'] = df['办理类型'].apply(
-            lambda x: '签证能手' if x == '单办签证' else ''
-        )
-        return temp_tags
-
-    def Label_processing_main(df):
-        """处理所有标签并生成结果"""
-        # 创建结果DataFrame
-        result_df = create_result_df(df)
-            
-        # 处理各类标签 
-        country_tags = process_country_tags(df)
-        elite_school_tags = process_elite_school_tags(df)
-        education_tags = process_education_level_tags(df)
-        visa_expert_tags = process_visa_expert_tags(df)
-            
-        # 将标签更新到结果DataFrame中
-        for df in [country_tags, elite_school_tags, education_tags, visa_expert_tags]:
-            for column in df.columns:
-                result_df.loc[df.index, column] = df[column]
-            
-        return result_df
+    # 按照期望的顺序重排列
+    result_df = result_df[desired_columns]
     
-    # 调用主处理函数并返回结果
-    return Label_processing_main(sample_df)
-
-
-def label_merge(processed_df, merge_df):
-    """标签合并"""
-    # 合并标签列
-    tag_columns = ['国家标签', '博士专家', '低龄留学专家', '签证能手', ]
-    for col in tag_columns:
-        if col in processed_df.columns:
-            merge_df[col] = processed_df[col]
-
-    # 特殊处理名校专家标签
-    if '名校专家' in processed_df.columns:
-        # 如果主体数据表中没有名校专家列，先创建
-        if '名校专家' not in merge_df.columns:
-            merge_df['名校专家'] = ''
-        
-        # 只在主体数据表中该列为空的情况下，才从processed_df中复制数据
-        empty_mask = merge_df['名校专家'].isna() | (merge_df['名校专家'] == '')
-        merge_df.loc[empty_mask, '名校专家'] = processed_df.loc[empty_mask, '名校专家']
-
-    return merge_df
+    return result_df
 
 def Consultant_matching(consultant_tags_file, sample_df, merge_df):
     """顾问匹配"""
@@ -119,25 +85,19 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
     tag_weights = {
         '绝对高频国家': 20,
         '相对高频国家': 15,
-        '做过国家': 10,
-        '高频专业': 10,
-        '做过专业': 5,
-        '名校专家': 10,
-        '顶级名校猎手': 10,
-        '博士专家': 10,
-        '博士攻坚手': 10,
-        '低龄留学专家': 10,
-        '低龄留学攻坚手': 10,
-        '行业经验': 20,
+        '绝对高频专业': 15,
+        '相对高频专业': 10,
+        '名校申请经验丰富': 10,
+        '顶级名校成功案例': 10,
+        '博士成功案例': 10,
+        '博士申请经验': 10,
+        '低龄留学成功案例': 10,
+        '低龄留学申请经验': 10,
+        '行业经验': 15,
         '文案背景': 10,
-        '业务单位所在地': 5
+        '业务单位所在地': 15
     }
         
-    # 定义案例经验权重
-    global experience_weights
-    experience_weights = {
-        '客户院校匹配': 100,
-    }
         
     # 定义工作量权重
     global workload_weights
@@ -149,17 +109,15 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
     # 定义个人意愿权重
     global personal_weights
     personal_weights = {
-        '个人意愿': 50,
-        '文案Flag': 50
+        '个人意愿': 100,
     }
         
     # 定义评分维度权重
     global dimension_weights
     dimension_weights = {
         '标签匹配': 0.5,
-        '案例经验': 0.1,
         '工作量': 0.3,
-        '个人意愿': 0.1
+        '个人意愿': 0.2
     }
 
     def calculate_tag_matching_score(case, consultant):
@@ -168,36 +126,34 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
         
         # 1. 国家标签匹配
         if '国家标签' in case and pd.notna(case['国家标签']):
-            case_countries = set(case['国家标签'].split('，'))
+            case_countries = set(re.split(r'[、,]', case['国家标签']))
             
             # 获取顾问的各级别国家集合
-            absolute_high_freq = set(consultant['绝对高频国家'].split('，')) if pd.notna(consultant['绝对高频国家']) else set()
-            relative_high_freq = set(consultant['相对高频国家'].split('，')) if pd.notna(consultant['相对高频国家']) else set()
-            experienced_countries = set(consultant['做过国家'].split('，')) if pd.notna(consultant['做过国家']) else set()
+            absolute_high_freq = set(re.split(r'[、,]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
+            relative_high_freq = set(re.split(r'[、,]', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
             
             # 1. 先检查绝对高频国家是否完全包含目标国家
             if case_countries.issubset(absolute_high_freq):
                 tag_score_dict['绝对高频国家'] = tag_weights['绝对高频国家']
             elif case_countries.issubset(absolute_high_freq.union(relative_high_freq)):
                 tag_score_dict['相对高频国家'] = tag_weights['相对高频国家']
-            elif case_countries.issubset(absolute_high_freq.union(relative_high_freq, experienced_countries)):
-                tag_score_dict['做过国家'] = tag_weights['做过国家']
+
         
         # 2. 专业标签匹配
-        if pd.notna(case['专业标签']) and pd.notna(consultant['高频专业']):
-            case_majors = set(case['专业标签'].split('，'))
-            high_freq_majors = set(consultant['高频专业'].split('，')) if pd.notna(consultant['高频专业']) else set()
-            experienced_majors = set(consultant['做过专业'].split('，')) if pd.notna(consultant['做过专业']) else set()
+        if '专业标签' in case and pd.notna(case['专业标签']):
+            case_majors = set(re.split(r'[、,]', case['专业标签']))
+            absolute_high_freq_majors = set(re.split(r'[、,]', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
+            relative_high_freq_majors = set(re.split(r'[、,]', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
             
-            if case_majors.issubset(high_freq_majors):
-                tag_score_dict['高频专业'] = tag_weights['高频专业']
-            elif case_majors.issubset(high_freq_majors.union(experienced_majors)):
-                tag_score_dict['做过专业'] = tag_weights['做过专业']
+            if case_majors.issubset(absolute_high_freq_majors):
+                tag_score_dict['绝对高频专业'] = tag_weights['绝对高频专业']
+            elif case_majors.issubset(absolute_high_freq_majors.union(relative_high_freq_majors)):
+                tag_score_dict['相对高频专业'] = tag_weights['相对高频专业']
         
         # 3. 其他标签直接匹配
         direct_match_tags = [
-            '名校专家', '顶级名校猎手', '博士专家', '博士攻坚手',
-            '低龄留学专家', '低龄留学攻坚手', '行业经验', '文案背景',
+            '名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验',
+            '低龄留学成功案例', '低龄留学申请经验', '行业经验', '文案背景',
             '业务单位所在地'
         ]
         
@@ -208,16 +164,7 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
         
         return sum(tag_score_dict.values()), tag_score_dict  # 返回总分和得分字典
 
-    def calculate_experience_score(case, consultant):
-        """客户合作经验得分"""
-        total_score = 0
-        
-        # 检查客户院校匹配
-        if pd.notna(case['客户院校匹配']) and pd.notna(consultant['客户院校匹配']):
-            if case['客户院校匹配'] == consultant['客户院校匹配']:
-                total_score += experience_weights['客户院校匹配']  # 100分
-        
-        return total_score
+
 
     def calculate_workload_score(case, consultant):
         """计算工作量得分"""
@@ -226,13 +173,13 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
         # 检查学年负荷
         if pd.notna(consultant['学年负荷']):
             value = str(consultant['学年负荷']).lower()
-            if value in ['是', 'true', 'yes']:
+            if value in ['是', 'true', 'yes','有余量']:
                 total_score += workload_weights['学年负荷']  # 50分
         
         # 检查近两周负荷
         if pd.notna(consultant['近两周负荷']):
             value = str(consultant['近两周负荷']).lower()
-            if value in ['是', 'true', 'yes']:
+            if value in ['是', 'true', 'yes','有余量']:
                 total_score += workload_weights['近两周负荷']  # 50分
         
         return total_score
@@ -244,41 +191,43 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
         # 检查个人意愿
         if pd.notna(consultant['个人意愿']):
             value = str(consultant['个人意愿']).lower()
-            if value in ['是', 'true', 'yes']:
-                total_score += personal_weights['个人意愿']  # 50分
+            if value in ['是', 'true', 'yes','接案中']:
+                total_score += personal_weights['个人意愿']  # 100分
         
-        # 检查文案Flag
-        if pd.notna(consultant['文案Flag']):
-            value = str(consultant['文案Flag']).lower()
-            if value in ['是', 'true', 'yes']:
-                total_score += personal_weights['文案Flag']  # 50分
         
         return total_score
 
-    def calculate_final_score(tag_matching_score, tag_score_dict, consultant, experience_score, workload_score, personal_score):
+    def calculate_final_score(tag_matching_score, tag_score_dict, consultant, workload_score, personal_score, case):
         """计算最终得分（包含所有维度）"""
-        def count_matched_tags(tag_score_dict):
+        def count_matched_tags(tag_score_dict, case):
             """计算匹配上的标签数量
             Args:
                 tag_score_dict: 包含各标签得分的字典
+                case: 案例信息
+                consultant: 顾问信息
             Returns:
                 int: 匹配上的标签数量
             """
             count = 0
-            # 国家标签匹配上就计1次
-            if any(score > 0 for tag, score in tag_score_dict.items() 
-                   if tag in ['绝对高频国家', '相对高频国家', '做过国家']):
-                count += 1
             
-            # 专业标签匹配上就计1次
+            # 国家标签匹配计算
+            if any(score > 0 for tag, score in tag_score_dict.items() 
+                   if tag in ['绝对高频国家', '相对高频国家']):
+                # 获取案例中的国家数量
+                case_countries = set(re.split(r'[、,]', case['国家标签'])) if pd.notna(case['国家标签']) else set()
+                count += len(case_countries)
+            
+            # 专业标签匹配计算
             if any(score > 0 for tag, score in tag_score_dict.items()
-                   if tag in ['高频专业', '做过专业']):
-                count += 1
+                   if tag in ['绝对高频专业', '相对高频专业']):
+                # 获取案例中的专业数量
+                case_majors = set(re.split(r'[、,]', case['专业标签'])) if pd.notna(case['专业标签']) else set()
+                count += len(case_majors)
             
             # 其他标签只要得分就计数
-            other_tags = ['名校专家', '顶级名校猎手', '博士专家', '博士攻坚手', 
-                         '低龄留学专家', '低龄留学攻坚手', '行业经验', '文案背景', 
-                         '业务单位所在地']
+            other_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
+                          '低龄留学成功案例', '低龄留学申请经验', '行业经验', '文案背景', 
+                          '业务单位所在地']
             for tag in other_tags:
                 if tag_score_dict.get(tag, 0) > 0:
                     count += 1
@@ -292,12 +241,27 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
             Returns:
                 int: 总标签数
             """
-            # 默认标签数（国家、专业、行业经验、业务单位所在地）
-            count = 4
+            count = 0
+            
+            # 计算国家标签数
+            absolute_high_freq = set(re.split(r'[、,]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
+            relative_high_freq = set(re.split(r'[、,]', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
+            count += len(absolute_high_freq) + len(relative_high_freq)
+            
+            # 计算专业标签数
+            absolute_high_freq_majors = set(re.split(r'[、,]', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
+            relative_high_freq_majors = set(re.split(r'[、,]', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
+            count += len(absolute_high_freq_majors) + len(relative_high_freq_majors)
+            
+            # 添加行业经验和业务单位所在地
+            if pd.notna(consultant['行业经验']) and consultant['行业经验'] != '':
+                count += 1
+            if pd.notna(consultant['业务单位所在地']) and consultant['业务单位所在地'] != '':
+                count += 1
             
             # 计算其他标签数
-            other_tags = ['名校专家', '顶级名校猎手', '博士专家', '博士攻坚手', 
-                         '低龄留学专家', '低龄留学攻坚手']
+            other_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
+                          '低龄留学成功案例', '低龄留学申请经验']
             for tag in other_tags:
                 if pd.notna(consultant[tag]) and consultant[tag] != '':
                     count += 1
@@ -305,17 +269,16 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
             return count
         
         # 计算标签匹配率
-        matched_tags = count_matched_tags(tag_score_dict)
+        matched_tags = count_matched_tags(tag_score_dict, case)
         total_tags = count_total_consultant_tags(consultant)
         tag_match_ratio = matched_tags / total_tags if total_tags > 0 else 0
         
         # 计算各维度最终得分
         final_tag_score = (tag_matching_score / 100) * dimension_weights['标签匹配'] * 100 * tag_match_ratio
-        final_exp_score = (experience_score / 100) * dimension_weights['案例经验'] * 100
         final_workload_score = (workload_score / 100) * dimension_weights['工作量'] * 100
         final_personal_score = (personal_score / 100) * dimension_weights['个人意愿'] * 100
         
-        return final_tag_score + final_exp_score + final_workload_score + final_personal_score
+        return final_tag_score  + final_workload_score + final_personal_score
 
     def find_best_matches(consultant_tags_file, sample_df, merge_df):
         """找到每条案例得分最高的顾问们
@@ -337,7 +300,6 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
             for _, consultant in consultant_tags_file.iterrows():
                 # 获取标签匹配得分和得分字典
                 tag_matching_score, tag_score_dict = calculate_tag_matching_score(case, consultant)
-                experience_score = calculate_experience_score(case, consultant)
                 workload_score = calculate_workload_score(case, consultant)
                 personal_score = calculate_personal_score(case, consultant)
                 
@@ -346,9 +308,9 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
                     tag_matching_score,
                     tag_score_dict,
                     consultant,
-                    experience_score,
                     workload_score,
-                    personal_score
+                    personal_score,
+                    case
                 )
                 
                 scores.append({
@@ -416,30 +378,6 @@ def match_main():
         col1, col2, col3 = st.columns(3)
         
         # 标签处理按钮
-        with col1:
-            if st.button("开始标签处理"):
-                if uploaded_sample_data is not None:
-                    try:
-                        st.session_state.processed_df = Label_processing(sample_df)
-                        st.success("标签处理完成！")
-                        # 显示处理后的数据预览
-                        st.write("处理后数据预览：")
-                        st.dataframe(st.session_state.processed_df.head())
-                        
-                        # 添加下载按钮
-                        buffer = BytesIO()
-                        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                            st.session_state.processed_df.to_excel(writer, index=False, sheet_name='标签处理结果')
-                        st.download_button(
-                            label="下载标签处理结果",
-                            data=buffer.getvalue(),
-                            file_name="标签处理结果.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
-                    except Exception as e:
-                        st.error(f"标签处理出错: {str(e)}")
-                else:
-                    st.warning("请先上传案例数据")
         
         # 标签合并按钮
         with col2:

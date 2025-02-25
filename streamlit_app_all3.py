@@ -611,27 +611,37 @@ def main():
                                 st.subheader("模型输出结果")
                                 st.code(result["raw_output"], language="json")
                                 
-                                # 不再创建 DataFrame
-                                # result_df = pd.DataFrame([{
-                                #     "案例描述": student_case,
-                                #     **result["recommended_tags"]  # 删除这行
-                                # }])
+                                # 处理模型输出
+                            try:
+                                # 清理JSON字符串
+                                json_str = result["raw_output"].replace('```json', '').replace('```', '').strip()
+                                # 解析JSON
+                                output_dict = json.loads(json_str)
                                 
-                                # # 不再显示结果表格
-                                # st.subheader("分析结果")
-                                # st.dataframe(result_df)
+                                # 创建DataFrame
+                                df = pd.DataFrame({
+                                    "序号": output_dict["recommended_tags"]["index"],
+                                    "国家标签": [', '.join(countries) for countries in output_dict["recommended_tags"]["countries"]],
+                                    "专业标签": [', '.join(majors) for majors in output_dict["recommended_tags"]["majors"]],
+                                    "院校层次": [', '.join(levels) for levels in output_dict["recommended_tags"]["schoolLevel"]],
+                                    "特殊项目标签": [', '.join(projects) for projects in output_dict["recommended_tags"]["SpecialProjects"]],
+                                    "行业经验": [', '.join(exp) for exp in output_dict["recommended_tags"]["Industryexperience"]],
+                                    "文案背景": [', '.join(bg) for bg in output_dict["recommended_tags"]["Consultantbackground"]],
+                                    "业务单位所在地": [', '.join(loc) for loc in output_dict["recommended_tags"]["businessLocation"]]
+                                })
                                 
-                                # # 不再提供下载选项
-                                # buffer = io.BytesIO()
-                                # with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                                #     result_df.to_excel(writer, index=False, sheet_name='分析结果')
+                                # 存入session_state
+                                st.session_state.tagged_data = df
                                 
-                                # st.download_button(
-                                #     label="下载Excel格式结果",
-                                #     data=buffer.getvalue(),
-                                #     file_name="标签分析结果.xlsx",
-                                #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                # )
+                                # 显示处理后的数据
+                                st.subheader("处理后的标签数据")
+                                st.dataframe(df)
+                                
+                                st.success("✅ 数据已处理并保存到内存中，可用于后续匹配")
+                                
+                            except Exception as e:
+                                st.error(f"处理模型输出时出错: {str(e)}")
+                                st.error("请检查模型输出格式是否符合预期")
                             else:
                                 st.error(f"处理失败: {result['error_message']}")
                         
@@ -670,62 +680,36 @@ def main():
         # 处理按钮区域
         with st.container():
             st.subheader("数据处理")
-            col1, col2, col3 = st.columns(3)
+            col1, col2= st.columns(2)
                 
-            # 标签处理按钮
+            # 标签转换处理按钮
             with col1:
-                if st.button("开始标签处理"):
-                    if st.session_state.case_data is not None:  # 使用session中的案例数据
-                        try:
-                            st.session_state.processed_df = Label_processing(st.session_state.case_data)
-                            st.success("标签处理完成！")
-                            # 显示处理后的数据预览
-                            st.write("处理后数据预览：")
-                            st.dataframe(st.session_state.processed_df.head())
-                                
-                            # 添加下载按钮
-                            buffer = io.BytesIO()
-                            with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                                st.session_state.processed_df.to_excel(writer, index=False, sheet_name='标签处理结果')
-                                st.download_button(
-                                    label="下载标签处理结果",
-                                    data=buffer.getvalue(),
-                                    file_name="标签处理结果.xlsx",
-                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                )
-                        except Exception as e:
-                            st.error(f"标签处理出错: {str(e)}")
-                    else:
-                        st.warning("请先在标签匹配系统中上传案例数据")
-                
-                # 标签合并按钮
-            with col2:
-                if st.button("开始标签合并"):
+                if st.button("开始标签转换处理"):
                     if st.session_state.processed_df is not None and st.session_state.tagged_data is not None:  # 使用session中的标签数据
                         try:
-                            st.session_state.merged_df = label_merge(st.session_state.processed_df, st.session_state.tagged_data)
-                            st.success("标签合并完成！")
+                            st.session_state.merged_df = label_merge(st.session_state.tagged_data)
+                            st.success("标签转换处理完成！")
                              # 显示合并后的数据预览
-                            st.write("合并后数据预览：")
+                            st.write("转换后数据预览：")
                             st.dataframe(st.session_state.merged_df.head())
                                 
                             # 添加下载按钮
                             buffer = io.BytesIO()
                             with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                                st.session_state.merged_df.to_excel(writer, index=False, sheet_name='标签合并结果')
+                                st.session_state.merged_df.to_excel(writer, index=False, sheet_name='标签转换结果')
                             st.download_button(
-                                label="下载标签合并结果",
+                                label="下载标签转换结果",
                                 data=buffer.getvalue(),
-                                file_name="标签合并结果.xlsx",
+                                file_name="标签转换结果.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                             )
                         except Exception as e:
-                            st.error(f"标签合并出错: {str(e)}")
+                            st.error(f"标签转换处理出错: {str(e)}")
                     else:
                         st.warning("请先完成标签处理")
                 
                 # 顾问匹配按钮
-                with col3:
+                with col2:
                     if st.button("开始顾问匹配"):
                         if st.session_state.merged_df is not None and uploaded_consultant_tags is not None:
                             try:
