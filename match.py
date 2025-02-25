@@ -20,9 +20,20 @@ def label_merge(merge_df):
             return pd.Series({'名校申请经验丰富': '', '顶级名校成功案例': ''})
         
         tags = str(row['院校层次']).split('、')
+        result = {
+            '名校申请经验丰富': [],
+            '顶级名校成功案例': []
+        }
+        
+        # 检查每个标签是否包含关键词
+        for tag in tags:
+            if '名校申请经验丰富' in tag:
+                result['名校申请经验丰富'].append(tag)  # 保留完整标签（包含国家名）
+            if '顶级名校成功案例' in tag:
+                result['顶级名校成功案例'].append(tag)  # 保留完整标签（包含国家名）
+        
         return pd.Series({
-            '名校申请经验丰富': '名校申请经验丰富' if '名校申请经验丰富' in tags else '',
-            '顶级名校成功案例': '顶级名校成功案例' if '顶级名校成功案例' in tags else ''
+            k: '、'.join(v) if v else '' for k, v in result.items()
         })
     
     # 从特殊项目标签提取标签
@@ -36,11 +47,27 @@ def label_merge(merge_df):
             })
         
         tags = str(row['特殊项目标签']).split('、')
+        result = {
+            '博士成功案例': [],
+            '博士申请经验': [],
+            '低龄留学成功案例': [],
+            '低龄留学申请经验': []
+        }
+        
+        # 检查每个标签是否包含关键词
+        for tag in tags:
+            if '博士成功案例' in tag:
+                result['博士成功案例'].append(tag)
+            if '博士申请经验' in tag:
+                result['博士申请经验'].append(tag)
+            if '低龄留学成功案例' in tag:
+                result['低龄留学成功案例'].append(tag)
+            if '低龄留学申请经验' in tag:
+                result['低龄留学申请经验'].append(tag)
+        
+        # 将列表转换为逗号分隔的字符串
         return pd.Series({
-            '博士成功案例': '博士成功案例' if '博士成功案例' in tags else '',
-            '博士申请经验': '博士申请经验' if '博士申请经验' in tags else '',
-            '低龄留学成功案例': '低龄留学成功案例' if '低龄留学成功案例' in tags else '',
-            '低龄留学申请经验': '低龄留学申请经验' if '低龄留学申请经验' in tags else ''
+            k: '、'.join(v) if v else '' for k, v in result.items()
         })
     
     # 提取标签
@@ -133,12 +160,11 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
             absolute_high_freq = set(re.split(r'[、,]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
             relative_high_freq = set(re.split(r'[、,]', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
             
-            # 1. 先检查绝对高频国家是否完全包含目标国家
+            # 检查是否完全包含目标国家
             if case_countries.issubset(absolute_high_freq):
                 tag_score_dict['绝对高频国家'] = tag_weights['绝对高频国家']
             elif case_countries.issubset(absolute_high_freq.union(relative_high_freq)):
                 tag_score_dict['相对高频国家'] = tag_weights['相对高频国家']
-
         
         # 2. 专业标签匹配
         if '专业标签' in case and pd.notna(case['专业标签']):
@@ -151,10 +177,25 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
             elif case_majors.issubset(absolute_high_freq_majors.union(relative_high_freq_majors)):
                 tag_score_dict['相对高频专业'] = tag_weights['相对高频专业']
         
-        # 3. 其他标签直接匹配
-        direct_match_tags = [
+        # 3. 其他标签匹配（需要完全包含）
+        special_tags = [
             '名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验',
-            '低龄留学成功案例', '低龄留学申请经验', '行业经验', '文案背景',
+            '低龄留学成功案例', '低龄留学申请经验', '行业经验'
+        ]
+        
+        for tag in special_tags:
+            if pd.notna(case[tag]) and pd.notna(consultant[tag]) and case[tag] != '':
+                # 将case和consultant的标签都分割成集合
+                case_tags = set(re.split(r'[、,]', case[tag]))
+                consultant_tags = set(re.split(r'[、,]', consultant[tag]))
+                
+                # 检查consultant的标签是否包含case所需的所有标签
+                if case_tags.issubset(consultant_tags):
+                    tag_score_dict[tag] = tag_weights[tag]
+        
+        # 4. 直接匹配标签（不需要分割）
+        direct_match_tags = [
+            '文案背景',
             '业务单位所在地'
         ]
         
@@ -163,7 +204,7 @@ def Consultant_matching(consultant_tags_file, sample_df, merge_df):
                 if case[tag] == consultant[tag] and case[tag] != '':
                     tag_score_dict[tag] = tag_weights[tag]
         
-        return sum(tag_score_dict.values()), tag_score_dict  # 返回总分和得分字典
+        return sum(tag_score_dict.values()), tag_score_dict
 
 
 
