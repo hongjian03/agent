@@ -711,43 +711,29 @@ def main():
                 # 顾问匹配按钮
                 with col2:
                     if st.button("开始顾问匹配"):
-                        if st.session_state.merged_df is not None and uploaded_consultant_tags is not None:
+                        if uploaded_consultant_tags is not None and st.session_state.tagged_data is not None:
                             try:
-                                # 调用顾问匹配函数
+                                # 调用顾问匹配函数，只需要两个参数：consultant_tags_df 和 tagged_data
                                 matching_results = Consultant_matching(
-                                    consultant_tags_df,
-                                    st.session_state.merged_df
+                                    consultant_tags_df,  # 顾问标签数据
+                                    st.session_state.merged_df  # 已处理的标签数据
                                 )
                                 st.success("顾问匹配完成！")
                                 
-                                # 将匹配结果添加到原始案例数据中
-                                result_df = st.session_state.tagged_data.copy()
-                                result_df['匹配文案列表'] = ''
-                                
-                                # 将匹配结果填入对应行
+                                # 显示匹配结果
+                                st.write("匹配结果：")
                                 for case, consultants in matching_results.items():
-                                    idx = int(case.replace('案例', '')) - 1
-                                    consultant_str = '；'.join(consultants)
-                                    result_df.loc[idx, '匹配文案列表'] = consultant_str
+                                    st.write(f"{case}:")
+                                    for consultant in consultants:
+                                        st.write(f"- {consultant}")
                                 
-                                # 显示结果预览
-                                st.write("匹配结果预览：")
-                                st.dataframe(result_df)
+                                # 保存匹配结果到 session_state
+                                st.session_state.matching_results = matching_results
                                 
-                                # 添加下载按钮
-                                buffer = io.BytesIO()
-                                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                                    result_df.to_excel(writer, index=False, sheet_name='顾问匹配结果')
-                                st.download_button(
-                                    label="下载顾问匹配结果",
-                                    data=buffer.getvalue(),
-                                    file_name="顾问匹配结果.xlsx",
-                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                )
                             except Exception as e:
                                 st.error(f"顾问匹配出错: {str(e)}")
                         else:
-                            st.warning("请先完成标签处理并上传顾问标签汇总")
+                            st.warning("请先上传顾问标签汇总并完成标签处理")
             
             # 显示处理状态
             with st.container():
