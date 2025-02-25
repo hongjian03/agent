@@ -750,7 +750,7 @@ def main():
             # 显示处理状态
             with st.container():
                 st.subheader("处理状态")
-                status_col1, status_col2,  = st.columns(3)
+                status_col1, status_col2,  = st.columns(2)
                 with status_col1:
                     st.write("标签处理状态:", "✅ 完成" if st.session_state.merged_df is not None else "⏳ 待处理")
                 with status_col2:
