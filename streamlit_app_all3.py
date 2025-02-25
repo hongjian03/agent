@@ -685,7 +685,7 @@ def main():
             # 标签转换处理按钮
             with col1:
                 if st.button("开始标签转换处理"):
-                    if st.session_state.processed_df is not None and st.session_state.tagged_data is not None:  # 使用session中的标签数据
+                    if  st.session_state.tagged_data is not None:  # 使用session中的标签数据
                         try:
                             st.session_state.merged_df = label_merge(st.session_state.tagged_data)
                             st.success("标签转换处理完成！")
