@@ -160,13 +160,12 @@ def Consultant_matching(consultant_tags_file, merge_df):
             absolute_high_freq = set(re.split(r'[、,，]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
             relative_high_freq = set(re.split(r'[、,，]', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
             # 检查是否完全包含目标国家
-            st.write(absolute_high_freq)
-            st.write(relative_high_freq)
             if case_countries.issubset(absolute_high_freq):
                 tag_score_dict['绝对高频国家'] = tag_weights['绝对高频国家']
             elif case_countries.issubset(absolute_high_freq.union(relative_high_freq)):
                 tag_score_dict['相对高频国家'] = tag_weights['相对高频国家']
-        
+            st.write(tag_score_dict['绝对高频国家'])
+            st.write(tag_score_dict['相对高频国家'])
         # 2. 专业标签匹配
         if '专业标签' in case and pd.notna(case['专业标签']):
             case_majors = set(re.split(r'[、,，]', case['专业标签']))
