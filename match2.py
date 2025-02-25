@@ -155,6 +155,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 1. 国家标签匹配
         if '国家标签' in case and pd.notna(case['国家标签']):
             case_countries = set(re.split(r'[、,，]', case['国家标签']))
+            print(case_countries)
             
             # 获取顾问的各级别国家集合
             absolute_high_freq = set(re.split(r'[、,，]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
