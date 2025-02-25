@@ -617,7 +617,7 @@ def main():
                                 json_str = result["raw_output"].replace('```json', '').replace('```', '').strip()
                                 # 解析JSON
                                 output_dict = json.loads(json_str)
-                                st.write(output_dict)
+
                                 
                                 # 创建DataFrame
                                 df = pd.DataFrame({
@@ -643,8 +643,6 @@ def main():
                             except Exception as e:
                                 st.error(f"处理模型输出时出错: {str(e)}")
                                 st.error("请检查模型输出格式是否符合预期")
-                            else:
-                                st.error(f"处理失败: {result['error_message']}")
                         
                         except Exception as e:
                             st.error(f"处理过程中出错: {str(e)}")
