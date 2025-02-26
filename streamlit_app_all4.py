@@ -735,24 +735,40 @@ def main():
                                     with col1:
                                         st.subheader("顾问原始标签")
                                         st.write("**国家标签:**")
-                                        st.write(f"- 绝对高频国家：{consultant.get('绝对高频国家', '无')}")
-                                        st.write(f"- 相对高频国家：{consultant.get('相对高频国家', '无')}")
+                                        st.write(f"- 绝对高频国家：{consultant['绝对高频国家']}")
+                                        st.write(f"- 相对高频国家：{consultant['相对高频国家']}")
                                         
                                         st.write("**专业标签:**")
-                                        st.write(f"- 绝对高频专业：{consultant.get('绝对高频专业', '无')}")
-                                        st.write(f"- 相对高频专业：{consultant.get('相对高频专业', '无')}")
+                                        st.write(f"- 绝对高频专业：{consultant['绝对高频专业']}")
+                                        st.write(f"- 相对高频专业：{consultant['相对高频专业']}")
                                         
                                         st.write("**其他标签:**")
-                                        st.write(f"- 行业经验：{consultant.get('行业经验', '无')}")
-                                        st.write(f"- 学校层次：{consultant.get('学校层次', '无')}")
-                                        st.write(f"- 特殊项目：{consultant.get('特殊项目', '无')}")
+                                        st.write(f"- 行业经验：{consultant['行业经验']}")
+                                        st.write(f"- 业务单位所在地：{consultant['业务单位所在地']}")
+                                        st.write(f"- 学年负荷：{consultant['学年负荷']}")
+                                        st.write(f"- 近两周负荷：{consultant['近两周负荷']}")
+                                        st.write(f"- 个人意愿：{consultant['个人意愿']}")
+                                        
+                                        st.write("**特殊标签:**")
+                                        special_tags = [
+                                            ('名校申请经验丰富', '名校申请经验丰富'), 
+                                            ('顶级名校成功案例', '顶级名校成功案例'),
+                                            ('博士成功案例', '博士成功案例'), 
+                                            ('博士申请经验', '博士申请经验'),
+                                            ('低龄留学成功案例', '低龄留学成功案例'), 
+                                            ('低龄留学申请经验', '低龄留学申请经验')
+                                        ]
+                                        
+                                        for tag_name, tag_key in special_tags:
+                                            if tag_key in consultant and consultant[tag_key]:
+                                                st.write(f"- {tag_name}：{consultant[tag_key]}")
                                     
                                     # 第二列：匹配详情与计算过程
                                     with col2:
                                         st.subheader("匹配得分详情")
                                         # 显示案例要求
                                         st.write("**案例需求:**")
-                                        for key, value in case.items():
+                                        for key, value in st.session_state.merged_df:
                                             if pd.notna(value) and value and key in ['国家标签', '专业标签', '名校申请经验丰富', 
                                                                            '顶级名校成功案例', '博士成功案例', '博士申请经验',
                                                                            '低龄留学成功案例', '低龄留学申请经验', '行业经验']:

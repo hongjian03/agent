@@ -341,14 +341,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         return final_tag_score  + final_workload_score + final_personal_score
 
     def find_best_matches(consultant_tags_file, merge_df):
-        """找到每条案例得分最高的顾问们
-        Args:
-            consultant_tags_file: 顾问标签DataFrame
-            sample_df: 原始案例数据
-            merge_df: 处理后的待匹配案例数据
-        Returns:
-            dict: 每条案例的最佳匹配顾问列表
-        """
+        """找到每条案例得分最高的顾问们"""
         # 存储所有案例的匹配结果
         all_matches = {}
         
@@ -357,7 +350,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             scores = []
             
             # 计算每个顾问对当前案例的得分
-            for _, consultant in consultant_tags_file.iterrows():
+            for cidx, consultant in consultant_tags_file.iterrows():
                 # 获取标签匹配得分和得分字典
                 tag_matching_score, tag_score_dict = calculate_tag_matching_score(case, consultant)
                 workload_score = calculate_workload_score(case, consultant)
@@ -373,38 +366,48 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     case
                 )
                 
-                scores.append({
+                # 获取顾问的标签数据
+                consultant_info = {
                     'name': consultant['文案顾问'],
                     'score': final_score,
-                    'tag_score_dict': tag_score_dict
-                })
+                    'tag_score_dict': tag_score_dict,
+                    # 添加顾问原始标签信息（直接从DataFrame中获取，保持原始格式）
+                    '绝对高频国家': consultant['绝对高频国家'] if pd.notna(consultant['绝对高频国家']) else '',
+                    '相对高频国家': consultant['相对高频国家'] if pd.notna(consultant['相对高频国家']) else '',
+                    '绝对高频专业': consultant['绝对高频专业'] if pd.notna(consultant['绝对高频专业']) else '',
+                    '相对高频专业': consultant['相对高频专业'] if pd.notna(consultant['相对高频专业']) else '',
+                    '行业经验': consultant['行业经验'] if pd.notna(consultant['行业经验']) else '',
+                    '业务单位所在地': consultant['业务单位所在地'] if pd.notna(consultant['业务单位所在地']) else '',
+                    '学年负荷': consultant['学年负荷'] if pd.notna(consultant['学年负荷']) else '',
+                    '近两周负荷': consultant['近两周负荷'] if pd.notna(consultant['近两周负荷']) else '',
+                    '个人意愿': consultant['个人意愿'] if pd.notna(consultant['个人意愿']) else '',
+                    # 添加特殊标签
+                    '名校申请经验丰富': consultant['名校申请经验丰富'] if pd.notna(consultant['名校申请经验丰富']) else '',
+                    '顶级名校成功案例': consultant['顶级名校成功案例'] if pd.notna(consultant['顶级名校成功案例']) else '',
+                    '博士成功案例': consultant['博士成功案例'] if pd.notna(consultant['博士成功案例']) else '',
+                    '博士申请经验': consultant['博士申请经验'] if pd.notna(consultant['博士申请经验']) else '',
+                    '低龄留学成功案例': consultant['低龄留学成功案例'] if pd.notna(consultant['低龄留学成功案例']) else '',
+                    '低龄留学申请经验': consultant['低龄留学申请经验'] if pd.notna(consultant['低龄留学申请经验']) else '',
+                    # 添加工作量和个人意愿得分
+                    'workload_score': workload_score,
+                    'personal_score': personal_score
+                }
+                
+                scores.append(consultant_info)
             
             # 按得分降序排序
             scores.sort(key=lambda x: -x['score'])
             
             # 获取最高分
-            highest_score = scores[0]['score']
+            highest_score = scores[0]['score'] if scores else 0
             # 获取第三高分（如果存在）
             third_score = scores[8]['score'] if len(scores) > 8 else None
             
             # 选择得分最高的顾问们（得分大于等于第三高分的所有顾问）
             selected_consultants = [
                 {
-                    'display': f"{s['name']}（{s['score']:.1f}分）",
-                    'name': s['name'],
-                    'score': s['score'],
-                    'tag_details': s['tag_score_dict'],
-                    # 添加顾问原始标签信息
-                    '绝对高频国家': consultant['绝对高频国家'] if pd.notna(consultant['绝对高频国家']) else '',
-                    '相对高频国家': consultant['相对高频国家'] if pd.notna(consultant['相对高频国家']) else '',
-                    '绝对高频专业': consultant['绝对高频专业'] if pd.notna(consultant['绝对高频专业']) else '',
-                    '相对高频专业': consultant['相对高频专业'] if pd.notna(consultant['相对高频专业']) else '',
-                    '行业经验': consultant['行业经验'] if pd.notna(consultant['行业经验']) else '',
-                    '学校层次': ', '.join([col for col in ['名校申请经验丰富', '顶级名校成功案例'] if pd.notna(consultant.get(col))]),
-                    '特殊项目': ', '.join([col for col in ['博士成功案例', '博士申请经验', '低龄留学成功案例', '低龄留学申请经验'] if pd.notna(consultant.get(col))]),
-                    # 添加工作量和个人意愿得分
-                    'workload_score': workload_score,
-                    'personal_score': personal_score
+                    'display': f"{s['name']}（{s['score']:.1f}分）", 
+                    **s  # 包含所有标签信息
                 }
                 for s in scores 
                 if (third_score is not None and s['score'] >= third_score) or 
