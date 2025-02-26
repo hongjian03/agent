@@ -734,7 +734,7 @@ def main():
                                     # 第一列：顾问原始标签
                                     with col1:
                                         st.subheader("顾问原始标签")
-                                        st.write(f"**顾问业务单位:** {consultant['businessunits']}")
+                                        st.write(f"**顾问业务单位:** {consultant['文案顾问业务单位']}")
                                         st.write("**国家标签:**")
                                         st.write(f"- 绝对高频国家：{consultant['绝对高频国家']}")
                                         st.write(f"- 相对高频国家：{consultant['相对高频国家']}")
