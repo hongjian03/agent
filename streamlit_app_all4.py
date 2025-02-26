@@ -768,7 +768,7 @@ def main():
                                         st.subheader("匹配得分详情")
                                         # 显示案例要求
                                         st.write("**案例需求:**")
-                                        for key, value in st.session_state.merged_df:
+                                        for key, value in consultant.items():
                                             if pd.notna(value) and value and key in ['国家标签', '专业标签', '名校申请经验丰富', 
                                                                            '顶级名校成功案例', '博士成功案例', '博士申请经验',
                                                                            '低龄留学成功案例', '低龄留学申请经验', '行业经验']:
