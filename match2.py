@@ -333,12 +333,19 @@ def Consultant_matching(consultant_tags_file, merge_df):
         tag_match_ratio = matched_tags / total_tags if total_tags > 0 else 0
         
         # 计算各维度最终得分
-
         final_tag_score = (tag_matching_score / 100) * dimension_weights['标签匹配'] * 100 * tag_match_ratio
         final_workload_score = (workload_score / 100) * dimension_weights['工作量'] * 100
         final_personal_score = (personal_score / 100) * dimension_weights['个人意愿'] * 100
         
-        return final_tag_score  + final_workload_score + final_personal_score
+        # 返回最终得分以及匹配率相关数据
+        result = {
+            'score': final_tag_score + final_workload_score + final_personal_score,
+            'matched_tags': matched_tags,
+            'total_tags': total_tags,
+            'tag_match_ratio': tag_match_ratio
+        }
+        
+        return result
 
     def find_best_matches(consultant_tags_file, merge_df):
         """找到每条案例得分最高的顾问们"""
@@ -351,45 +358,51 @@ def Consultant_matching(consultant_tags_file, merge_df):
             
             # 计算每个顾问对当前案例的得分
             for cidx, consultant in consultant_tags_file.iterrows():
-                # 获取标签匹配得分和得分字典
-                tag_matching_score, tag_score_dict = calculate_tag_matching_score(case, consultant)
-                workload_score = calculate_workload_score(case, consultant)
-                personal_score = calculate_personal_score(case, consultant)
-                
-                # 计算最终得分
-                final_score = calculate_final_score(
-                    tag_matching_score,
-                    tag_score_dict,
-                    consultant,
-                    workload_score,
-                    personal_score,
-                    case
-                )
-                
-                # 获取顾问的标签数据
-                consultant_info = {
-                    'name': consultant['文案顾问'],
-                    'score': final_score,
-                    'tag_score_dict': tag_score_dict,
-                    'workload_score': workload_score,
-                    'personal_score': personal_score
-                }
-                
-                # 安全地添加标签字段
-                standard_fields = [
-                    '绝对高频国家', '相对高频国家', '绝对高频专业', '相对高频专业', 
-                    '行业经验', '业务单位所在地', '学年负荷', '近两周负荷', '个人意愿',
-                    '名校申请经验丰富', '顶级名校成功案例', '博士成功案例', 
-                    '博士申请经验', '低龄留学成功案例', '低龄留学申请经验'
-                ]
-                
-                for field in standard_fields:
-                    if field in consultant.index and pd.notna(consultant[field]):
-                        consultant_info[field] = consultant[field]
-                    else:
-                        consultant_info[field] = ''
-                
-                scores.append(consultant_info)
+                try:
+                    # 获取标签匹配得分和得分字典
+                    tag_matching_score, tag_score_dict = calculate_tag_matching_score(case, consultant)
+                    workload_score = calculate_workload_score(case, consultant)
+                    personal_score = calculate_personal_score(case, consultant)
+                    
+                    # 计算最终得分
+                    final_result = calculate_final_score(
+                        tag_matching_score,
+                        tag_score_dict,
+                        consultant,
+                        workload_score,
+                        personal_score,
+                        case
+                    )
+                    
+                    # 获取顾问的标签数据
+                    consultant_info = {
+                        'name': consultant['文案顾问'],
+                        'score': final_result['score'],
+                        'tag_score_dict': tag_score_dict,
+                        'workload_score': workload_score,
+                        'personal_score': personal_score,
+                        'matched_tags': final_result['matched_tags'],
+                        'total_tags': final_result['total_tags'],
+                        'tag_match_ratio': final_result['tag_match_ratio']
+                    }
+                    
+                    # 安全地添加标签字段
+                    standard_fields = [
+                        '绝对高频国家', '相对高频国家', '绝对高频专业', '相对高频专业', 
+                        '行业经验', '业务单位所在地', '学年负荷', '近两周负荷', '个人意愿',
+                        '名校申请经验丰富', '顶级名校成功案例', '博士成功案例', 
+                        '博士申请经验', '低龄留学成功案例', '低龄留学申请经验'
+                    ]
+                    
+                    for field in standard_fields:
+                        if field in consultant.index and pd.notna(consultant[field]):
+                            consultant_info[field] = consultant[field]
+                        else:
+                            consultant_info[field] = ''
+                    
+                    scores.append(consultant_info)
+                except Exception as e:
+                    st.error(f"计算得分出错: {str(e)}")
             
             # 按得分降序排序
             scores.sort(key=lambda x: -x['score'])
@@ -409,7 +422,10 @@ def Consultant_matching(consultant_tags_file, merge_df):
                         'score': s['score'],
                         'tag_score_dict': s['tag_score_dict'],
                         'workload_score': s['workload_score'],
-                        'personal_score': s['personal_score']
+                        'personal_score': s['personal_score'],
+                        'matched_tags': s['matched_tags'],
+                        'total_tags': s['total_tags'],
+                        'tag_match_ratio': s['tag_match_ratio']
                     }
                     
                     # 复制其他标签字段

@@ -768,33 +768,73 @@ def main():
                                         st.subheader("匹配得分详情")
                                         # 显示案例要求
                                         st.write("**案例需求:**")
-                                        for key, value in consultant.items():
-                                            if pd.notna(value) and value and key in ['国家标签', '专业标签', '名校申请经验丰富', 
-                                                                           '顶级名校成功案例', '博士成功案例', '博士申请经验',
-                                                                           '低龄留学成功案例', '低龄留学申请经验', '行业经验']:
-                                                st.write(f"- {key}: {value}")
+                                        # 获取当前案例的标签数据
+                                        case_id = list(matching_results.keys()).index(case) if case in matching_results else 0
+                                        
+                                        # 安全地尝试获取对应行的数据
+                                        if 'merged_df' in st.session_state and not st.session_state.merged_df.empty:
+                                            try:
+                                                case_data = st.session_state.merged_df.iloc[case_id]
+                                                
+                                                # 显示指定列的数据
+                                                target_columns = ['国家标签', '专业标签', '名校申请经验丰富', 
+                                                                '顶级名校成功案例', '博士成功案例', '博士申请经验',
+                                                                '低龄留学成功案例', '低龄留学申请经验', '行业经验']
+                                                
+                                                for col in target_columns:
+                                                    if col in case_data.index and pd.notna(case_data[col]) and case_data[col]:
+                                                        st.write(f"- {col}: {case_data[col]}")
+                                            except Exception as e:
+                                                st.error(f"获取案例数据时出错: {str(e)}")
+                                        else:
+                                            st.warning("没有可用的案例标签数据")
                                         
                                         # 显示匹配详情
                                         st.write("**标签匹配得分:**")
                                         total_score = 0
-                                        for tag, score in consultant['tag_details'].items():
-                                            tag_status = "✅ 匹配" if score > 0 else "❌ 未匹配"
-                                            tag_color = "green" if score > 0 else "red"
-                                            st.markdown(f"- {tag}: <span style='color:{tag_color}'>{tag_status}</span> ({score}分)", unsafe_allow_html=True)
-                                            total_score += score
                                         
-                                        # 显示总分
-                                        st.markdown(f"**总分: {total_score}分**")
+                                        # 检查是否有tag_score_dict
+                                        if 'tag_score_dict' in consultant:
+                                            tag_details = consultant['tag_score_dict']
+                                            
+                                            # 获取已计算好的匹配标签比例数据
+                                            matched_tags = consultant.get('matched_tags', 0)
+                                            total_tags = consultant.get('total_tags', 1)  # 避免除零错误
+                                            tag_ratio = consultant.get('tag_match_ratio', 0)
+                                            
+                                            # 显示标签匹配详情
+                                            for tag, score in tag_details.items():
+                                                tag_status = "✅ 匹配" if score > 0 else "❌ 未匹配"
+                                                tag_color = "green" if score > 0 else "red"
+                                                st.markdown(f"- {tag}: <span style='color:{tag_color}'>{tag_status}</span> ({score}分)", unsafe_allow_html=True)
+                                                total_score += score
+                                            
+                                            # 标签得分小计
+                                            st.markdown(f"标签匹配小计: {total_score}分 (匹配率: {matched_tags}/{total_tags} = {tag_ratio:.2f})")
+                                        else:
+                                            st.warning("没有可用的标签匹配得分详情")
+                                            total_score = 0
+                                            tag_ratio = 0
                                         
-                                        # 显示工作量和个人意愿评分（如果有）
-                                        if 'workload_score' in consultant:
-                                            st.write(f"工作量评分: {consultant['workload_score']}分")
-                                        if 'personal_score' in consultant:
-                                            st.write(f"个人意愿评分: {consultant['personal_score']}分")
+                                        # 获取工作量和个人意愿得分
+                                        workload_score = consultant.get('workload_score', 0)
+                                        personal_score = consultant.get('personal_score', 0)
                                         
-                                        # 显示最终得分计算公式
+                                        # 显示工作量和个人意愿评分
+                                        st.write(f"**工作量评分:** {workload_score}分")
+                                        st.write(f"**个人意愿评分:** {personal_score}分")
+                                        
+                                        # 计算最终得分并显示计算公式
+                                        tag_weighted = total_score * tag_ratio * 0.5
+                                        workload_weighted = workload_score * 0.3
+                                        personal_weighted = personal_score * 0.2
+                                        final_score = tag_weighted + workload_weighted + personal_weighted
+                                        
                                         st.write("**最终得分计算:**")
-                                        st.write(f"标签匹配得分 × 0.5 + 工作量得分 × 0.3 + 个人意愿得分 × 0.2 = {consultant['score']:.1f}分")
+                                        st.write(f"({total_score}) × ({matched_tags}/{total_tags}) × 0.5 + {workload_score} × 0.3 + {personal_score} × 0.2 = {final_score:.1f}分")
+                                        
+                                        # 显示总分（确保与consultant['score']一致）
+                                        st.markdown(f"**最终得分: {consultant['score']:.1f}分**")
                         
                         # 保存匹配结果到 session_state
                         st.session_state.matching_results = matching_results
