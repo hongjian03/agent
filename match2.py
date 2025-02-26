@@ -371,27 +371,23 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     'name': consultant['文案顾问'],
                     'score': final_score,
                     'tag_score_dict': tag_score_dict,
-                    # 添加顾问原始标签信息（直接从DataFrame中获取，保持原始格式）
-                    '绝对高频国家': consultant['绝对高频国家'] if pd.notna(consultant['绝对高频国家']) else '',
-                    '相对高频国家': consultant['相对高频国家'] if pd.notna(consultant['相对高频国家']) else '',
-                    '绝对高频专业': consultant['绝对高频专业'] if pd.notna(consultant['绝对高频专业']) else '',
-                    '相对高频专业': consultant['相对高频专业'] if pd.notna(consultant['相对高频专业']) else '',
-                    '行业经验': consultant['行业经验'] if pd.notna(consultant['行业经验']) else '',
-                    '业务单位所在地': consultant['业务单位所在地'] if pd.notna(consultant['业务单位所在地']) else '',
-                    '学年负荷': consultant['学年负荷'] if pd.notna(consultant['学年负荷']) else '',
-                    '近两周负荷': consultant['近两周负荷'] if pd.notna(consultant['近两周负荷']) else '',
-                    '个人意愿': consultant['个人意愿'] if pd.notna(consultant['个人意愿']) else '',
-                    # 添加特殊标签
-                    '名校申请经验丰富': consultant['名校申请经验丰富'] if pd.notna(consultant['名校申请经验丰富']) else '',
-                    '顶级名校成功案例': consultant['顶级名校成功案例'] if pd.notna(consultant['顶级名校成功案例']) else '',
-                    '博士成功案例': consultant['博士成功案例'] if pd.notna(consultant['博士成功案例']) else '',
-                    '博士申请经验': consultant['博士申请经验'] if pd.notna(consultant['博士申请经验']) else '',
-                    '低龄留学成功案例': consultant['低龄留学成功案例'] if pd.notna(consultant['低龄留学成功案例']) else '',
-                    '低龄留学申请经验': consultant['低龄留学申请经验'] if pd.notna(consultant['低龄留学申请经验']) else '',
-                    # 添加工作量和个人意愿得分
                     'workload_score': workload_score,
                     'personal_score': personal_score
                 }
+                
+                # 安全地添加标签字段
+                standard_fields = [
+                    '绝对高频国家', '相对高频国家', '绝对高频专业', '相对高频专业', 
+                    '行业经验', '业务单位所在地', '学年负荷', '近两周负荷', '个人意愿',
+                    '名校申请经验丰富', '顶级名校成功案例', '博士成功案例', 
+                    '博士申请经验', '低龄留学成功案例', '低龄留学申请经验'
+                ]
+                
+                for field in standard_fields:
+                    if field in consultant.index and pd.notna(consultant[field]):
+                        consultant_info[field] = consultant[field]
+                    else:
+                        consultant_info[field] = ''
                 
                 scores.append(consultant_info)
             
@@ -400,19 +396,28 @@ def Consultant_matching(consultant_tags_file, merge_df):
             
             # 获取最高分
             highest_score = scores[0]['score'] if scores else 0
-            # 获取第三高分（如果存在）
-            third_score = scores[8]['score'] if len(scores) > 8 else None
+            # 获取第九高分（如果存在）
+            ninth_score = scores[8]['score'] if len(scores) > 8 else None
             
-            # 选择得分最高的顾问们（得分大于等于第三高分的所有顾问）
-            selected_consultants = [
-                {
-                    'display': f"{s['name']}（{s['score']:.1f}分）", 
-                    **s  # 包含所有标签信息
-                }
-                for s in scores 
-                if (third_score is not None and s['score'] >= third_score) or 
-                   (third_score is None and s['score'] == highest_score)
-            ]
+            # 选择得分最高的顾问们
+            selected_consultants = []
+            for s in scores:
+                if (ninth_score is not None and s['score'] >= ninth_score) or (ninth_score is None and s['score'] == highest_score):
+                    consultant_data = {
+                        'display': f"{s['name']}（{s['score']:.1f}分）",
+                        'name': s['name'],
+                        'score': s['score'],
+                        'tag_score_dict': s['tag_score_dict'],
+                        'workload_score': s['workload_score'],
+                        'personal_score': s['personal_score']
+                    }
+                    
+                    # 复制其他标签字段
+                    for field in standard_fields:
+                        if field in s:
+                            consultant_data[field] = s[field]
+                    
+                    selected_consultants.append(consultant_data)
             
             # 存储当前案例的匹配结果
             case_key = f"案例{idx + 1}"
