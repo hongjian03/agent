@@ -221,7 +221,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 if case[tag] == consultant[tag] and case[tag] != '':
                     tag_score_dict[tag] = tag_weights[tag]
         
-        return sum(tag_score_dict.values()), tag_score_dict
+        return  tag_score_dict
 
 
 
@@ -256,92 +256,131 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         return total_score
 
-    def calculate_final_score(tag_matching_score, tag_score_dict, consultant, workload_score, personal_score, case):
+    def calculate_final_score(tag_score_dict, consultant, workload_score, personal_score, case):
         """计算最终得分（包含所有维度）"""
         def count_matched_tags(tag_score_dict, case):
-            """计算匹配上的标签数量
-            Args:
-                tag_score_dict: 包含各标签得分的字典
-                case: 案例信息
-                consultant: 顾问信息
-            Returns:
-                int: 匹配上的标签数量
-            """
-            count = 0
+            """计算匹配上的标签数量"""
+            country_count_need = 0
+            special_count_need = 0
+            other_count_need = 0
             
             # 国家标签匹配计算
             if any(score > 0 for tag, score in tag_score_dict.items() 
                    if tag in ['绝对高频国家', '相对高频国家']):
                 # 获取案例中的国家数量
                 case_countries = set(re.split(r'[、,，\s]+', case['国家标签'])) if pd.notna(case['国家标签']) else set()
-                count += len(case_countries)
+                country_count_need += len(case_countries)
             
-            # 专业标签匹配计算
-            if any(score > 0 for tag, score in tag_score_dict.items()
-                   if tag in ['绝对高频专业', '相对高频专业']):
-                # 获取案例中的专业数量
-                case_majors = set(re.split(r'[、,，\s]+', case['专业标签'])) if pd.notna(case['专业标签']) else set()
-                count += len(case_majors)
-            
+            # 特殊标签如果得分，获取案例中对应标签的数量
+            special_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
+                            '低龄留学成功案例', '低龄留学申请经验']
+    
+            for tag in special_tags:
+                if tag_score_dict.get(tag, 0) > 0 and pd.notna(case[tag]) and case[tag] != '':
+                    tag_items = set(re.split(r'[、,，\s]+', case[tag]))
+                    special_count_need += len(tag_items)
+
             # 其他标签只要得分就计数
-            other_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
-                          '低龄留学成功案例', '低龄留学申请经验', '行业经验', '文案背景', 
+            other_tags = ['绝对高频专业', '相对高频专业', '行业经验', '文案背景', 
                           '业务单位所在地']
             for tag in other_tags:
                 if tag_score_dict.get(tag, 0) > 0:
-                    count += 1
+                    other_count_need += 1
             
-            return count
+            return country_count_need, special_count_need, other_count_need
 
         def count_total_consultant_tags(consultant):
-            """计算顾问的总标签数
-            Args:
-                consultant: 顾问信息
-            Returns:
-                int: 总标签数
-            """
-            count = 0
+            """计算顾问的总标签数"""
+            country_count_total = 0
+            special_count_total = 0
+            other_count_total = 0
             
             # 计算国家标签数
             absolute_high_freq = set(re.split(r'[、,，\s]+', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
             relative_high_freq = set(re.split(r'[、,，\s]+', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
-            count += len(absolute_high_freq) + len(relative_high_freq)
+            country_count_total += len(absolute_high_freq) + len(relative_high_freq)
             
-            # 计算专业标签数
-            absolute_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
-            relative_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
-            count += len(absolute_high_freq_majors) + len(relative_high_freq_majors)
-            
-            # 添加行业经验和业务单位所在地
-            if pd.notna(consultant['行业经验']) and consultant['行业经验'] != '':
-                count += 1
-            if pd.notna(consultant['业务单位所在地']) and consultant['业务单位所在地'] != '':
-                count += 1
+            # 计算特殊标签数
+            special_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
+                            '低龄留学成功案例', '低龄留学申请经验']
+    
+            for tag in special_tags:
+                if pd.notna(consultant[tag]) and consultant[tag] != '':
+                    tag_items = set(re.split(r'[、,，\s]+', consultant[tag]))
+                    special_count_total += len(tag_items)
             
             # 计算其他标签数
-            other_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
-                          '低龄留学成功案例', '低龄留学申请经验']
+            other_tags = ['绝对高频专业', '相对高频专业', '行业经验', '文案背景', 
+                          '业务单位所在地']
             for tag in other_tags:
                 if pd.notna(consultant[tag]) and consultant[tag] != '':
-                    count += 1
-            return count
+                    other_count_total += 1
+                
+            return country_count_total, special_count_total, other_count_total
         
         # 计算标签匹配率
-        matched_tags = count_matched_tags(tag_score_dict, case)
-        total_tags = count_total_consultant_tags(consultant)
-        tag_match_ratio = matched_tags / total_tags if total_tags > 0 else 0
+        country_count_need, special_count_need, other_count_need = count_matched_tags(tag_score_dict, case)
+        country_count_total, special_count_total, other_count_total = count_total_consultant_tags(consultant)
+        
+        # 计算匹配率
+        country_match_ratio = country_count_need / country_count_total if country_count_total > 0 else 0
+        special_match_ratio = special_count_need / special_count_total if special_count_total > 0 else 0
+        
+        # 分别计算国家标签、特殊标签和其他标签的得分
+        country_tags_score = sum(score for tag, score in tag_score_dict.items() if tag in ['绝对高频国家', '相对高频国家'])
+        special_tags_score = sum(score for tag, score in tag_score_dict.items() if tag in [
+            '名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
+            '低龄留学成功案例', '低龄留学申请经验'
+        ])
+        other_tags_score = sum(score for tag, score in tag_score_dict.items() if tag not in [
+            '绝对高频国家', '相对高频国家', '名校申请经验丰富', '顶级名校成功案例', 
+            '博士成功案例', '博士申请经验', '低龄留学成功案例', '低龄留学申请经验'
+        ])
+        
+        # 计算需求标签数
+        case_country_count = len(set(re.split(r'[、,，\s]+', case['国家标签']))) if pd.notna(case['国家标签']) else 0
+        
+        case_special_count = 0
+        special_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
+                        '低龄留学成功案例', '低龄留学申请经验']
+        for tag in special_tags:
+            if pd.notna(case[tag]) and case[tag] != '':
+                case_special_count += len(set(re.split(r'[、,，\s]+', case[tag])))
+        
+        # 计算需求覆盖率
+        country_coverage_ratio = country_count_need / case_country_count if case_country_count > 0 else 0
+        special_coverage_ratio = special_count_need / case_special_count if case_special_count > 0 else 0
+        
+        # 应用匹配率和覆盖率到对应标签得分上
+        adjusted_country_score = country_tags_score * country_match_ratio * country_coverage_ratio
+        adjusted_special_score = special_tags_score * special_match_ratio * special_coverage_ratio
+        
+        # 计算调整后的总标签得分
+        adjusted_tag_score = adjusted_country_score + adjusted_special_score + other_tags_score
+        
         
         # 计算各维度最终得分
-        final_tag_score = (tag_matching_score / 100) * dimension_weights['标签匹配'] * 100 * tag_match_ratio
+        final_tag_score = (adjusted_tag_score / 100) * dimension_weights['标签匹配'] * 100
         final_workload_score = (workload_score / 100) * dimension_weights['工作量'] * 100
         final_personal_score = (personal_score / 100) * dimension_weights['个人意愿'] * 100
         
-        # 返回最终得分以及匹配率相关数据
+        
+        # 更新返回结果，添加覆盖率信息
         result = {
             'score': final_tag_score + final_workload_score + final_personal_score,
-            'matched_tags': matched_tags,
-            'total_tags': total_tags,
-            'tag_match_ratio': tag_match_ratio
+            'country_count_need': country_count_need,
+            'special_count_need': special_count_need,
+            'other_count_need': other_count_need,
+            'country_count_total': country_count_total,
+            'special_count_total': special_count_total,
+            'other_count_total': other_count_total,
+            'country_match_ratio': country_match_ratio,
+            'special_match_ratio': special_match_ratio,
+            'country_coverage_ratio': country_coverage_ratio,
+            'special_coverage_ratio': special_coverage_ratio,
+            'adjusted_country_score': adjusted_country_score,
+            'adjusted_special_score': adjusted_special_score,
+            'other_tags_score': other_tags_score
         }
         
         return result
@@ -359,13 +398,12 @@ def Consultant_matching(consultant_tags_file, merge_df):
             for cidx, consultant in consultant_tags_file.iterrows():
                 try:
                     # 获取标签匹配得分和得分字典
-                    tag_matching_score, tag_score_dict = calculate_tag_matching_score(case, consultant)
+                    tag_score_dict = calculate_tag_matching_score(case, consultant)
                     workload_score = calculate_workload_score(case, consultant)
                     personal_score = calculate_personal_score(case, consultant)
                     
                     # 计算最终得分
                     final_result = calculate_final_score(
-                        tag_matching_score,
                         tag_score_dict,
                         consultant,
                         workload_score,
@@ -376,13 +414,24 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     # 获取顾问的标签数据
                     consultant_info = {
                         'name': consultant['文案顾问'],
+                        'businessunits': consultant['文案顾问业务单位'],
                         'score': final_result['score'],
                         'tag_score_dict': tag_score_dict,
                         'workload_score': workload_score,
                         'personal_score': personal_score,
-                        'matched_tags': final_result['matched_tags'],
-                        'total_tags': final_result['total_tags'],
-                        'tag_match_ratio': final_result['tag_match_ratio']
+                        'country_count_need': final_result['country_count_need'],
+                        'special_count_need': final_result['special_count_need'],
+                        'other_count_need': final_result['other_count_need'],
+                        'country_count_total': final_result['country_count_total'],
+                        'special_count_total': final_result['special_count_total'],
+                        'other_count_total': final_result['other_count_total'],
+                        'country_match_ratio': final_result['country_match_ratio'],
+                        'special_match_ratio': final_result['special_match_ratio'],
+                        'country_coverage_ratio': final_result['country_coverage_ratio'],
+                        'special_coverage_ratio': final_result['special_coverage_ratio'],
+                        'adjusted_country_score': final_result['adjusted_country_score'],
+                        'adjusted_special_score': final_result['adjusted_special_score'],
+                        'other_tags_score': final_result['other_tags_score']
                     }
                     
                     # 安全地添加标签字段
@@ -418,13 +467,24 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     consultant_data = {
                         'display': f"{s['name']}（{s['score']:.1f}分）",
                         'name': s['name'],
+                        'businessunits': s['businessunits'],
                         'score': s['score'],
                         'tag_score_dict': s['tag_score_dict'],
                         'workload_score': s['workload_score'],
                         'personal_score': s['personal_score'],
-                        'matched_tags': s['matched_tags'],
-                        'total_tags': s['total_tags'],
-                        'tag_match_ratio': s['tag_match_ratio']
+                        'country_count_need': s['country_count_need'],
+                        'special_count_need': s['special_count_need'],
+                        'other_count_need': s['other_count_need'],
+                        'country_count_total': s['country_count_total'],
+                        'special_count_total': s['special_count_total'],
+                        'other_count_total': s['other_count_total'],
+                        'country_match_ratio': s['country_match_ratio'],
+                        'special_match_ratio': s['special_match_ratio'],
+                        'country_coverage_ratio': s['country_coverage_ratio'],
+                        'special_coverage_ratio': s['special_coverage_ratio'],
+                        'adjusted_country_score': s['adjusted_country_score'],
+                        'adjusted_special_score': s['adjusted_special_score'],
+                        'other_tags_score': s['other_tags_score']
                     }
                     
                     # 复制其他标签字段
