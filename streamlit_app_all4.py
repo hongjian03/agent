@@ -727,11 +727,58 @@ def main():
                                 # 显示基本信息
                                 st.write(f"- {consultant['display']}")
                                 # 展开显示标签匹配详情
-                                with st.expander(f"查看 {consultant['name']} 的得分详情"):
-                                    st.write("标签匹配详情：")
-                                    for tag, score in consultant['tag_details'].items():
-                                        if score > 0:  # 只显示匹配成功的标签
-                                            st.write(f"  • {tag}: {score}分")
+                                with st.expander(f"查看 {consultant['name']} 的详细匹配信息"):
+                                    # 创建三列布局
+                                    col1, col2 = st.columns(2)
+                                    
+                                    # 第一列：顾问原始标签
+                                    with col1:
+                                        st.subheader("顾问原始标签")
+                                        st.write("**国家标签:**")
+                                        st.write(f"- 绝对高频国家：{consultant.get('绝对高频国家', '无')}")
+                                        st.write(f"- 相对高频国家：{consultant.get('相对高频国家', '无')}")
+                                        
+                                        st.write("**专业标签:**")
+                                        st.write(f"- 绝对高频专业：{consultant.get('绝对高频专业', '无')}")
+                                        st.write(f"- 相对高频专业：{consultant.get('相对高频专业', '无')}")
+                                        
+                                        st.write("**其他标签:**")
+                                        st.write(f"- 行业经验：{consultant.get('行业经验', '无')}")
+                                        st.write(f"- 学校层次：{consultant.get('学校层次', '无')}")
+                                        st.write(f"- 特殊项目：{consultant.get('特殊项目', '无')}")
+                                    
+                                    # 第二列：匹配详情与计算过程
+                                    with col2:
+                                        st.subheader("匹配得分详情")
+                                        # 显示案例要求
+                                        st.write("**案例需求:**")
+                                        for key, value in case.items():
+                                            if pd.notna(value) and value and key in ['国家标签', '专业标签', '名校申请经验丰富', 
+                                                                           '顶级名校成功案例', '博士成功案例', '博士申请经验',
+                                                                           '低龄留学成功案例', '低龄留学申请经验', '行业经验']:
+                                                st.write(f"- {key}: {value}")
+                                        
+                                        # 显示匹配详情
+                                        st.write("**标签匹配得分:**")
+                                        total_score = 0
+                                        for tag, score in consultant['tag_details'].items():
+                                            tag_status = "✅ 匹配" if score > 0 else "❌ 未匹配"
+                                            tag_color = "green" if score > 0 else "red"
+                                            st.markdown(f"- {tag}: <span style='color:{tag_color}'>{tag_status}</span> ({score}分)", unsafe_allow_html=True)
+                                            total_score += score
+                                        
+                                        # 显示总分
+                                        st.markdown(f"**总分: {total_score}分**")
+                                        
+                                        # 显示工作量和个人意愿评分（如果有）
+                                        if 'workload_score' in consultant:
+                                            st.write(f"工作量评分: {consultant['workload_score']}分")
+                                        if 'personal_score' in consultant:
+                                            st.write(f"个人意愿评分: {consultant['personal_score']}分")
+                                        
+                                        # 显示最终得分计算公式
+                                        st.write("**最终得分计算:**")
+                                        st.write(f"标签匹配得分 × 0.5 + 工作量得分 × 0.3 + 个人意愿得分 × 0.2 = {consultant['score']:.1f}分")
                         
                         # 保存匹配结果到 session_state
                         st.session_state.matching_results = matching_results

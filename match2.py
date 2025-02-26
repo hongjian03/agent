@@ -393,7 +393,18 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     'display': f"{s['name']}（{s['score']:.1f}分）",
                     'name': s['name'],
                     'score': s['score'],
-                    'tag_details': s['tag_score_dict']  # 包含标签得分详情
+                    'tag_details': s['tag_score_dict'],
+                    # 添加顾问原始标签信息
+                    '绝对高频国家': consultant['绝对高频国家'] if pd.notna(consultant['绝对高频国家']) else '',
+                    '相对高频国家': consultant['相对高频国家'] if pd.notna(consultant['相对高频国家']) else '',
+                    '绝对高频专业': consultant['绝对高频专业'] if pd.notna(consultant['绝对高频专业']) else '',
+                    '相对高频专业': consultant['相对高频专业'] if pd.notna(consultant['相对高频专业']) else '',
+                    '行业经验': consultant['行业经验'] if pd.notna(consultant['行业经验']) else '',
+                    '学校层次': ', '.join([col for col in ['名校申请经验丰富', '顶级名校成功案例'] if pd.notna(consultant.get(col))]),
+                    '特殊项目': ', '.join([col for col in ['博士成功案例', '博士申请经验', '低龄留学成功案例', '低龄留学申请经验'] if pd.notna(consultant.get(col))]),
+                    # 添加工作量和个人意愿得分
+                    'workload_score': workload_score,
+                    'personal_score': personal_score
                 }
                 for s in scores 
                 if (third_score is not None and s['score'] >= third_score) or 
