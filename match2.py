@@ -273,14 +273,14 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if any(score > 0 for tag, score in tag_score_dict.items() 
                    if tag in ['绝对高频国家', '相对高频国家']):
                 # 获取案例中的国家数量
-                case_countries = set(re.split(r'[、,]', case['国家标签'])) if pd.notna(case['国家标签']) else set()
+                case_countries = set(re.split(r'[、,，\s]+', case['国家标签'])) if pd.notna(case['国家标签']) else set()
                 count += len(case_countries)
             st.write(f"国家标签匹配计数结果: {count}")
             # 专业标签匹配计算
             if any(score > 0 for tag, score in tag_score_dict.items()
                    if tag in ['绝对高频专业', '相对高频专业']):
                 # 获取案例中的专业数量
-                case_majors = set(re.split(r'[、,]', case['专业标签'])) if pd.notna(case['专业标签']) else set()
+                case_majors = set(re.split(r'[、,，\s]+', case['专业标签'])) if pd.notna(case['专业标签']) else set()
                 count += len(case_majors)
             st.write(f"专业标签匹配计数结果: {count}")
             # 其他标签只要得分就计数
@@ -303,13 +303,13 @@ def Consultant_matching(consultant_tags_file, merge_df):
             count = 0
             
             # 计算国家标签数
-            absolute_high_freq = set(re.split(r'[、,]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
-            relative_high_freq = set(re.split(r'[、,]', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
+            absolute_high_freq = set(re.split(r'[、,，\s]+', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
+            relative_high_freq = set(re.split(r'[、,，\s]+', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
             count += len(absolute_high_freq) + len(relative_high_freq)
             st.write(f"顾问国家标签计数结果: {count}")
             # 计算专业标签数
-            absolute_high_freq_majors = set(re.split(r'[、,]', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
-            relative_high_freq_majors = set(re.split(r'[、,]', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
+            absolute_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
+            relative_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
             count += len(absolute_high_freq_majors) + len(relative_high_freq_majors)
             st.write(f"顾问专业标签计数结果: {count}")
             # 添加行业经验和业务单位所在地
