@@ -835,14 +835,10 @@ def main():
                                             st.write(f"**个人意愿评分:** {personal_score}分")
                                             
                                             # 计算最终得分并显示计算公式
-                                            workload_weighted = workload_score * 0.3
-                                            personal_weighted = personal_score * 0.2
-                                            final_score = tag_weighted + workload_weighted + personal_weighted
-                                            
-                                            st.write("**最终得分计算:**")
-                                            st.write(f"({adjusted_country_score}) × ({country_match_ratio}) × ({country_coverage_ratio}) × 0.5 
-                                                     + ({adjusted_special_score}) × ({special_match_ratio}) × ({special_coverage_ratio}) × 0.5 
-                                                     + ({other_tags_score}) + ({workload_score}) × 0.3 + ({personal_score}) × 0.2 = {final_score:.1f}分")
+                                            final_score = tag_weighted + workload_score * 0.3 + personal_score * 0.2
+                                            st.write(f"""({adjusted_country_score}) × ({country_match_ratio}) × ({country_coverage_ratio}) × 0.5 + 
+                                                      ({adjusted_special_score}) × ({special_match_ratio}) × ({special_coverage_ratio}) × 0.5 + 
+                                                      ({other_tags_score}) + ({workload_score}) × 0.3 + ({personal_score}) × 0.2 = {final_score:.1f}分""")
                                             
                                             # 显示总分（确保与consultant['score']一致）
                                             st.markdown(f"**最终得分: {consultant['score']:.1f}分**")
