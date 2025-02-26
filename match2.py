@@ -275,14 +275,14 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 # 获取案例中的国家数量
                 case_countries = set(re.split(r'[、,]', case['国家标签'])) if pd.notna(case['国家标签']) else set()
                 count += len(case_countries)
-            
+            st.write(f"国家标签匹配计数结果: {count}")
             # 专业标签匹配计算
             if any(score > 0 for tag, score in tag_score_dict.items()
                    if tag in ['绝对高频专业', '相对高频专业']):
                 # 获取案例中的专业数量
                 case_majors = set(re.split(r'[、,]', case['专业标签'])) if pd.notna(case['专业标签']) else set()
                 count += len(case_majors)
-            
+            st.write(f"专业标签匹配计数结果: {count}")
             # 其他标签只要得分就计数
             other_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
                           '低龄留学成功案例', '低龄留学申请经验', '行业经验', '文案背景', 
@@ -290,7 +290,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             for tag in other_tags:
                 if tag_score_dict.get(tag, 0) > 0:
                     count += 1
-            
+            st.write(f"其他标签匹配计数结果: {count}")
             return count
 
         def count_total_consultant_tags(consultant):
@@ -306,25 +306,25 @@ def Consultant_matching(consultant_tags_file, merge_df):
             absolute_high_freq = set(re.split(r'[、,]', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
             relative_high_freq = set(re.split(r'[、,]', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
             count += len(absolute_high_freq) + len(relative_high_freq)
-            
+            st.write(f"顾问国家标签计数结果: {count}")
             # 计算专业标签数
             absolute_high_freq_majors = set(re.split(r'[、,]', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
             relative_high_freq_majors = set(re.split(r'[、,]', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
             count += len(absolute_high_freq_majors) + len(relative_high_freq_majors)
-            
+            st.write(f"顾问专业标签计数结果: {count}")
             # 添加行业经验和业务单位所在地
             if pd.notna(consultant['行业经验']) and consultant['行业经验'] != '':
                 count += 1
             if pd.notna(consultant['业务单位所在地']) and consultant['业务单位所在地'] != '':
                 count += 1
-            
+            st.write(f"顾问行业标签计数结果: {count}")
             # 计算其他标签数
             other_tags = ['名校申请经验丰富', '顶级名校成功案例', '博士成功案例', '博士申请经验', 
                           '低龄留学成功案例', '低龄留学申请经验']
             for tag in other_tags:
                 if pd.notna(consultant[tag]) and consultant[tag] != '':
                     count += 1
-            
+            st.write(f"顾问其他标签计数结果: {count}")
             return count
         
         # 计算标签匹配率
