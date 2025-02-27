@@ -836,7 +836,7 @@ def main():
                                             st.write(f"**个人意愿评分:** {personal_score}分")
                                             # 计算最终得分并显示计算公式
                                             final_score = tag_weighted + workload_score * 0.3 + personal_score * 0.2
-                                            st.write("计算公式：国家得分*国家匹配率*国家覆盖率*0.5 + 特殊得分*特殊匹配率*特殊覆盖率*0.5 + 其他标签得分*0.5 + 工作量得分*0.3 + 个人意愿得分*0.2")
+                                            st.write("计算公式：国家得分 x 国家匹配率 x 国家覆盖率 x 0.5 + 特殊得分 x 特殊匹配率 x 特殊覆盖率 x 0.5 + 其他标签得分 x 0.5 + 工作量得分 x 0.3 + 个人意愿得分 x 0.2")
                                             st.write(f"""({country_tags_score}) × ({country_match_ratio}) × ({country_coverage_ratio}) × 0.5 + 
                                                       ({special_tags_score}) × ({special_match_ratio}) × ({special_coverage_ratio}) × 0.5 + 
                                                       ({other_tags_score}) × 0.5+ ({workload_score}) × 0.3 + ({personal_score}) × 0.2 = {final_score:.1f}分""")
