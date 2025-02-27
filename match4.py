@@ -537,6 +537,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         industry = False
         workload = False
         completion = False
+        st.write(case)
         
         # 1. 国家和专业标签判断
         if pd.notna(case['国家标签']) or pd.notna(case['专业标签']):
