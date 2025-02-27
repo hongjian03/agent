@@ -808,8 +808,8 @@ def main():
                                             other_count_total = consultant.get('other_count_total', 1)
                                             country_match_ratio = consultant.get('country_match_ratio', 0)
                                             special_match_ratio = consultant.get('special_match_ratio', 0)
-                                            adjusted_country_score = consultant.get('adjusted_country_score', 0)
-                                            adjusted_special_score = consultant.get('adjusted_special_score', 0)
+                                            country_tags_score = consultant.get('country_tags_score', 0)
+                                            special_tags_score = consultant.get('special_tags_score', 0)
                                             other_tags_score = consultant.get('other_tags_score', 0)
                                             country_coverage_ratio = consultant.get('country_coverage_ratio', 0)
                                             special_coverage_ratio = consultant.get('special_coverage_ratio', 0)
@@ -821,13 +821,16 @@ def main():
                                                 total_score += score
                                             
                                             # 标签得分小计
-                                            st.markdown(f"标签匹配小计: {total_score}分")
                                             st.markdown(f"**匹配率与覆盖率:**")
                                             st.markdown(f"- 国家标签: 匹配率 {country_match_ratio:.2f} (匹配/总量: {country_count_need}/{country_count_total}), 覆盖率 {consultant['country_coverage_ratio']:.2f}")
                                             st.markdown(f"- 特殊标签: 匹配率 {special_match_ratio:.2f} (匹配/总量: {special_count_need}/{special_count_total}), 覆盖率 {consultant['special_coverage_ratio']:.2f}")
                                             
                                             # 计算最终得分并显示计算公式
-                                            tag_weighted = adjusted_country_score * country_match_ratio * country_coverage_ratio * 0.5 + adjusted_special_score * special_match_ratio * special_coverage_ratio * 0.5 + other_tags_score
+                                            st.write(f"**国家得分:** {country_tags_score}分")
+                                            st.write(f"**特殊得分:** {special_tags_score}分")
+                                            st.write(f"**其他得分:** {other_tags_score}分")
+                                            tag_weighted = country_tags_score * country_match_ratio * country_coverage_ratio * 0.5 + special_tags_score * special_match_ratio * special_coverage_ratio * 0.5 + other_tags_score*0.5
+                                            st.write(f"**标签匹配得分小计:** {tag_weighted}分")
                                             workload_score = consultant.get('workload_score', 0)
                                             personal_score = consultant.get('personal_score', 0)
                                             
@@ -837,9 +840,9 @@ def main():
                                             
                                             # 计算最终得分并显示计算公式
                                             final_score = tag_weighted + workload_score * 0.3 + personal_score * 0.2
-                                            st.write(f"""({adjusted_country_score}) × ({country_match_ratio}) × ({country_coverage_ratio}) × 0.5 + 
-                                                      ({adjusted_special_score}) × ({special_match_ratio}) × ({special_coverage_ratio}) × 0.5 + 
-                                                      ({other_tags_score}) + ({workload_score}) × 0.3 + ({personal_score}) × 0.2 = {final_score:.1f}分""")
+                                            st.write(f"""({country_tags_score}) × ({country_match_ratio}) × ({country_coverage_ratio}) × 0.5 + 
+                                                      ({special_tags_score}) × ({special_match_ratio}) × ({special_coverage_ratio}) × 0.5 + 
+                                                      ({other_tags_score}) × 0.5+ ({workload_score}) × 0.3 + ({personal_score}) × 0.2 = {final_score:.1f}分""")
                                             
                                             # 显示总分（确保与consultant['score']一致）
                                             st.markdown(f"**最终得分: {consultant['score']:.1f}分**")
