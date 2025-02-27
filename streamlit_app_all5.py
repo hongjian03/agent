@@ -826,20 +826,17 @@ def main():
                                             st.markdown(f"- 特殊标签: 匹配率 {special_match_ratio:.2f} (匹配/总量: {special_count_need}/{special_count_total}), 覆盖率 {consultant['special_coverage_ratio']:.2f}")
                                             
                                             # 计算最终得分并显示计算公式
-                                            st.write(f"**国家得分:** {country_tags_score}分")
-                                            st.write(f"**特殊得分:** {special_tags_score}分")
-                                            st.write(f"**其他得分:** {other_tags_score}分")
+
                                             tag_weighted = country_tags_score * country_match_ratio * country_coverage_ratio * 0.5 + special_tags_score * special_match_ratio * special_coverage_ratio * 0.5 + other_tags_score*0.5
-                                            st.write(f"**标签匹配得分小计:** {tag_weighted}分")
                                             workload_score = consultant.get('workload_score', 0)
                                             personal_score = consultant.get('personal_score', 0)
                                             
                                             # 显示工作量和个人意愿评分
                                             st.write(f"**工作量评分:** {workload_score}分")
                                             st.write(f"**个人意愿评分:** {personal_score}分")
-                                            
                                             # 计算最终得分并显示计算公式
                                             final_score = tag_weighted + workload_score * 0.3 + personal_score * 0.2
+                                            st.write("计算公式：国家得分*国家匹配率*国家覆盖率*0.5 + 特殊得分*特殊匹配率*特殊覆盖率*0.5 + 其他标签得分*0.5 + 工作量得分*0.3 + 个人意愿得分*0.2")
                                             st.write(f"""({country_tags_score}) × ({country_match_ratio}) × ({country_coverage_ratio}) × 0.5 + 
                                                       ({special_tags_score}) × ({special_match_ratio}) × ({special_coverage_ratio}) × 0.5 + 
                                                       ({other_tags_score}) × 0.5+ ({workload_score}) × 0.3 + ({personal_score}) × 0.2 = {final_score:.1f}分""")
