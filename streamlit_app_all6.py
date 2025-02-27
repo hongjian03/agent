@@ -624,6 +624,7 @@ def main():
                                 # 创建DataFrame
                                 df = pd.DataFrame({
                                     "序号": [', '.join(output_dict["recommended_tags"]["index"])],
+                                    "文案顾问业务单位": [', '.join(output_dict["recommended_tags"]["consultant_unit"])],
                                     "国家标签": [', '.join(output_dict["recommended_tags"]["countries"])],  # 直接join整个列表
                                     "专业标签": [', '.join(output_dict["recommended_tags"]["majors"])],
                                     "院校层次": [', '.join(output_dict["recommended_tags"]["schoolLevel"])],
