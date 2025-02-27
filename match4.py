@@ -615,11 +615,9 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 6. 工作量标签判断
         for case_key, workload_score_dicts in all_workload_score_dicts.items():
             st.write(f"案例{case_key}的工作量字典:{workload_score_dicts}")
-            for consultant, workload_score_dict in workload_score_dicts.items():
-                for tag, score in workload_score_dict.items():
-                    if tag == '工作量':
-                        if score > 0:
-                            workload = True
+            for consultant, workload_score in workload_score_dicts.items():
+                if workload_score != 0:
+                    workload = True
         st.write(f"工作量标签判断结果:{workload}")
         # 7. 完成率判断
         st.write(f"完成率字典:{all_completion_rate_score_dicts}")
