@@ -352,6 +352,7 @@ def main():
             ```json
             {
               "recommended_tags": {
+                "index": ["string, 序号"],
                 "countries": ["string, 国家标签"],
                 "majors": ["string, 专业标签"],
                 "schoolLevel": ["string, 院校层次"],
