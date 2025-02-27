@@ -636,6 +636,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
         for condition_name, is_met in conditions.items():
             if not is_met:
                 st.write(f"条件未满足: {condition_name}")
+            else:
+                st.write(f"条件满足: {condition_name}")
 
         # 返回原始的布尔值
         return all(conditions.values())
