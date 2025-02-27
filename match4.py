@@ -530,7 +530,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
     # 2. 检查7个判断条件
     def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, case):
         # 初始化标志
-        count = False
+        country = False
+        major = False
         school = False
         doctor = False
         lowage = False
@@ -547,9 +548,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 for tag, score in tag_score_dicts.items():
                     if tag in ['绝对高频国家', '相对高频国家', '绝对高频专业', '相对高频专业']:
                         if score > 0:
-                            count = True
+                            country = True
+                            major = True
         else:
-            count = True
+            country = True
+            major = True
         
         # 2. 顶级名校成功案例标签判断
         has_school = bool(pd.notna(case['顶级名校成功案例']).any()) if isinstance(case['顶级名校成功案例'], pd.Series) else bool(pd.notna(case['顶级名校成功案例']))
@@ -617,13 +620,32 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     value = str(completion_rate).lower()
                     if value in ['true', 'yes', '是', 'true', '1']:
                         completion = True
-        return count and school and doctor and lowage and industry and workload and completion
+        
+        # 创建一个条件状态字典
+        conditions = {
+            '国家和专业标签': country and major,
+            '顶级名校成功案例': school,
+            '博士申请经验': doctor,
+            '低龄留学申请经验': lowage,
+            '行业经验': industry,
+            '工作量': workload,
+            '完成率': completion
+        }
+
+        # 打印未满足的条件
+        for condition_name, is_met in conditions.items():
+            if not is_met:
+                st.write(f"条件未满足: {condition_name}")
+
+        # 返回原始的布尔值
+        return all(conditions.values())
 
     if all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, merge_df):
         # 如果所有条件都满足，使用本地顾问的匹配结果
         return local_scores ,area
     else:
         # 如果有任何条件不满足，使用所有顾问重新计算匹配
+
         area = False
         all_scores,all_tag_score_dicts,all_workload_score_dicts,all_completion_rate_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
         return all_scores ,area
