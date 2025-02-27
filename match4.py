@@ -612,6 +612,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         st.write(f"行业经验标签判断结果:{industry}")
         # 6. 工作量标签判断
         for case_key, workload_score_dicts in all_workload_score_dicts.items():
+            st.write(f"案例{case_key}的工作量字典:{workload_score_dicts}")
             for consultant, workload_score_dict in workload_score_dicts.items():
                 for tag, score in workload_score_dict.items():
                     if tag == '工作量':
