@@ -393,7 +393,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         all_tag_score_dicts = {}  # 存储每个案例的所有顾问得分字典
         all_workload_score_dicts = {}  # 存储每个案例的所有顾问工作量得分字典
         all_completion_rate_score_dicts = {}  # 存储每个案例的所有顾问完成率得分字典
-
+        all_local_consultants = {}
         # 对每条案例进行匹配
         for idx, case in merge_df.iterrows():
             scores = []
@@ -405,7 +405,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             local_consultants = consultant_tags_file[consultant_tags_file['文案顾问业务单位'] == case['文案顾问业务单位']]
             all_consultants = consultant_tags_file
             consultants = local_consultants if area else all_consultants
-            
+            all_local_consultants[case['序号']] = local_consultants
             # 计算每个顾问对当前案例的得分
             for cidx, consultant in consultants.iterrows():
                 try:
@@ -521,14 +521,14 @@ def Consultant_matching(consultant_tags_file, merge_df):
             all_completion_rate_score_dicts[case_key] = case_completion_rate_score_dicts
         
 
-        return all_matches, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts
+        return all_matches, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts,all_local_consultants
     
     # 1. 先计算本地顾问的得分
     area = True
-    local_scores, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
+    local_scores, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts,all_local_consultants = find_best_matches(consultant_tags_file, merge_df, area)
 
     # 2. 检查7个判断条件
-    def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, merge_df):
+    def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, case):
         # 初始化标志
         count = False
         school = False
@@ -539,17 +539,17 @@ def Consultant_matching(consultant_tags_file, merge_df):
         completion = False
         
         # 1. 国家和专业标签判断
-        if pd.notna(merge_df['国家标签']) or pd.notna(merge_df['专业标签']):
+        if pd.notna(case['国家标签']) or pd.notna(case['专业标签']):
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
                 for tag, score in tag_score_dicts.items():
                     if tag in ['绝对高频国家', '相对高频国家', '绝对高频专业', '相对高频专业']:
                         if score > 0:
                             count = True
         else:
-            count = True  # 如果案例没有这些标签，直接判定为满足条件
+            count = True
         
         # 2. 顶级名校成功案例标签判断
-        if pd.notna(merge_df['顶级名校成功案例']) and merge_df['顶级名校成功案例'] != '':
+        if pd.notna(case['顶级名校成功案例']) and case['顶级名校成功案例'] != '':
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
                 for tag, score in tag_score_dicts.items():
                     if tag == '顶级名校成功案例':
@@ -559,7 +559,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             school = True
         
         # 3. 博士申请经验标签判断
-        if pd.notna(merge_df['博士申请经验']) and merge_df['博士申请经验'] != '':
+        if pd.notna(case['博士申请经验']) and case['博士申请经验'] != '':
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
                 for tag, score in tag_score_dicts.items():
                     if tag == '博士申请经验':
@@ -569,7 +569,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             doctor = True
         
         # 4. 低龄留学申请经验标签判断
-        if pd.notna(merge_df['低龄留学申请经验']) and merge_df['低龄留学申请经验'] != '':
+        if pd.notna(case['低龄留学申请经验']) and case['低龄留学申请经验'] != '':
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
                 for tag, score in tag_score_dicts.items():
                     if tag == '低龄留学申请经验':
@@ -578,8 +578,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
         else:
             lowage = True
         
-        # 5. 行业经验标签判断（只在案例包含"专家Lv.6+"时判断）
-        if pd.notna(merge_df['行业经验']) and '专家Lv.6+' in merge_df['行业经验']:
+        # 5. 行业经验标签判断
+        if pd.notna(case['行业经验']) and '专家Lv.6+' in case['行业经验']:
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
                 for tag, score in tag_score_dicts.items():
                     if tag == '行业经验':
@@ -598,15 +598,13 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 7. 完成率判断
         for case_key, completion_rate_score_dicts in all_completion_rate_score_dicts.items():
             for consultant, completion_rate in completion_rate_score_dicts.items():
-                value = str(completion_rate)
-                if value in ['True', 'true', '1', '是', 'yes']:
-                    completion = True
-        if count and school and doctor and lowage and industry and workload and completion:
-            return True
-        else:
-            return False
+                if pd.notna(completion_rate):
+                    value = str(completion_rate).lower()
+                    if value in ['true', 'yes', '是', 'true', '1']:
+                        completion = True
+        return count and school and doctor and lowage and industry and workload and completion
 
-    if all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, merge_df):
+    if all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, all_local_consultants):
         # 如果所有条件都满足，使用本地顾问的匹配结果
         return local_scores ,area
     else:
