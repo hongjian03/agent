@@ -619,6 +619,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                             workload = True
         st.write(f"工作量标签判断结果:{workload}")
         # 7. 完成率判断
+        st.write(f"完成率字典:{all_completion_rate_score_dicts}")
         for case_key, completion_rate_score_dicts in all_completion_rate_score_dicts.items():
             st.write(f"案例{case_key}的完成率字典:{completion_rate_score_dicts}")
             for consultant, completion_rate in completion_rate_score_dicts.items():
