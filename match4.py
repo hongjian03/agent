@@ -545,8 +545,6 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         if has_country or has_major:
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
-                st.write(f"案例{case_key}的顾问得分字典:{tag_score_dicts}")
-                st.write(f"案例{case_key}的顾问得分字典类型:{type(tag_score_dicts)}")
                 for consultant, tag_score_dict in tag_score_dicts.items():
                     for tag, score in tag_score_dict.items():
                         if tag in ['绝对高频国家', '相对高频国家']:
@@ -558,7 +556,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         else:
             country = True
             major = True
-        
+        st.write(f"国家和专业标签判断结果:{country}和{major}")
         # 2. 顶级名校成功案例标签判断
         has_school = bool(pd.notna(case['顶级名校成功案例']).any()) if isinstance(case['顶级名校成功案例'], pd.Series) else bool(pd.notna(case['顶级名校成功案例']))
         school_value = case['顶级名校成功案例'].item() if isinstance(case['顶级名校成功案例'], pd.Series) else case['顶级名校成功案例']
@@ -571,7 +569,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                             school = True
         else:
             school = True
-        
+        st.write(f"顶级名校成功案例标签判断结果:{school}")
         # 3. 博士申请经验标签判断
         has_doctor = bool(pd.notna(case['博士申请经验']).any()) if isinstance(case['博士申请经验'], pd.Series) else bool(pd.notna(case['博士申请经验']))
         doctor_value = case['博士申请经验'].item() if isinstance(case['博士申请经验'], pd.Series) else case['博士申请经验']
@@ -584,7 +582,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                             doctor = True
         else:
             doctor = True
-        
+        st.write(f"博士申请经验标签判断结果:{doctor}")
         # 4. 低龄留学申请经验标签判断
         has_lowage = bool(pd.notna(case['低龄留学申请经验']).any()) if isinstance(case['低龄留学申请经验'], pd.Series) else bool(pd.notna(case['低龄留学申请经验']))
         lowage_value = case['低龄留学申请经验'].item() if isinstance(case['低龄留学申请经验'], pd.Series) else case['低龄留学申请经验']
@@ -597,7 +595,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                             lowage = True
         else:
             lowage = True
-        
+        st.write(f"低龄留学申请经验标签判断结果:{lowage}")
         # 5. 行业经验标签判断
         has_industry = bool(pd.notna(case['行业经验']).any()) if isinstance(case['行业经验'], pd.Series) else bool(pd.notna(case['行业经验']))
         industry_value = case['行业经验'].item() if isinstance(case['行业经验'], pd.Series) else case['行业经验']
@@ -611,7 +609,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                                 industry = True
         else:
             industry = True
-        
+        st.write(f"行业经验标签判断结果:{industry}")
         # 6. 工作量标签判断
         for case_key, workload_score_dicts in all_workload_score_dicts.items():
             for consultant, workload_score_dict in workload_score_dicts.items():
@@ -619,7 +617,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     if tag == '工作量':
                         if score > 0:
                             workload = True
-        
+        st.write(f"工作量标签判断结果:{workload}")
         # 7. 完成率判断
         for case_key, completion_rate_score_dicts in all_completion_rate_score_dicts.items():
             for consultant, completion_rate in completion_rate_score_dicts.items():
@@ -627,7 +625,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     value = str(completion_rate).lower()
                     if value in ['true', 'yes', '是', 'true', '1']:
                         completion = True
-        
+        st.write(f"完成率标签判断结果:{completion}")
         # 创建一个条件状态字典
         conditions = {
             '国家和专业标签': country and major,
