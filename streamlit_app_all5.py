@@ -657,7 +657,7 @@ def main():
             return
 
     with system_tab2:
-        from match2 import (
+        from match3 import (
             label_merge,
             Consultant_matching
         )
