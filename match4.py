@@ -545,7 +545,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         if has_country or has_major:
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
-
+                st.write(f"案例{case_key}的顾问得分字典:{tag_score_dicts}")
+                st.write(f"案例{case_key}的顾问得分字典类型:{type(tag_score_dicts)}")
                 for consultant, tag_score_dict in tag_score_dicts.items():
                     for tag, score in tag_score_dict.items():
                         if tag in ['绝对高频国家', '相对高频国家']:
