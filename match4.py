@@ -545,11 +545,15 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         if has_country or has_major:
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
-                for tag, score in tag_score_dicts.items():
-                    if tag in ['绝对高频国家', '相对高频国家', '绝对高频专业', '相对高频专业']:
-                        if score > 0:
-                            country = True
-                            major = True
+
+                for consultant, tag_score_dict in tag_score_dicts.items():
+                    for tag, score in tag_score_dict.items():
+                        if tag in ['绝对高频国家', '相对高频国家']:
+                            if score > 0:
+                                country = True
+                        elif tag in ['绝对高频专业', '相对高频专业']:
+                            if score > 0:
+                                major = True
         else:
             country = True
             major = True
@@ -599,19 +603,21 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         if has_industry and '专家Lv.6+' in str(industry_value):
             for case_key, tag_score_dicts in all_tag_score_dicts.items():
-                for tag, score in tag_score_dicts.items():
-                    if tag == '行业经验':
-                        if score > 0:
-                            industry = True
+                for consultant, tag_score_dict in tag_score_dicts.items():
+                    for tag, score in tag_score_dict.items():
+                        if tag == '行业经验':
+                            if score > 0:
+                                industry = True
         else:
             industry = True
         
         # 6. 工作量标签判断
         for case_key, workload_score_dicts in all_workload_score_dicts.items():
-            for tag, score in workload_score_dicts.items():
-                if tag == '工作量':
-                    if score > 0:
-                        workload = True
+            for consultant, workload_score_dict in workload_score_dicts.items():
+                for tag, score in workload_score_dict.items():
+                    if tag == '工作量':
+                        if score > 0:
+                            workload = True
         
         # 7. 完成率判断
         for case_key, completion_rate_score_dicts in all_completion_rate_score_dicts.items():
