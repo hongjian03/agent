@@ -521,11 +521,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
             all_completion_rate_score_dicts[case_key] = case_completion_rate_score_dicts
         
 
-        return all_matches, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts,all_local_consultants
+        return all_matches, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts
     
     # 1. 先计算本地顾问的得分
     area = True
-    local_scores, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts,all_local_consultants = find_best_matches(consultant_tags_file, merge_df, area)
+    local_scores, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
 
     # 2. 检查7个判断条件
     def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, case):
@@ -604,7 +604,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                         completion = True
         return count and school and doctor and lowage and industry and workload and completion
 
-    if all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, all_local_consultants):
+    if all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, merge_df):
         # 如果所有条件都满足，使用本地顾问的匹配结果
         return local_scores ,area
     else:
