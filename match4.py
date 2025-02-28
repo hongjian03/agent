@@ -543,7 +543,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 '工作量': False,
                 '完成率': False
             }
-            
+            st.write(f"case: {case}")
+            st.write(f"case的类型: {type(case)}")
             # 1. 国家和专业标签判断
             has_country = bool(pd.notna(case['国家标签']).any()) if isinstance(case['国家标签'], pd.Series) else bool(pd.notna(case['国家标签']))
             has_major = bool(pd.notna(case['专业标签']).any()) if isinstance(case['专业标签'], pd.Series) else bool(pd.notna(case['专业标签']))
