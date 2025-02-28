@@ -549,11 +549,14 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 1. 国家和专业标签判断
             has_country = True if case_data['国家标签'] != '' else False
             has_major = True if case_data['专业标签'] != '' else False
-            
+            st.write("123")
             if has_country or has_major:
-                tag_score_dicts = all_tag_score_dicts[1]
+                tag_score_dicts = all_tag_score_dicts[idx]
+                st.write("456")
                 tag_score_dict = tag_score_dicts[consultant]
+                st.write("789")
                 for tag, score in tag_score_dict.items():
+                    st.write("10")
                     if tag in ['绝对高频国家', '相对高频国家']:
                         if score > 0:
                             consultant_conditions['国家标签'] = True
