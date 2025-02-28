@@ -535,7 +535,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
         for consultant in consultants:
             # 初始化该顾问的标志
             consultant_conditions = {
-                '国家和专业标签': False,
+                '国家标签': False,
+                '专业标签': False,
                 '顶级名校成功案例': False,
                 '博士申请经验': False,
                 '低龄留学申请经验': False,
@@ -544,6 +545,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 '完成率': False
             }
             case_data = case[1]
+            st.write(f"all_tag_score_dicts : {all_tag_score_dicts}")
             # 1. 国家和专业标签判断
             has_country = True if case_data['国家标签'] != '' else False
             has_major = True if case_data['专业标签'] != '' else False
@@ -551,12 +553,16 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if has_country or has_major:
                 tag_score_dict = all_tag_score_dicts[consultant]
                 for tag, score in tag_score_dict.items():
-                    if tag in ['绝对高频国家', '相对高频国家', '绝对高频专业', '相对高频专业']:
+                    if tag in ['绝对高频国家', '相对高频国家']:
                         if score > 0:
-                            consultant_conditions['国家和专业标签'] = True
+                            consultant_conditions['国家标签'] = True
+                    if tag in ['绝对高频专业', '相对高频专业']:
+                        if score > 0:
+                            consultant_conditions['专业标签'] = True
             else:
-                consultant_conditions['国家和专业标签'] = True
-            st.write(f"国家和专业标签判断结果:{consultant_conditions['国家和专业标签']}")
+                consultant_conditions['国家标签'] = True
+                consultant_conditions['专业标签'] = True
+            st.write(f"国家和专业标签判断结果:{consultant_conditions['国家标签']} {consultant_conditions['专业标签']}")
             # 2. 顶级名校成功案例标签判断
             has_school = True if case_data['顶级名校成功案例'] != '' else False
             if has_school:
