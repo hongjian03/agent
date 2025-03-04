@@ -545,7 +545,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 '完成率': False
             }
             case_data = case[1]
-            st.write(f"all_tag_score_dicts : {all_tag_score_dicts}")
+            st.write(f"case_data : {case_data}")
             # 1. 国家和专业标签判断
             has_country = True if case_data['国家标签'] != '' else False
             has_major = True if case_data['专业标签'] != '' else False
