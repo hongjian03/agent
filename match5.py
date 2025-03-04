@@ -422,8 +422,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 try:
                     # 获取标签匹配得分和得分字典
                     tag_score_dict = calculate_tag_matching_score(case, consultant)
+                    st.write(tag_score_dict)
                     workload_score = calculate_workload_score(case, consultant)
+                    st.write(workload_score)
                     personal_score = calculate_personal_score(case, consultant)
+                    st.write(personal_score)
                     # 计算最终得分
                     final_result = calculate_final_score(
                         tag_score_dict,
@@ -432,7 +435,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                         personal_score,
                         case
                     )
-                    
+                    st.write(final_result)
                     # 保存当前顾问的得分字典
                     case_tag_score_dicts[consultant['文案顾问']] = tag_score_dict
                     case_workload_score_dicts[consultant['文案顾问']] = workload_score
