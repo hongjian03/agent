@@ -529,7 +529,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
     # 2. 检查7个判断条件
     def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, case,idx):
         # 获取所有顾问列表
-        consultants = set(all_tag_score_dicts.keys())
+        consultants = set(all_tag_score_dicts["案例1"].keys())
         
         # 对每个顾问单独判断所有条件
         for consultant in consultants:
