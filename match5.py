@@ -420,6 +420,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 计算每个顾问对当前案例的得分
             for cidx, consultant in consultants.iterrows():
                 try:
+                    st.write("123")
                     # 获取标签匹配得分和得分字典
                     tag_score_dict = calculate_tag_matching_score(case, consultant)
                     st.write(tag_score_dict)
