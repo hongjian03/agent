@@ -548,13 +548,14 @@ def Consultant_matching(consultant_tags_file, merge_df):
             st.write(f"case : {case}")
             st.write(f"国家标签:{case['国家标签']}")
             st.write(f"idx:{idx}")
+            st.write(f"all_tag_score_dicts:{all_tag_score_dicts}")
             # 1. 国家和专业标签判断
             has_country = True if case['国家标签'] != '' else False
             has_major = True if case['专业标签'] != '' else False
             st.write("123")
             if has_country or has_major:
                 tag_score_dicts = all_tag_score_dicts["案例1"]
-                st.write("456")
+                st.write(f"tag_score_dicts:{tag_score_dicts}")
                 tag_score_dict = tag_score_dicts[consultant]
                 st.write("789")
                 for tag, score in tag_score_dict.items():
