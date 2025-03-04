@@ -576,7 +576,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 2. 顶级名校成功案例标签判断
             has_school = True if case['顶级名校成功案例'] != '' else False
             if has_school:
-                tag_score_dicts = all_tag_score_dicts[idx]
+                tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
                 if '顶级名校成功案例' in tag_score_dict and tag_score_dict['顶级名校成功案例'] > 0:
                     consultant_conditions['顶级名校成功案例'] = True
@@ -586,7 +586,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 3. 博士申请经验标签判断
             has_doctor = True if case['博士申请经验'] != '' else False
             if has_doctor:
-                tag_score_dicts = all_tag_score_dicts[idx]
+                tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
                 if '博士申请经验' in tag_score_dict and tag_score_dict['博士申请经验'] > 0:
                     consultant_conditions['博士申请经验'] = True
@@ -596,7 +596,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 4. 低龄留学申请经验标签判断
             has_lowage = True if case['低龄留学申请经验'] != '' else False
             if has_lowage:
-                tag_score_dicts = all_tag_score_dicts[idx]
+                tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
                 if '低龄留学申请经验' in tag_score_dict and tag_score_dict['低龄留学申请经验'] > 0:
                     consultant_conditions['低龄留学申请经验'] = True
@@ -604,23 +604,27 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 consultant_conditions['低龄留学申请经验'] = True
             st.write(f"低龄留学申请经验标签判断结果:{consultant_conditions['低龄留学申请经验']}")
             # 5. 行业经验标签判断
+            st.write(f"case['行业经验']:{case['行业经验']}")
             has_industry = True if '专家Lv.6+' in str(case['行业经验']) else False
             if has_industry:
-                tag_score_dicts = all_tag_score_dicts[idx]
+                st.write("123")
+                tag_score_dicts = all_tag_score_dicts[idx_case]
+                st.write("456")
                 tag_score_dict = tag_score_dicts[consultant]
+                st.write("789")
                 if '行业经验' in tag_score_dict and tag_score_dict['行业经验'] > 0:
                     consultant_conditions['行业经验'] = True
             else:
                 consultant_conditions['行业经验'] = True
             st.write(f"行业经验标签判断结果:{consultant_conditions['行业经验']}")
             # 6. 工作量标签判断
-            workload_score_dicts = all_workload_score_dicts[idx]
+            workload_score_dicts = all_workload_score_dicts[idx_case]
             workload_score_dict = workload_score_dicts[consultant]
             if workload_score_dict > 0:
                 consultant_conditions['工作量'] = True
             st.write(f"工作量标签判断结果:{consultant_conditions['工作量']}")
             # 7. 完成率判断
-            completion_rate_dicts = all_completion_rate_score_dicts[idx]
+            completion_rate_dicts = all_completion_rate_score_dicts[idx_case]
             completion_rate_dict = completion_rate_dicts[consultant]
             if pd.notna(completion_rate_dict):
                 value = str(completion_rate_dict).lower()
