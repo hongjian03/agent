@@ -530,7 +530,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
     def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, case,idx):
         # 获取所有顾问列表
         consultants = set(all_tag_score_dicts["案例1"].keys())
-        
+        idx_case = f"案例{idx+1}"
         # 对每个顾问单独判断所有条件
         for consultant in consultants:
             # 初始化该顾问的标志
@@ -548,18 +548,20 @@ def Consultant_matching(consultant_tags_file, merge_df):
             st.write(f"case : {case}")
             st.write(f"国家标签:{case['国家标签']}")
             st.write(f"idx:{idx}")
-            st.write(f"all_tag_score_dicts:{all_tag_score_dicts}")
+            st.write(f"consultant:{consultant}")
             # 1. 国家和专业标签判断
             has_country = True if case['国家标签'] != '' else False
             has_major = True if case['专业标签'] != '' else False
             st.write("123")
             if has_country or has_major:
-                tag_score_dicts = all_tag_score_dicts["案例1"]
+                tag_score_dicts = all_tag_score_dicts[idx_case]
                 st.write(f"tag_score_dicts:{tag_score_dicts}")
                 tag_score_dict = tag_score_dicts[consultant]
-                st.write("789")
+                st.write(f"tag_score_dict:{tag_score_dict}")
                 for tag, score in tag_score_dict.items():
                     st.write("10")
+                    st.write(f"tag:{tag}")
+                    st.write(f"score:{score}")
                     if tag in ['绝对高频国家', '相对高频国家']:
                         if score > 0:
                             consultant_conditions['国家标签'] = True
