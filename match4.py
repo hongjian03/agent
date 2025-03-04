@@ -544,11 +544,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 '工作量': False,
                 '完成率': False
             }
-            case_data = case[1]
-            st.write(f"case_data : {case_data}")
+            
+            st.write(f"case : {case}")
             # 1. 国家和专业标签判断
-            has_country = True if case_data['国家标签'] != '' else False
-            has_major = True if case_data['专业标签'] != '' else False
+            has_country = True if case['国家标签'] != '' else False
+            has_major = True if case['专业标签'] != '' else False
             st.write("123")
             if has_country or has_major:
                 tag_score_dicts = all_tag_score_dicts[idx]
