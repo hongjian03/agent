@@ -146,15 +146,7 @@ def main():
             # 使用session_state中的prompt_templates
             prompt_templates = st.session_state.prompt_templates
             
-            # 选择输出标签
-            st.sidebar.subheader("输出标签选择")
-            output_tags = st.sidebar.multiselect(
-                "选择需要输出的标签",
-                options=[
-                    "国家标签", "专业标签", "名校专家", "博士成功案例", "低龄留学成功案例", "行业经验","文案背景", "业务单位所在地","文案顾问业务单位",'做过该生所在院校的客户'
-                ],
-                default=["国家标签","专业标签", "名校专家", "博士成功案例", "低龄留学成功案例", "行业经验","文案背景", "业务单位所在地","文案顾问业务单位","做过该生所在院校的客户"]
-            )
+            
             
             # 添加选项卡来切换输入方式
             input_tab1, = st.tabs(["手动输入"])
