@@ -410,7 +410,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             scores = []
             case_tag_score_dicts = {}  # 存储当前案例的所有顾问得分字典
             case_workload_score_dicts = {}  # 存储当前案例的所有顾问工作量得分字典
-            case_completion_rate_score_dicts = {}  # 存储当前案例的所有顾问完成率得分字典
+            
             
             # 选择顾问范围（本地或全部）
             local_consultants = consultant_tags_file[consultant_tags_file['文案顾问业务单位'] == case['文案顾问业务单位']]
@@ -420,7 +420,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 计算每个顾问对当前案例的得分
             for cidx, consultant in consultants.iterrows():
                 try:
-                    st.write("123")
+                    
                     # 获取标签匹配得分和得分字典
                     tag_score_dict = calculate_tag_matching_score(case, consultant)
                     st.write(tag_score_dict)
@@ -440,7 +440,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     # 保存当前顾问的得分字典
                     case_tag_score_dicts[consultant['文案顾问']] = tag_score_dict
                     case_workload_score_dicts[consultant['文案顾问']] = workload_score
-                    case_completion_rate_score_dicts[consultant['文案顾问']] = consultant['完成率']
+                    
                     
                     # 获取顾问的标签数据
                     consultant_info = {
@@ -531,17 +531,17 @@ def Consultant_matching(consultant_tags_file, merge_df):
             all_matches[case_key] = selected_consultants
             all_tag_score_dicts[case_key] = case_tag_score_dicts
             all_workload_score_dicts[case_key] = case_workload_score_dicts
-            all_completion_rate_score_dicts[case_key] = case_completion_rate_score_dicts
+            
         
 
-        return all_matches, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts
+        return all_matches, all_tag_score_dicts, all_workload_score_dicts, 
     
     # 1. 先计算本地顾问的得分
     area = True
-    local_scores, all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
+    local_scores, all_tag_score_dicts, all_workload_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
 
     # 2. 检查7个判断条件
-    def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, case,idx):
+    def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, case,idx):
         # 获取所有顾问列表
         consultants = set(all_tag_score_dicts["案例1"].keys())
         
@@ -630,7 +630,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 如果没有任何顾问满足所有条件，返回False
         return False
     for idx,case in merge_df.iterrows():
-        if all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, all_completion_rate_score_dicts, case,idx):
+        if all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, case,idx):
             # 如果所有条件都满足，使用本地顾问的匹配结果
             return local_scores ,area
     else:
