@@ -625,14 +625,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if all(consultant_conditions.values()):
                 st.write(f"顾问 {consultant} 满足所有条件")
                 return True
-            else:
-                st.write(f"顾问 {consultant} 不满足以下条件：")
-                for condition, is_met in consultant_conditions.items():
-                    if not is_met:
-                        st.write(f"❌ {condition}")
-                    else:
-                        st.write(f"✅ {condition}")
-                st.write("---")  # 添加分隔线以提高可读性
+
                 
                 
         # 如果没有任何顾问满足所有条件，返回False
