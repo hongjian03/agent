@@ -415,7 +415,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             local_consultants = consultant_tags_file[consultant_tags_file['文案顾问业务单位'] == case['文案顾问业务单位']]
             all_consultants = consultant_tags_file
             consultants = local_consultants if area else all_consultants
-            all_local_consultants[case['序号']] = local_consultants
+            
             # 计算每个顾问对当前案例的得分
             for cidx, consultant in consultants.iterrows():
                 try:
