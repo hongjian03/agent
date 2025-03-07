@@ -628,7 +628,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 return True
             else:
                 st.write(f"顾问 {consultant} 不满足所有条件")
-                return False
+                
                 
         # 如果没有任何顾问满足所有条件，返回False
         return False
