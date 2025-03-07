@@ -578,7 +578,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             else:
                 consultant_conditions['国家标签'] = True
                 consultant_conditions['专业标签'] = True
-    
+            st.write(consultant_conditions)
             # 2. 名校专家标签判断
             has_school = True if case['名校专家'] != '' else False
             if has_school:
@@ -616,8 +616,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
             else:
                 consultant_conditions['行业经验'] = True
             # 6. 工作量标签判断
+            st.write(all_workload_score_dicts)
             workload_score_dicts = all_workload_score_dicts[idx_case]
+            st.write(workload_score_dicts)
             workload_score_dict = workload_score_dicts[consultant]
+            st.write(workload_score_dict)
             for tag,score in workload_score_dict.items():
                 total_score = 0
                 total_score += score
