@@ -616,16 +616,12 @@ def Consultant_matching(consultant_tags_file, merge_df):
             else:
                 consultant_conditions['行业经验'] = True
             # 6. 工作量标签判断
-            st.write(all_workload_score_dicts)
+            
             workload_score_dicts = all_workload_score_dicts[idx_case]
-            st.write(workload_score_dicts)
+            
             workload_score_dict = workload_score_dicts[consultant]
-            st.write(workload_score_dict)
-            for tag,score in workload_score_dict.items():
-                total_score = 0
-                total_score += score
-                if total_score >= 100:
-                    consultant_conditions['工作量'] = True
+            if workload_score_dict == 100:
+                consultant_conditions['工作量'] = True
             # 如果这个顾问满足所有条件，直接返回True
             if all(consultant_conditions.values()):
                 st.write(f"顾问 {consultant} 满足所有条件")
