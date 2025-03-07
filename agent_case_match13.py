@@ -399,8 +399,7 @@ class PromptTemplates:
                 "SpecialProjects": ["string, 特殊项目标签"],
                 "Industryexperience": ["string, 行业经验标签"],
                 "Consultantbackground": ["string, 顾问背景标签"],
-                "businessLocation": ["string, 业务所在地"],
-                "consultant_unit": ["string, 文案顾问业务单位"]
+                "businessLocation": ["string, 业务所在地"]
               }
             }
             卓越服务指南：
@@ -594,8 +593,7 @@ def clean_json_string(json_str):
 def process_student_case2(student_case, callback=None):
     try:
         if callback:
-            callback("🔍 开始分析学生案例...")
-            callback("1️⃣ 提取关键信息...")
+
             callback("2️⃣ 创建分析专家...")
         
         # 创建专家代理
