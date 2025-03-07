@@ -45,7 +45,6 @@ def label_merge(merge_df):
     
     # 合并所有标签
     result_df = pd.concat([
-        result_df['序号'],
         result_df['文案顾问业务单位'],
         result_df['国家标签'],
         result_df['专业标签'],
@@ -58,7 +57,7 @@ def label_merge(merge_df):
     
     # 确保列的顺序正确
     desired_columns = [
-        "序号", "文案顾问业务单位", "国家标签", "专业标签", 
+        "文案顾问业务单位", "国家标签", "专业标签", 
         "名校专家", "博士成功案例", "低龄留学成功案例", 
         "行业经验", "文案背景", "业务单位所在地",
     ]
