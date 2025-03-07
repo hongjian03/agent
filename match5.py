@@ -552,9 +552,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
             consultant_conditions = {
                 '国家标签': False,
                 '专业标签': False,
-                '顶级名校成功案例': False,
-                '博士申请经验': False,
-                '低龄留学申请经验': False,
+                '博士成功案例': False,
+                '低龄留学成功案例': False,
                 '行业经验': False,
                 '工作量': False,
                 
@@ -626,6 +625,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if all(consultant_conditions.values()):
                 st.write(f"顾问 {consultant} 满足所有条件")
                 return True
+
+                
                 
         # 如果没有任何顾问满足所有条件，返回False
         return False
