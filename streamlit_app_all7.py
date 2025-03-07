@@ -2,6 +2,7 @@ import sys
 import streamlit as st
 import os
 import logging
+import re
 
 # 配置日志记录
 logging.basicConfig(
@@ -534,9 +535,29 @@ def main():
                                 # 处理模型输出
                             try:
                                 # 清理JSON字符串
-                                json_str = result["raw_output"].replace('```json', '').replace('```', '').strip()
-                                # 解析JSON
-                                output_dict = json.loads(json_str)
+                                json_str = result["raw_output"]
+                                
+                                # 1. 移除所有代码块标记
+                                json_str = json_str.replace('```json', '').replace('```', '').strip()
+                                
+                                # 2. 查找第一个 { 和最后一个 } 之间的内容
+                                start_idx = json_str.find('{')
+                                end_idx = json_str.rfind('}')
+                                if start_idx != -1 and end_idx != -1:
+                                    json_str = json_str[start_idx:end_idx + 1]
+                                
+                                # 3. 移除可能的前导和尾随文本说明
+                                json_str = re.sub(r'^[^{]*', '', json_str)  # 移除第一个 { 之前的所有内容
+                                json_str = re.sub(r'[^}]*$', '', json_str)  # 移除最后一个 } 之后的所有内容
+                                
+                                # 4. 尝试解析JSON
+                                try:
+                                    output_dict = json.loads(json_str)
+                                except json.JSONDecodeError as e:
+                                    st.error(f"JSON解析失败: {str(e)}")
+                                    st.write("原始输出:", result["raw_output"])
+                                    st.write("清理后的JSON字符串:", json_str)
+                                    raise Exception("JSON解析失败，请检查输出格式")
 
                                 
                                 # 创建DataFrame
