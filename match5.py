@@ -423,11 +423,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     
                     # 获取标签匹配得分和得分字典
                     tag_score_dict = calculate_tag_matching_score(case, consultant)
-                    st.write(tag_score_dict)
+                    
                     workload_score = calculate_workload_score(case, consultant)
-                    st.write(workload_score)
+                    
                     personal_score = calculate_personal_score(case, consultant)
-                    st.write(personal_score)
+                    
                     # 计算最终得分
                     final_result = calculate_final_score(
                         tag_score_dict,
@@ -436,7 +436,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                         personal_score,
                         case
                     )
-                    st.write(final_result)
+                    
                     # 保存当前顾问的得分字典
                     case_tag_score_dicts[consultant['文案顾问']] = tag_score_dict
                     case_workload_score_dicts[consultant['文案顾问']] = workload_score
@@ -567,6 +567,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if has_country or has_major:
                 tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
+                st.write(tag_score_dict)
                 for tag, score in tag_score_dict.items():
                     if tag in ['绝对高频国家', '相对高频国家','做过国家']:
                         if score > 0:
@@ -637,126 +638,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 如果有任何条件不满足，使用所有顾问重新计算匹配
 
         area = False
-        all_scores,all_tag_score_dicts,all_workload_score_dicts,all_completion_rate_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
+        all_scores,all_tag_score_dicts,all_workload_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
         return all_scores ,area
 
-def match_main():
-    st.title("顾问匹配系统")
-    
-    # 初始化 session_state
-    if 'processed_df' not in st.session_state:
-        st.session_state.processed_df = None
-    if 'merged_df' not in st.session_state:
-        st.session_state.merged_df = None
-    
-    # 文件上传区域
-    with st.container():
-        st.subheader("数据上传")
-        uploaded_sample_data = st.file_uploader("请上传案例数据", type=['xlsx'], key='sample')
-        uploaded_merge_data = st.file_uploader("请上传需要合并的主体数据表", type=['xlsx'], key='merge')
-        uploaded_consultant_tags = st.file_uploader("请上传文案顾问标签汇总", type=['xlsx'], key='consultant')
-        
-        # 读取所有上传的文件
-        if uploaded_sample_data is not None:
-            sample_df = pd.read_excel(uploaded_sample_data)
-            st.success("案例数据上传成功")
-            
-        if uploaded_merge_data is not None:
-            merge_df = pd.read_excel(uploaded_merge_data)
-            st.success("主体数据表上传成功")
-            
-        if uploaded_consultant_tags is not None:
-            consultant_tags_df = pd.read_excel(uploaded_consultant_tags)
-            st.success("顾问标签汇总上传成功")
-    
-    # 处理按钮区域
-    with st.container():
-        st.subheader("数据处理")
-        col1, col2, col3 = st.columns(3)
-        
-        # 标签处理按钮
-        
-        # 标签合并按钮
-        with col2:
-            if st.button("开始标签合并"):
-                if st.session_state.processed_df is not None and uploaded_merge_data is not None:
-                    try:
-                        st.session_state.merged_df = label_merge(st.session_state.processed_df, merge_df)
-                        st.success("标签合并完成！")
-                        # 显示合并后的数据预览
-                        st.write("合并后数据预览：")
-                        st.dataframe(st.session_state.merged_df.head())
-                        
-                        # 添加下载按钮
-                        buffer = BytesIO()
-                        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                            st.session_state.merged_df.to_excel(writer, index=False, sheet_name='标签合并结果')
-                        st.download_button(
-                            label="下载标签合并结果",
-                            data=buffer.getvalue(),
-                            file_name="标签合并结果.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
-                    except Exception as e:
-                        st.error(f"标签合并出错: {str(e)}")
-                else:
-                    st.warning("请先完成标签处理并上传主体数据表")
-        
-        # 顾问匹配按钮
-        with col3:
-            if st.button("开始顾问匹配"):
-                if st.session_state.merged_df is not None and uploaded_consultant_tags is not None:
-                    try:
-                        # 调用顾问匹配函数
-                        matching_results = Consultant_matching(
-                            consultant_tags_df,
-                            sample_df,
-                            st.session_state.merged_df
-                        )
-                        st.success("顾问匹配完成！")
-                        
-                        # 将匹配结果添加到原始sample数据中
-                        result_df = sample_df.copy()
-                        result_df['匹配文案列表'] = ''
-                        
-                        # 将匹配结果填入对应行
-                        for case, consultants in matching_results.items():
-                            idx = int(case.replace('案例', '')) - 1
-                            consultant_str = '；'.join(consultants)
-                            result_df.loc[idx, '匹配文案列表'] = consultant_str
-                        
-                        # 显示结果预览
-                        st.write("匹配结果预览：")
-                        st.dataframe(result_df)
-                        
-                        # 添加下载按钮
-                        buffer = BytesIO()
-                        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                            result_df.to_excel(writer, index=False, sheet_name='顾问匹配结果')
-                        st.download_button(
-                            label="下载顾问匹配结果",
-                            data=buffer.getvalue(),
-                            file_name="顾问匹配结果.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        )
-                    except Exception as e:
-                        st.error(f"顾问匹配出错: {str(e)}")
-                else:
-                    st.warning("请先完成标签合并并上传顾问标签汇总")
-    
-    # 显示处理状态
-    with st.container():
-        st.subheader("处理状态")
-        status_col1, status_col2, status_col3 = st.columns(3)
-        with status_col1:
-            st.write("标签处理状态:", "✅ 完成" if st.session_state.processed_df is not None else "⏳ 待处理")
-        with status_col2:
-            st.write("标签合并状态:", "✅ 完成" if st.session_state.merged_df is not None else "⏳ 待处理")
-        with status_col3:
-            st.write("顾问匹配状态:", "✅ 完成" if 'matching_results' in locals() else "⏳ 待处理")
 
-if __name__ == "__main__":
-    match_main()
-
-#cd agent
-#streamlit run match.py
