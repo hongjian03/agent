@@ -157,7 +157,7 @@ def main():
             )
             
             # 添加选项卡来切换输入方式
-            input_tab1 = st.tabs(["手动输入"])
+            input_tab1, = st.tabs(["手动输入"])
             
 
             with input_tab1:
