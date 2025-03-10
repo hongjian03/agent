@@ -61,9 +61,10 @@ from agent_case_match13 import (
 import json
 import io
 
-
-
-
+st.set_page_config(
+    layout="wide",  # 使用宽布局
+    initial_sidebar_state="collapsed"  # 默认折叠侧边栏
+)
 
 def load_config():
     """加载配置文件"""
