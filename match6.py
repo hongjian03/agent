@@ -369,8 +369,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 case_special_count += len(set(re.split(r'[、,，\s]+', case[tag])))
         
         # 计算需求覆盖率
-        country_coverage_ratio = country_count_need / case_country_count if case_country_count > 0 else 0
-        special_coverage_ratio = special_count_need / case_special_count if case_special_count > 0 else 0
+        country_coverage_ratio = country_count_need / case_country_count if case_country_count > 0 else 1
+        special_coverage_ratio = special_count_need / case_special_count if case_special_count > 0 else 1
         
         # 应用匹配率和覆盖率到对应标签得分上
         adjusted_country_score = country_tags_score * country_match_ratio * country_coverage_ratio
