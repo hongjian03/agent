@@ -681,176 +681,129 @@ def main():
                         st.success("顾问匹配完成！")
                         
                         # 显示匹配结果
-                        st.markdown("<div class='card-container'>", unsafe_allow_html=True)
-                        st.subheader("🔍 匹配结果")
+                        st.markdown("## 🔍 匹配结果")
 
-                        for case, consultants in matching_results.items():
+                        # 从merge_df中获取案例标签信息
+                        if not merge_df.empty:
+                            case_tags = {
+                                'country_tags': merge_df['国家标签'].iloc[0].split(', ') if not pd.isna(merge_df['国家标签'].iloc[0]) else ['无'],
+                                'special_tags': merge_df['专业标签'].iloc[0].split(', ') if not pd.isna(merge_df['专业标签'].iloc[0]) else ['无'],
+                                'other_tags': merge_df['行业经验'].iloc[0].split(', ') if not pd.isna(merge_df['行业经验'].iloc[0]) else ['无']
+                            }
+                        else:
+                            case_tags = {'country_tags': ['无'], 'special_tags': ['无'], 'other_tags': ['无']}
+
+                        for case_id, consultants in matching_results.items():
                             for i, consultant in enumerate(consultants):
-                                # 创建一个漂亮的卡片来显示每个顾问的匹配结果
-                                st.markdown(f"""
-                                <div style="margin-bottom: 30px; padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                    <h3 style="color: #1e3a8a; margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                                        {consultant['name']} ({consultant['score']:.1f}分)
-                                        <span style="float: right; font-size: 0.9rem; color: #666;">
-                                            业务单位: {consultant.get('businessunits', '未知')} | 
-                                            匹配范围: {"本地匹配" if consultant.get('area', False) else "全国大池里匹配"}
-                                        </span>
-                                    </h3>
+                                # 使用Streamlit的expander组件来显示每个顾问的匹配结果
+                                with st.container():
+                                    # 顾问名称和得分
+                                    col1, col2 = st.columns([3, 1])
+                                    with col1:
+                                        st.markdown(f"### {consultant['name']} ({consultant['score']:.1f}分)")
+                                    with col2:
+                                        st.markdown(f"**业务单位:** {consultant.get('businessunits', '未知')}  \n"
+                                                   f"**匹配范围:** {'本地匹配' if consultant.get('area', False) else '全国大池里匹配'}")
                                     
-                                    <!-- 第一行：案例需求标签 -->
-                                    <div style="margin-bottom: 20px;">
-                                        <h4 style="color: #1e3a8a; margin-bottom: 10px;">案例需求标签</h4>
-                                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                                            <div style="flex: 1; min-width: 300px;">
-                                                <div style="font-weight: bold; margin-bottom: 5px;">国家标签:</div>
-                                                <div style="background-color: #f0f7ff; padding: 10px; border-radius: 5px;">
-                                                    {', '.join(consultant.get('country_tags', ['无']))}
-                                                </div>
-                                            </div>
-                                            <div style="flex: 1; min-width: 300px;">
-                                                <div style="font-weight: bold; margin-bottom: 5px;">专业标签:</div>
-                                                <div style="background-color: #f0f7ff; padding: 10px; border-radius: 5px;">
-                                                    {', '.join(consultant.get('special_tags', ['无']))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- 第二行：顾问标签 -->
-                                        <div style="margin-bottom: 20px;">
-                                            <h4 style="color: #1e3a8a; margin-bottom: 10px;">顾问标签</h4>
-                                            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                                                <div style="flex: 1; min-width: 300px;">
-                                                    <div style="font-weight: bold; margin-bottom: 5px;">绝对高频国家:</div>
-                                                    <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
-                                                        {', '.join(consultant.get('absolute_high_frequency_country', ['无']))}
-                                                    </div>
-                                                </div>
-                                                <div style="flex: 1; min-width: 300px;">
-                                                    <div style="font-weight: bold; margin-bottom: 5px;">相对高频国家:</div>
-                                                    <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
-                                                        {', '.join(consultant.get('relative_high_frequency_country', ['无']))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
-                                                <div style="flex: 1; min-width: 300px;">
-                                                    <div style="font-weight: bold; margin-bottom: 5px;">绝对高频专业:</div>
-                                                    <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
-                                                        {', '.join(consultant.get('absolute_high_frequency_major', ['无']))}
-                                                    </div>
-                                                </div>
-                                                <div style="flex: 1; min-width: 300px;">
-                                                    <div style="font-weight: bold; margin-bottom: 5px;">相对高频专业:</div>
-                                                    <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
-                                                        {', '.join(consultant.get('relative_high_frequency_major', ['无']))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div style="margin-top: 10px;">
-                                                <div style="font-weight: bold; margin-bottom: 5px;">行业经验:</div>
-                                                <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
-                                                    {', '.join(consultant.get('industry_experience', ['无']))}
-                                                </div>
-                                            </div>
-                                            <div style="margin-top: 10px;">
-                                                <div style="font-weight: bold; margin-bottom: 5px;">特殊标签:</div>
-                                                <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px;">
-                                                    {', '.join(consultant.get('special_tags', ['无']))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- 第三行：标签匹配得分 -->
-                                        <div style="margin-bottom: 20px;">
-                                            <h4 style="color: #1e3a8a; margin-bottom: 10px;">标签匹配得分</h4>
-                                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px;">
-                                                <div style="background-color: #f0f7ff; padding: 10px; border-radius: 5px; text-align: center;">
-                                                    <div style="font-weight: bold;">绝对高频国家</div>
-                                                    <div style="font-size: 1.2rem; color: #1e3a8a;">✓ 匹配 ({consultant.get('country_tags_score', 0)}分)</div>
-                                                </div>
-                                                <div style="background-color: #f0f7ff; padding: 10px; border-radius: 5px; text-align: center;">
-                                                    <div style="font-weight: bold;">做过专业</div>
-                                                    <div style="font-size: 1.2rem; color: #1e3a8a;">✓ 匹配 ({consultant.get('special_tags_score', 0)}分)</div>
-                                                </div>
-                                                <div style="background-color: #f0f7ff; padding: 10px; border-radius: 5px; text-align: center;">
-                                                    <div style="font-weight: bold;">行业经验</div>
-                                                    <div style="font-size: 1.2rem; color: #1e3a8a;">✓ 匹配 ({consultant.get('other_tags_score', 0)}分)</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- 第四行：匹配率与覆盖率 -->
-                                        <div style="margin-bottom: 20px;">
-                                            <h4 style="color: #1e3a8a; margin-bottom: 10px;">匹配率与覆盖率</h4>
-                                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                                                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
-                                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                                        <span style="font-weight: bold;">国家标签匹配率:</span>
-                                                        <span>{consultant.get('country_match_ratio', 0):.2f} ({consultant.get('country_count_need', 0)}/{consultant.get('country_count_total', 1)})</span>
-                                                    </div>
-                                                    <div style="display: flex; justify-content: space-between;">
-                                                        <span style="font-weight: bold;">国家标签覆盖率:</span>
-                                                        <span>{consultant.get('country_coverage_ratio', 0):.2f}</span>
-                                                    </div>
-                                                </div>
-                                                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
-                                                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                                        <span style="font-weight: bold;">特殊标签匹配率:</span>
-                                                        <span>{consultant.get('special_match_ratio', 0):.2f} ({consultant.get('special_count_need', 0)}/{consultant.get('special_count_total', 1)})</span>
-                                                    </div>
-                                                    <div style="display: flex; justify-content: space-between;">
-                                                        <span style="font-weight: bold;">特殊标签覆盖率:</span>
-                                                        <span>{consultant.get('special_coverage_ratio', 0):.2f}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- 第五行：得分计算 -->
-                                        <div>
-                                            <h4 style="color: #1e3a8a; margin-bottom: 10px;">得分计算</h4>
-                                            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px;">
-                                                <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; text-align: center;">
-                                                    <div style="font-size: 0.9rem;">国家标签得分</div>
-                                                    <div style="font-size: 1.1rem; font-weight: bold;">{consultant.get('country_tags_score', 0)}分</div>
-                                                </div>
-                                                <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; text-align: center;">
-                                                    <div style="font-size: 0.9rem;">特殊标签得分</div>
-                                                    <div style="font-size: 1.1rem; font-weight: bold;">{consultant.get('special_tags_score', 0)}分</div>
-                                                </div>
-                                                <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; text-align: center;">
-                                                    <div style="font-size: 0.9rem;">其他标签得分</div>
-                                                    <div style="font-size: 1.1rem; font-weight: bold;">{consultant.get('other_tags_score', 0)}分</div>
-                                                </div>
-                                                <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; text-align: center;">
-                                                    <div style="font-size: 0.9rem;">工作量评分</div>
-                                                    <div style="font-size: 1.1rem; font-weight: bold;">{consultant.get('workload_score', 0)}分</div>
-                                                </div>
-                                                <div style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; text-align: center;">
-                                                    <div style="font-size: 0.9rem;">个人意愿评分</div>
-                                                    <div style="font-size: 1.1rem; font-weight: bold;">{consultant.get('personal_score', 0)}分</div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-                                                <div style="font-weight: bold; margin-bottom: 10px;">计算公式:</div>
-                                                <div style="font-family: monospace; margin-bottom: 10px;">
-                                                    国家得分 × 国家匹配率 × 国家覆盖率 × 0.5 + 特殊得分 × 特殊匹配率 × 特殊覆盖率 × 0.5 + 其他标签得分 × 0.5 + 工作量得分 × 0.3 + 个人意愿得分 × 0.2
-                                                </div>
-                                                <div style="font-family: monospace;">
-                                                    ({consultant.get('country_tags_score', 0):.1f}) × ({consultant.get('country_match_ratio', 0):.2f}) × ({consultant.get('country_coverage_ratio', 0):.2f}) × 0.5 + 
-                                                    ({consultant.get('special_tags_score', 0):.1f}) × ({consultant.get('special_match_ratio', 0):.2f}) × ({consultant.get('special_coverage_ratio', 0):.2f}) × 0.5 + 
-                                                    ({consultant.get('other_tags_score', 0):.1f}) × 0.5 + ({consultant.get('workload_score', 0):.1f}) × 0.3 + ({consultant.get('personal_score', 0):.1f}) × 0.2 = {consultant['score']:.1f}分
-                                                </div>
-                                            </div>
-                                            
-                                            <div style="background-color: #e8f4fc; padding: 15px; border-radius: 5px; text-align: center;">
-                                                <span style="font-weight: bold; font-size: 1.1rem;">最终得分: </span>
-                                                <span style="color: #1e3a8a; font-size: 1.5rem; font-weight: bold;">{consultant['score']:.1f}分</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
+                                    st.markdown("---")
+                                    
+                                    # 第一行：案例需求标签
+                                    st.markdown("#### 案例需求标签")
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        st.markdown("**国家标签:**")
+                                        st.markdown(f"```\n{', '.join(case_tags.get('country_tags', ['无']))}\n```")
+                                    with col2:
+                                        st.markdown("**专业标签:**")
+                                        st.markdown(f"```\n{', '.join(case_tags.get('special_tags', ['无']))}\n```")
+                                    
+                                    st.markdown("**行业经验:**")
+                                    st.markdown(f"```\n{', '.join(case_tags.get('other_tags', ['无']))}\n```")
+                                    
+                                    st.markdown("---")
+                                    
+                                    # 第二行：顾问标签
+                                    st.markdown("#### 顾问标签")
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        st.markdown("**绝对高频国家:**")
+                                        st.markdown(f"```\n{', '.join(consultant.get('绝对高频国家', ['无']))}\n```")
+                                    with col2:
+                                        st.markdown("**相对高频国家:**")
+                                        st.markdown(f"```\n{', '.join(consultant.get('相对高频国家', ['无']))}\n```")
+                                    
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        st.markdown("**绝对高频专业:**")
+                                        st.markdown(f"```\n{', '.join(consultant.get('绝对高频专业', ['无']))}\n```")
+                                    with col2:
+                                        st.markdown("**相对高频专业:**")
+                                        st.markdown(f"```\n{', '.join(consultant.get('相对高频专业', ['无']))}\n```")
+                                    
+                                    st.markdown("**行业经验:**")
+                                    st.markdown(f"```\n{', '.join(consultant.get('行业经验', ['无']))}\n```")
+                                    
+                                    st.markdown("**特殊标签:**")
+                                    st.markdown(f"```\n{', '.join(consultant.get('特殊标签', ['无']))}\n```")
+                                    
+                                    st.markdown("---")
+                                    
+                                    # 第三行：标签匹配得分
+                                    st.markdown("#### 标签匹配得分")
+                                    col1, col2, col3 = st.columns(3)
+                                    with col1:
+                                        st.metric("绝对高频国家", f"匹配 ({consultant.get('country_tags_score', 0)}分)")
+                                    with col2:
+                                        st.metric("做过专业", f"匹配 ({consultant.get('special_tags_score', 0)}分)")
+                                    with col3:
+                                        st.metric("行业经验", f"匹配 ({consultant.get('other_tags_score', 0)}分)")
+                                    
+                                    st.markdown("---")
+                                    
+                                    # 第四行：匹配率与覆盖率
+                                    st.markdown("#### 匹配率与覆盖率")
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        st.markdown("**国家标签匹配率:**")
+                                        st.markdown(f"{consultant.get('country_match_ratio', 0):.2f} ({consultant.get('country_count_need', 0)}/{consultant.get('country_count_total', 1)})")
+                                        st.markdown("**国家标签覆盖率:**")
+                                        st.markdown(f"{consultant.get('country_coverage_ratio', 0):.2f}")
+                                    with col2:
+                                        st.markdown("**特殊标签匹配率:**")
+                                        st.markdown(f"{consultant.get('special_match_ratio', 0):.2f} ({consultant.get('special_count_need', 0)}/{consultant.get('special_count_total', 1)})")
+                                        st.markdown("**特殊标签覆盖率:**")
+                                        st.markdown(f"{consultant.get('special_coverage_ratio', 0):.2f}")
+                                    
+                                    st.markdown("---")
+                                    
+                                    # 第五行：得分计算
+                                    st.markdown("#### 得分计算")
+                                    col1, col2, col3, col4, col5 = st.columns(5)
+                                    with col1:
+                                        st.metric("国家标签得分", f"{consultant.get('country_tags_score', 0)}分")
+                                    with col2:
+                                        st.metric("特殊标签得分", f"{consultant.get('special_tags_score', 0)}分")
+                                    with col3:
+                                        st.metric("其他标签得分", f"{consultant.get('other_tags_score', 0)}分")
+                                    with col4:
+                                        st.metric("工作量评分", f"{consultant.get('workload_score', 0)}分")
+                                    with col5:
+                                        st.metric("个人意愿评分", f"{consultant.get('personal_score', 0)}分")
+                                    
+                                    st.markdown("**计算公式:**")
+                                    st.code("国家得分 × 国家匹配率 × 国家覆盖率 × 0.5 + 特殊得分 × 特殊匹配率 × 特殊覆盖率 × 0.5 + 其他标签得分 × 0.5 + 工作量得分 × 0.3 + 个人意愿得分 × 0.2")
+                                    
+                                    formula = f"""({consultant.get('country_tags_score', 0):.1f}) × ({consultant.get('country_match_ratio', 0):.2f}) × ({consultant.get('country_coverage_ratio', 0):.2f}) × 0.5 + 
+({consultant.get('special_tags_score', 0):.1f}) × ({consultant.get('special_match_ratio', 0):.2f}) × ({consultant.get('special_coverage_ratio', 0):.2f}) × 0.5 + 
+({consultant.get('other_tags_score', 0):.1f}) × 0.5 + ({consultant.get('workload_score', 0):.1f}) × 0.3 + ({consultant.get('personal_score', 0):.1f}) × 0.2 = {consultant['score']:.1f}分"""
+                                    
+                                    st.code(formula)
+                                    
+                                    # 最终得分
+                                    st.success(f"#### 最终得分: {consultant['score']:.1f}分")
+                                    
+                                    # 添加分隔线
+                                    st.markdown("---")
 
                         st.markdown("</div>", unsafe_allow_html=True)
                         # 保存匹配结果到 session_state
