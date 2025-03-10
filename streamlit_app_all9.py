@@ -751,11 +751,8 @@ def main():
                                         st.markdown(f"<span>• 近两周负荷: {consultant['近两周负荷']}</span>", unsafe_allow_html=True)
                                         st.markdown(f"<span>• 个人意愿: {consultant['个人意愿']}</span>", unsafe_allow_html=True)
                                         st.markdown("</div>", unsafe_allow_html=True)
-                                    
-                                    # 第二列：匹配详情
-                                    with col2:
-                                        st.markdown("<h4 style='color: #1e3a8a;'>匹配得分详情</h4>", unsafe_allow_html=True)
-                                        
+
+                                        st.markdown("<h4 style='color: #1e3a8a;'>案例需求详情</h4>", unsafe_allow_html=True)
                                         # 案例需求
                                         st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
                                         st.markdown("<strong>案例需求:</strong>", unsafe_allow_html=True)
@@ -781,6 +778,10 @@ def main():
                                         else:
                                             st.warning("没有可用的案例标签数据")
                                         st.markdown("</div>", unsafe_allow_html=True)
+                                    
+                                    # 第二列：匹配详情
+                                    with col2:
+                                        st.markdown("<h4 style='color: #1e3a8a;'>匹配得分详情</h4>", unsafe_allow_html=True)
                                         
                                         # 标签匹配得分表格
                                         if 'tag_score_dict' in consultant:
