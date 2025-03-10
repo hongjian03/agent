@@ -114,10 +114,10 @@ def add_custom_css():
         display: none;
     }
     
-    /* 整体页面样式 */
-    .main {
-        background-color: #f8f9fa;
-        padding: 20px;
+    /* 整体页面样式 - 进一步扩展宽度 */
+    .main .block-container {
+        max-width: 98% !important;
+        padding: 1rem 0.5rem;
     }
     
     /* 标题样式 */
@@ -268,6 +268,26 @@ def add_custom_css():
         color: #1e3a8a;
         font-weight: bold;
         font-size: 1.2rem;
+    }
+    
+    /* 计算公式样式 */
+    .formula-box {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 10px 0;
+        font-family: monospace;
+    }
+    
+    /* 调整列宽度 */
+    .column-adjust {
+        padding: 0 5px !important;
+    }
+    
+    /* 强制展开器内容宽度 */
+    .streamlit-expanderContent {
+        width: 100% !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -662,8 +682,8 @@ def main():
                                 
                                 # 添加一个展开按钮来查看详细信息
                                 with st.expander(f"查看 {consultant['name']} 的详细匹配信息"):
-                                    # 创建两列布局
-                                    col1, col2 = st.columns(2)
+                                    # 创建两列布局，调整列宽比例为4:6，让右侧有更多空间显示计算过程
+                                    col1, col2 = st.columns([4, 6])
                                     
                                     # 第一列：顾问原始标签（简化显示）
                                     with col1:
@@ -804,6 +824,23 @@ def main():
                                             ]
                                             score_df = pd.DataFrame(score_data)
                                             st.dataframe(score_df, hide_index=True, use_container_width=True)
+                                            
+                                            # 恢复详细计算公式
+                                            st.markdown("<strong>计算公式:</strong>", unsafe_allow_html=True)
+                                            st.markdown("<div class='formula-box'>", unsafe_allow_html=True)
+                                            st.markdown("国家得分 × 国家匹配率 × 国家覆盖率 × 0.5 + 特殊得分 × 特殊匹配率 × 特殊覆盖率 × 0.5 + 其他标签得分 × 0.5 + 工作量得分 × 0.3 + 个人意愿得分 × 0.2", unsafe_allow_html=True)
+                                            st.markdown("</div>", unsafe_allow_html=True)
+                                            
+                                            # 详细计算过程
+                                            tag_weighted = country_tags_score * country_match_ratio * country_coverage_ratio * 0.5 + special_tags_score * special_match_ratio * special_coverage_ratio * 0.5 + other_tags_score * 0.5
+                                            
+                                            st.markdown("<div class='formula-box'>", unsafe_allow_html=True)
+                                            st.markdown(f"""
+                                            ({country_tags_score:.1f}) × ({country_match_ratio:.2f}) × ({country_coverage_ratio:.2f}) × 0.5 + 
+                                            ({special_tags_score:.1f}) × ({special_match_ratio:.2f}) × ({special_coverage_ratio:.2f}) × 0.5 + 
+                                            ({other_tags_score:.1f}) × 0.5 + ({workload_score:.1f}) × 0.3 + ({personal_score:.1f}) × 0.2 = {consultant['score']:.1f}分
+                                            """, unsafe_allow_html=True)
+                                            st.markdown("</div>", unsafe_allow_html=True)
                                             
                                             # 显示最终得分
                                             final_score = consultant['score']
