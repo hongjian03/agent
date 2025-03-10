@@ -359,7 +359,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         other_tags_score = sum(score for tag, score in tag_score_dict.items() if tag not in [
             '绝对高频专业', '相对高频专业', '做过专业', '名校专家', '行业经验', '文案背景', '业务单位所在地'
         ])
-        
+        st.write(tag_score_dict)
         # 计算需求标签数
         case_country_count = len(set(re.split(r'[、,，\s]+', case['国家标签']))) if pd.notna(case['国家标签']) else 0
         
@@ -380,9 +380,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 计算调整后的总标签得分
         adjusted_tag_score = adjusted_country_score + adjusted_special_score + other_tags_score
         
-        st.write(adjusted_country_score)
-        st.write(adjusted_special_score)
-        st.write(other_tags_score)
+
         # 计算各维度最终得分
         final_tag_score = (adjusted_tag_score / 100) * dimension_weights['标签匹配'] * 100
         final_workload_score = (workload_score / 100) * dimension_weights['工作量'] * 100
@@ -581,10 +579,10 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 
                 for tag, score in tag_score_dict.items():
                     if tag in ['绝对高频国家', '相对高频国家','做过国家']:
-                        if score > 0:
+                        if score == tag_weights['绝对高频国家']:
                             consultant_conditions['国家标签'] = True
                     if tag in ['绝对高频专业', '相对高频专业','做过专业']:
-                        if score > 0:
+                        if score == tag_weights['绝对高频专业']:
                             consultant_conditions['专业标签'] = True
             else:
                 consultant_conditions['国家标签'] = True
@@ -595,7 +593,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if has_school:
                 tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
-                if '名校专家' in tag_score_dict and tag_score_dict['名校专家'] > 0:
+                if '名校专家' in tag_score_dict and tag_score_dict['名校专家'] == tag_weights['名校专家']:
                     consultant_conditions['名校专家'] = True
             else:
                 consultant_conditions['名校专家'] = True
@@ -604,7 +602,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if has_doctor:
                 tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
-                if '博士成功案例' in tag_score_dict and tag_score_dict['博士成功案例'] > 0:
+                if '博士成功案例' in tag_score_dict and tag_score_dict['博士成功案例'] == tag_weights['博士成功案例']:
                     consultant_conditions['博士成功案例'] = True
             else:
                 consultant_conditions['博士成功案例'] = True
@@ -613,12 +611,12 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if has_lowage:
                 tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
-                if '低龄留学成功案例' in tag_score_dict and tag_score_dict['低龄留学成功案例'] > 0:
+                if '低龄留学成功案例' in tag_score_dict and tag_score_dict['低龄留学成功案例'] == tag_weights['低龄留学成功案例']:
                     consultant_conditions['低龄留学成功案例'] = True
             else:
                 consultant_conditions['低龄留学成功案例'] = True
             # 5. 行业经验标签判断
-            has_industry = True if '专家' in str(case['行业经验']) else False
+            has_industry = True if  str(case['行业经验']) == '专家' else False
             if has_industry:
                 tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
