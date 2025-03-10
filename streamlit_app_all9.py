@@ -823,53 +823,65 @@ def main():
                                             st.dataframe(ratio_df, hide_index=True, use_container_width=True)
                                             st.markdown("</div>", unsafe_allow_html=True)
                                             
-                                            # 最终得分计算
-                                            st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
-                                            st.markdown("<strong>得分计算:</strong>", unsafe_allow_html=True)
-                                            
-                                            # 获取各项得分
-                                            country_tags_score = consultant.get('country_tags_score', 0)
-                                            special_tags_score = consultant.get('special_tags_score', 0)
-                                            other_tags_score = consultant.get('other_tags_score', 0)
-                                            workload_score = consultant.get('workload_score', 0)
-                                            personal_score = consultant.get('personal_score', 0)
-                                            
-                                            # 创建一个表格来显示各项得分
-                                            score_data = [
-                                                {"项目": "国家标签得分", "得分": f"{country_tags_score}分"},
-                                                {"项目": "特殊标签得分", "得分": f"{special_tags_score}分"},
-                                                {"项目": "其他标签得分", "得分": f"{other_tags_score}分"},
-                                                {"项目": "工作量评分", "得分": f"{workload_score}分"},
-                                                {"项目": "个人意愿评分", "得分": f"{personal_score}分"}
+                                            # 第五行：得分计算
+                                            st.markdown("#### 得分计算")
+
+                                            # 创建一个包含公式和计算过程的表格
+                                            score_calculation = [
+                                                {
+                                                    "项目": "国家标签得分",
+                                                    "得分": f"{consultant.get('country_tags_score', 0)}分",
+                                                    "计算公式": "国家得分 × 国家匹配率 × 国家覆盖率 × 0.5",
+                                                    "详细计算": f"({consultant.get('country_tags_score', 0):.1f}) × ({consultant.get('country_match_ratio', 0):.2f}) × ({consultant.get('country_coverage_ratio', 0):.2f}) × 0.5 = {consultant.get('country_tags_score', 0) * consultant.get('country_match_ratio', 0) * consultant.get('country_coverage_ratio', 0) * 0.5:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "特殊标签得分",
+                                                    "得分": f"{consultant.get('special_tags_score', 0)}分",
+                                                    "计算公式": "特殊得分 × 特殊匹配率 × 特殊覆盖率 × 0.5",
+                                                    "详细计算": f"({consultant.get('special_tags_score', 0):.1f}) × ({consultant.get('special_match_ratio', 0):.2f}) × ({consultant.get('special_coverage_ratio', 0):.2f}) × 0.5 = {consultant.get('special_tags_score', 0) * consultant.get('special_match_ratio', 0) * consultant.get('special_coverage_ratio', 0) * 0.5:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "其他标签得分",
+                                                    "得分": f"{consultant.get('other_tags_score', 0)}分",
+                                                    "计算公式": "其他标签得分 × 0.5",
+                                                    "详细计算": f"({consultant.get('other_tags_score', 0):.1f}) × 0.5 = {consultant.get('other_tags_score', 0) * 0.5:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "工作量评分",
+                                                    "得分": f"{consultant.get('workload_score', 0)}分",
+                                                    "计算公式": "工作量得分 × 0.3",
+                                                    "详细计算": f"({consultant.get('workload_score', 0):.1f}) × 0.3 = {consultant.get('workload_score', 0) * 0.3:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "个人意愿评分",
+                                                    "得分": f"{consultant.get('personal_score', 0)}分",
+                                                    "计算公式": "个人意愿得分 × 0.2",
+                                                    "详细计算": f"({consultant.get('personal_score', 0):.1f}) × 0.2 = {consultant.get('personal_score', 0) * 0.2:.1f}分"
+                                                }
                                             ]
-                                            score_df = pd.DataFrame(score_data)
+
+                                            # 创建DataFrame并显示
+                                            score_df = pd.DataFrame(score_calculation)
                                             st.dataframe(score_df, hide_index=True, use_container_width=True)
-                                            
-                                            # 恢复详细计算公式
-                                            st.markdown("<strong>计算公式:</strong>", unsafe_allow_html=True)
-                                            st.markdown("<div class='formula-box'>", unsafe_allow_html=True)
-                                            st.markdown("国家得分 × 国家匹配率 × 国家覆盖率 × 0.5 + 特殊得分 × 特殊匹配率 × 特殊覆盖率 × 0.5 + 其他标签得分 × 0.5 + 工作量得分 × 0.3 + 个人意愿得分 × 0.2", unsafe_allow_html=True)
-                                            st.markdown("</div>", unsafe_allow_html=True)
-                                            
-                                            # 详细计算过程
-                                            tag_weighted = country_tags_score * country_match_ratio * country_coverage_ratio * 0.5 + special_tags_score * special_match_ratio * special_coverage_ratio * 0.5 + other_tags_score * 0.5
-                                            
-                                            st.markdown("<div class='formula-box'>", unsafe_allow_html=True)
-                                            st.markdown(f"""
-                                            ({country_tags_score:.1f}) × ({country_match_ratio:.2f}) × ({country_coverage_ratio:.2f}) × 0.5 + 
-                                            ({special_tags_score:.1f}) × ({special_match_ratio:.2f}) × ({special_coverage_ratio:.2f}) × 0.5 + 
-                                            ({other_tags_score:.1f}) × 0.5 + ({workload_score:.1f}) × 0.3 + ({personal_score:.1f}) × 0.2 = {consultant['score']:.1f}分
-                                            """, unsafe_allow_html=True)
-                                            st.markdown("</div>", unsafe_allow_html=True)
-                                            
-                                            # 显示最终得分
-                                            final_score = consultant['score']
-                                            st.markdown(f"""
-                                            <div style="background-color: #f0f7ff; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                                                <strong>最终得分:</strong> <span style="color: #1e3a8a; font-size: 18px; font-weight: bold;">{final_score:.1f}分</span>
-                                            </div>
-                                            """, unsafe_allow_html=True)
-                                            st.markdown("</div>", unsafe_allow_html=True)
+
+                                            # 计算总分
+                                            country_weighted = consultant.get('country_tags_score', 0) * consultant.get('country_match_ratio', 0) * consultant.get('country_coverage_ratio', 0) * 0.5
+                                            special_weighted = consultant.get('special_tags_score', 0) * consultant.get('special_match_ratio', 0) * consultant.get('special_coverage_ratio', 0) * 0.5
+                                            other_weighted = consultant.get('other_tags_score', 0) * 0.5
+                                            workload_weighted = consultant.get('workload_score', 0) * 0.3
+                                            personal_weighted = consultant.get('personal_score', 0) * 0.2
+
+                                            # 显示总计算公式
+                                            st.markdown("**计算公式汇总:**")
+                                            formula_text = f"""
+                                            ({consultant.get('country_tags_score', 0):.1f}) × ({consultant.get('country_match_ratio', 0):.2f}) × ({consultant.get('country_coverage_ratio', 0):.2f}) × 0.5 + 
+                                            ({consultant.get('special_tags_score', 0):.1f}) × ({consultant.get('special_match_ratio', 0):.2f}) × ({consultant.get('special_coverage_ratio', 0):.2f}) × 0.5 + 
+                                            ({consultant.get('other_tags_score', 0):.1f}) × 0.5 + ({consultant.get('workload_score', 0):.1f}) × 0.3 + ({consultant.get('personal_score', 0):.1f}) × 0.2 = {consultant['score']:.1f}分
+                                            """
+                                            st.code(formula_text)
+
+                                            # 最终得分
+                                            st.success(f"#### 最终得分: {consultant['score']:.1f}分")
 
                         st.markdown("</div>", unsafe_allow_html=True)
                         # 保存匹配结果到 session_state
