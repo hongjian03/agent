@@ -347,8 +347,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
         country_count_total, special_count_total, other_count_total = count_total_consultant_tags(consultant)
         
         # 计算匹配率
-        country_match_ratio = country_count_need / country_count_total if country_count_total > 0 else 0
-        special_match_ratio = special_count_need / special_count_total if special_count_total > 0 else 0
+        country_match_ratio = country_count_need / country_count_total if country_count_total > 0 else 1
+        special_match_ratio = special_count_need / special_count_total if special_count_total > 0 else 1
         
         # 分别计算国家标签、特殊标签和其他标签的得分
         country_tags_score = sum(score for tag, score in tag_score_dict.items() if tag in ['绝对高频国家', '相对高频国家','做过国家'])
