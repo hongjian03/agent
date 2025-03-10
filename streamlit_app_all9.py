@@ -100,6 +100,20 @@ def initialize_config():
 def add_custom_css():
     st.markdown("""
     <style>
+    /* 扩展页面宽度，减少左右空白 */
+    .reportview-container .main .block-container {
+        max-width: 95% !important;
+        padding-top: 1rem;
+        padding-right: 1rem;
+        padding-left: 1rem;
+        padding-bottom: 1rem;
+    }
+    
+    /* 隐藏侧边栏 */
+    .css-1d391kg, .css-12oz5g7 {
+        display: none;
+    }
+    
     /* 整体页面样式 */
     .main {
         background-color: #f8f9fa;
@@ -205,6 +219,56 @@ def add_custom_css():
         border: 0;
         border-top: 1px solid #eee;
     }
+    
+    /* 模型信息样式 */
+    .model-info {
+        background-color: #f0f7ff;
+        padding: 8px 12px;
+        border-radius: 5px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+    
+    /* 表格样式优化 */
+    .dataframe {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .dataframe th {
+        background-color: #f1f3f9;
+        padding: 8px;
+    }
+    
+    .dataframe td {
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    /* 匹配结果卡片样式 */
+    .match-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: white;
+    }
+    
+    .match-card-header {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .match-score {
+        color: #1e3a8a;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -233,8 +297,7 @@ def main():
         st.session_state.current_model = st.secrets['OPENAI_MODEL_NAME']  # 默认值
     
 
-    # 显示当前使用的模型
-    st.sidebar.info(f"当前使用模型: {st.session_state.current_model}")
+
     
     # 创建三个标签页
     system_tab1, system_tab2, system_tab3 = st.tabs(["标签匹配系统", "标签匹配AI提示词设置", "顾问匹配系统"])
@@ -256,6 +319,9 @@ def main():
             if st.secrets.get("OPENAI_API_KEY"):
                 logger.info("API 配置验证成功")
                 st.success("✅ API配置成功")
+            
+            # 显示当前使用的模型（移到这里）
+            st.markdown(f"<div class='model-info'>🤖 当前使用模型: <b>{st.session_state.current_model}</b></div>", unsafe_allow_html=True)
             
             # 创建提示词模板实例并存储在session_state中
             if 'prompt_templates' not in st.session_state:
