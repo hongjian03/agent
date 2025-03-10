@@ -871,14 +871,7 @@ def main():
                                             workload_weighted = consultant.get('workload_score', 0) * 0.3
                                             personal_weighted = consultant.get('personal_score', 0) * 0.2
 
-                                            # 显示总计算公式
-                                            st.markdown("**计算公式汇总:**")
-                                            formula_text = f"""
-                                            ({consultant.get('country_tags_score', 0):.1f}) × ({consultant.get('country_match_ratio', 0):.2f}) × ({consultant.get('country_coverage_ratio', 0):.2f}) × 0.5 + 
-                                            ({consultant.get('special_tags_score', 0):.1f}) × ({consultant.get('special_match_ratio', 0):.2f}) × ({consultant.get('special_coverage_ratio', 0):.2f}) × 0.5 + 
-                                            ({consultant.get('other_tags_score', 0):.1f}) × 0.5 + ({consultant.get('workload_score', 0):.1f}) × 0.3 + ({consultant.get('personal_score', 0):.1f}) × 0.2 = {consultant['score']:.1f}分
-                                            """
-                                            st.code(formula_text)
+                                            
 
                                             # 最终得分
                                             st.success(f"#### 最终得分: {consultant['score']:.1f}分")
