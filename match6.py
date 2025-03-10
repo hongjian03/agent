@@ -380,7 +380,9 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 计算调整后的总标签得分
         adjusted_tag_score = adjusted_country_score + adjusted_special_score + other_tags_score
         
-        
+        st.write(adjusted_country_score)
+        st.write(adjusted_special_score)
+        st.write(other_tags_score)
         # 计算各维度最终得分
         final_tag_score = (adjusted_tag_score / 100) * dimension_weights['标签匹配'] * 100
         final_workload_score = (workload_score / 100) * dimension_weights['工作量'] * 100
