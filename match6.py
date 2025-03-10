@@ -356,10 +356,9 @@ def Consultant_matching(consultant_tags_file, merge_df):
             '博士成功案例', '低龄留学成功案例'
         ])
         
-        other_tags_score = sum(score for tag, score in tag_score_dict.items() if tag not in [
+        other_tags_score = sum(score for tag, score in tag_score_dict.items() if tag  in [
             '绝对高频专业', '相对高频专业', '做过专业', '名校专家', '行业经验', '文案背景', '业务单位所在地'
         ])
-        st.write(tag_score_dict)
         # 计算需求标签数
         case_country_count = len(set(re.split(r'[、,，\s]+', case['国家标签']))) if pd.notna(case['国家标签']) else 0
         
