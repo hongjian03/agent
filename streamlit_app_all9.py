@@ -100,38 +100,40 @@ def initialize_config():
 def add_custom_css():
     st.markdown("""
     <style>
-    /* 直接针对主容器 */
-    .st-emotion-cache-1n76uvr, 
-    div.stVerticalBlock.st-emotion-cache-1n76uvr,
-    .e6r8up3 {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 !important;
-        margin: 0 auto !important;
-    }
-    
-    /* 针对应用视图容器 */
-    div.stAppViewContainer.st-emotion-cache-1yiq2ps,
-    .eht7o1d0 {
+    /* 强制扩展整个应用的宽度 */
+    .appview-container {
         width: 100vw !important;
         max-width: 100% !important;
-        padding: 0 !important;
     }
     
-    /* 针对主区域 */
-    section.stMain.st-emotion-cache-bm223a,
-    .eht7o1d1 {
-        width: 100% !important;
+    /* 扩展主容器宽度 */
+    .main .block-container {
         max-width: 100% !important;
-        padding: 0 !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        width: 100% !important;
     }
     
-    /* 针对内容区域 */
-    div.st-emotion-cache-b95f0i,
-    .e6rk8up4 {
+    /* 隐藏侧边栏 */
+    .css-1d391kg, .css-12oz5g7, .css-eczf16, .css-jjjwou {
+        display: none !important;
+    }
+    
+    /* 移除所有边距和填充限制 */
+    .reportview-container .main {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* 确保内容使用全部可用空间 */
+    .stTabs [data-baseweb="tab-panel"] {
+        width: 100% !important;
+    }
+    
+    /* 强制所有容器使用全宽 */
+    .element-container, .stMarkdown, .stDataFrame, .stTable {
         width: 100% !important;
         max-width: 100% !important;
-        padding: 1rem !important;
     }
     
     /* 其他样式保持不变 */
