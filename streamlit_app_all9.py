@@ -710,7 +710,7 @@ def main():
                                         
                                         # 国家标签
                                         st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
-                                        st.markdown("<strong>国家标签:</strong>", unsafe_allow_html=True)
+                                        st.markdown("<strong>国家标签(绝对高频国家、相对高频国家):</strong>", unsafe_allow_html=True)
                                         if consultant['绝对高频国家']:
                                             st.markdown(f"<span>• 绝对高频国家: {consultant['绝对高频国家']}</span>", unsafe_allow_html=True)
                                         if consultant['相对高频国家']:
@@ -719,7 +719,7 @@ def main():
                                         
                                         # 专业标签
                                         st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
-                                        st.markdown("<strong>专业标签:</strong>", unsafe_allow_html=True)
+                                        st.markdown("<strong>专业标签(绝对高频专业、相对高频专业):</strong>", unsafe_allow_html=True)
                                         if consultant['绝对高频专业']:
                                             st.markdown(f"<span>• 绝对高频专业: {consultant['绝对高频专业']}</span>", unsafe_allow_html=True)
                                         if consultant['相对高频专业']:
@@ -728,7 +728,6 @@ def main():
                                         
                                         # 特殊标签
                                         special_tags = [
-                                            ('名校专家', '名校专家'), 
                                             ('博士成功案例', '博士成功案例'), 
                                             ('低龄留学成功案例', '低龄留学成功案例')
                                         ]
@@ -736,7 +735,7 @@ def main():
                                         has_special_tags = any(tag_key in consultant and consultant[tag_key] for _, tag_key in special_tags)
                                         if has_special_tags:
                                             st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
-                                            st.markdown("<strong>特殊标签:</strong>", unsafe_allow_html=True)
+                                            st.markdown("<strong>特殊标签(博士成功案例、低龄留学成功案例):</strong>", unsafe_allow_html=True)
                                             for tag_name, tag_key in special_tags:
                                                 if tag_key in consultant and consultant[tag_key]:
                                                     st.markdown(f"<span>• {tag_name}: {consultant[tag_key]}</span>", unsafe_allow_html=True)
@@ -744,11 +743,23 @@ def main():
                                         
                                         # 其他标签
                                         st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
-                                        st.markdown("<strong>其他信息:</strong>", unsafe_allow_html=True)
+                                        st.markdown("<strong>其他信息(名校专家、行业经验、文案背景、业务单位所在地):</strong>", unsafe_allow_html=True)
+                                        if consultant['名校专家']:
+                                            st.markdown(f"<span>• 名校专家: {consultant['名校专家']}</span>", unsafe_allow_html=True)
                                         if consultant['行业经验']:
                                             st.markdown(f"<span>• 行业经验: {consultant['行业经验']}</span>", unsafe_allow_html=True)
+                                        if consultant['文案背景']:
+                                            st.markdown(f"<span>• 文案背景: {consultant['文案背景']}</span>", unsafe_allow_html=True)
+                                        if consultant['业务单位所在地']:
+                                            st.markdown(f"<span>• 业务单位所在地: {consultant['业务单位所在地']}</span>", unsafe_allow_html=True)
+                                        st.markdown("</div>", unsafe_allow_html=True)
+                                        #工作量
+                                        st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
+                                        st.markdown("<strong>工作量:</strong>", unsafe_allow_html=True)
                                         st.markdown(f"<span>• 学年负荷: {consultant['学年负荷']}</span>", unsafe_allow_html=True)
                                         st.markdown(f"<span>• 近两周负荷: {consultant['近两周负荷']}</span>", unsafe_allow_html=True)
+                                        st.markdown(f"<span>• 文书完成率: {consultant['文书完成率']}</span>", unsafe_allow_html=True)
+                                        st.markdown(f"<span>• 申请完成率: {consultant['申请完成率']}</span>", unsafe_allow_html=True)
                                         st.markdown(f"<span>• 个人意愿: {consultant['个人意愿']}</span>", unsafe_allow_html=True)
                                         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -813,7 +824,16 @@ def main():
                                             country_count_total = consultant.get('country_count_total', 1)
                                             special_count_need = consultant.get('special_count_need', 0)
                                             special_count_total = consultant.get('special_count_total', 1)
-                                            
+                                            tag_score_dict = consultant.get('tag_score_dict', {})
+                                            major_tags =['绝对高频专业','相对高频专业','做过专业']
+                                            major_tags_score = 0
+                                            for tag in major_tags:
+                                                major_tags_score += tag_score_dict.get(tag, 0)
+
+                                            other_tags = ['名校专家','行业经验','文案背景','业务单位所在地']
+                                            other_tags_score = 0
+                                            for tag in other_tags:
+                                                other_tags_score += tag_score_dict.get(tag, 0)
                                             # 创建一个表格来显示匹配率和覆盖率
                                             ratio_data = [
                                                 {"类别": "国家标签", "匹配率": f"{country_match_ratio:.2f} ({country_count_need}/{country_count_total})", "覆盖率": f"{country_coverage_ratio:.2f}"},
@@ -835,6 +855,12 @@ def main():
                                                     "详细计算": f"({consultant.get('country_tags_score', 0):.1f}) × ({consultant.get('country_match_ratio', 0):.2f}) × ({consultant.get('country_coverage_ratio', 0):.2f}) × 0.5 = {consultant.get('country_tags_score', 0) * consultant.get('country_match_ratio', 0) * consultant.get('country_coverage_ratio', 0) * 0.5:.1f}分"
                                                 },
                                                 {
+                                                    "项目": "专业标签得分",
+                                                    "得分": f"{major_tags_score}分",
+                                                    "计算公式": "专业得分 × 0.5",
+                                                    "详细计算": f"({major_tags_score:.1f}) × 0.5 = {major_tags_score * 0.5:.1f}分"
+                                                },
+                                                {
                                                     "项目": "特殊标签得分",
                                                     "得分": f"{consultant.get('special_tags_score', 0)}分",
                                                     "计算公式": "特殊得分 × 特殊匹配率 × 特殊覆盖率 × 0.5",
@@ -842,9 +868,9 @@ def main():
                                                 },
                                                 {
                                                     "项目": "其他标签得分",
-                                                    "得分": f"{consultant.get('other_tags_score', 0)}分",
+                                                    "得分": f"{other_tags_score}分",
                                                     "计算公式": "其他标签得分 × 0.5",
-                                                    "详细计算": f"({consultant.get('other_tags_score', 0):.1f}) × 0.5 = {consultant.get('other_tags_score', 0) * 0.5:.1f}分"
+                                                    "详细计算": f"({other_tags_score:.1f}) × 0.5 = {other_tags_score * 0.5:.1f}分"
                                                 },
                                                 {
                                                     "项目": "工作量评分",

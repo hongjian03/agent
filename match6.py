@@ -87,9 +87,9 @@ def Consultant_matching(consultant_tags_file, merge_df):
         '名校专家': 10,
         '博士成功案例': 10,
         '低龄留学成功案例': 10,
-        '行业经验': 15,
+        '行业经验': 20,
         '文案背景': 10,
-        '业务单位所在地': 15
+        '业务单位所在地': 5
     }
         
         
@@ -345,6 +345,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         special_tags_score = sum(score for tag, score in tag_score_dict.items() if tag in [
             '博士成功案例', '低龄留学成功案例'
         ])
+        
         other_tags_score = sum(score for tag, score in tag_score_dict.items() if tag not in [
             '绝对高频专业', '相对高频专业', '做过专业', '名校专家', '行业经验', '文案背景', '业务单位所在地'
         ])
@@ -468,7 +469,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     # 安全地添加标签字段
                     standard_fields = [
                         '绝对高频国家', '相对高频国家', '做过国家','绝对高频专业', '相对高频专业', '做过专业',
-                        '行业经验', '业务单位所在地', '学年负荷', '近两周负荷', '个人意愿',
+                        '行业经验', '业务单位所在地', '学年负荷', '近两周负荷', '文书完成率', '申请完成率', '个人意愿',
                         '名校专家', '博士成功案例', '低龄留学成功案例'
                     ]
                     
