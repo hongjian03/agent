@@ -101,68 +101,40 @@ def initialize_config():
 def add_custom_css():
     st.markdown("""
     <style>
-    /* 直接针对标签页容器 */
-    .stTabs {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    
-    /* 标签页内容区域 */
-    .stTabs [data-baseweb="tab-panel"] {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 20px !important;
-        background-color: white;
-        border-radius: 10px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-        margin-top: 10px;
-    }
-    
-    /* 标签页标签列表 */
-    .stTabs [data-baseweb="tab-list"] {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    
-    /* 标签页标签 */
-    .stTabs [data-baseweb="tab"] {
-        height: 40px !important;
-        white-space: nowrap !important;
-        padding: 0 16px !important;
-    }
-    
-    /* 其他容器样式保持不变 */
-    .st-emotion-cache-1n76uvr, 
-    div.stVerticalBlock.st-emotion-cache-1n76uvr,
-    .e6r8up3 {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 !important;
-        margin: 0 auto !important;
-    }
-    
-    /* 针对应用视图容器 */
-    div.stAppViewContainer.st-emotion-cache-1yiq2ps,
-    .eht7o1d0 {
+    /* 强制扩展整个应用的宽度 */
+    .appview-container {
         width: 100vw !important;
         max-width: 100% !important;
-        padding: 0 !important;
     }
     
-    /* 针对主区域 */
-    section.stMain.st-emotion-cache-bm223a,
-    .eht7o1d1 {
-        width: 100% !important;
+    /* 扩展主容器宽度 */
+    .main .block-container {
         max-width: 100% !important;
-        padding: 0 !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        width: 100% !important;
     }
     
-    /* 针对内容区域 */
-    div.st-emotion-cache-b95f0i,
-    .e6rk8up4 {
+    /* 隐藏侧边栏 */
+    .css-1d391kg, .css-12oz5g7, .css-eczf16, .css-jjjwou {
+        display: none !important;
+    }
+    
+    /* 移除所有边距和填充限制 */
+    .reportview-container .main {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* 确保内容使用全部可用空间 */
+    .stTabs [data-baseweb="tab-panel"] {
+        width: 100% !important;
+    }
+    
+    /* 强制所有容器使用全宽 */
+    .element-container, .stMarkdown, .stDataFrame, .stTable {
         width: 100% !important;
         max-width: 100% !important;
-        padding: 1rem !important;
     }
     
     /* 其他样式保持不变 */
@@ -170,6 +142,15 @@ def add_custom_css():
     h1, h2, h3 {
         color: #1e3a8a;
         font-weight: 600;
+    }
+    
+    /* 卡片样式 */
+    .stTabs [data-baseweb="tab-panel"] {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        margin-top: 10px;
     }
     
     /* 按钮样式 */
