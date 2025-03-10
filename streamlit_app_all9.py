@@ -778,7 +778,7 @@ def main():
                                                 
                                                 # 显示指定列的数据
                                                 target_columns = ['文案顾问业务单位','国家标签', '专业标签', '名校专家', 
-                                                                '博士成功案例', '低龄留学成功案例', '行业经验','文案背景',
+                                                                '博士成功案例', '低龄留学成功案例', '行业经验','文案背景'
                                                                 '业务单位所在地']
                                                 
                                                 for col in target_columns:
@@ -836,7 +836,7 @@ def main():
                                                 other_tags_score += tag_score_dict.get(tag, 0)
                                             # 创建一个表格来显示匹配率和覆盖率
                                             ratio_data = [
-                                                {"类别": "国家标签", "匹配率": f"{country_match_ratio:.2f} ({country_count_need}/{country_count_total})", "覆盖率": f"{country_coverage_ratio:.2f}"},
+                                                #{"类别": "国家标签", "匹配率": f"{country_match_ratio:.2f} ({country_count_need}/{country_count_total})", "覆盖率": f"{country_coverage_ratio:.2f}"},
                                                 {"类别": "特殊标签", "匹配率": f"{special_match_ratio:.2f} ({special_count_need}/{special_count_total})", "覆盖率": f"{special_coverage_ratio:.2f}"}
                                             ]
                                             ratio_df = pd.DataFrame(ratio_data)
@@ -851,8 +851,8 @@ def main():
                                                 {
                                                     "项目": "国家标签得分",
                                                     "得分": f"{consultant.get('country_tags_score', 0)}分",
-                                                    "计算公式": "国家得分 × 国家匹配率 × 国家覆盖率 × 0.5",
-                                                    "详细计算": f"({consultant.get('country_tags_score', 0):.1f}) × ({consultant.get('country_match_ratio', 0):.2f}) × ({consultant.get('country_coverage_ratio', 0):.2f}) × 0.5 = {consultant.get('country_tags_score', 0) * consultant.get('country_match_ratio', 0) * consultant.get('country_coverage_ratio', 0) * 0.5:.1f}分"
+                                                    "计算公式": "国家得分 ",
+                                                    "详细计算": f"({consultant.get('country_tags_score', 0):.1f}) * 0.5 = {consultant.get('country_tags_score', 0) * 0.5:.1f}分"
                                                 },
                                                 {
                                                     "项目": "专业标签得分",

@@ -373,7 +373,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         special_coverage_ratio = special_count_need / case_special_count if case_special_count > 0 else 1
         
         # 应用匹配率和覆盖率到对应标签得分上
-        adjusted_country_score = country_tags_score * country_match_ratio * country_coverage_ratio
+        adjusted_country_score = country_tags_score
         adjusted_special_score = special_tags_score * special_match_ratio * special_coverage_ratio
         
         # 计算调整后的总标签得分
@@ -495,14 +495,22 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 按得分降序排序
             scores.sort(key=lambda x: -x['score'])
             
-            # 获取最高分
-            highest_score = scores[0]['score'] if scores else 0
-            # 获取第九高分（如果存在）
-            ninth_score = scores[8]['score'] if len(scores) > 8 else None
-            
             # 选择得分最高的顾问们
             selected_consultants = []
-            for s in scores:
+            # 首先筛选出符合国家标签条件的顾问
+            qualified_scores = [
+                s for s in scores 
+                if (s['tag_score_dict'].get('绝对高频国家', 0) + 
+                    s['tag_score_dict'].get('相对高频国家', 0)) > 0
+            ]
+            
+            # 获取最高分和第九高分（如果存在）
+            highest_score = qualified_scores[0]['score'] if qualified_scores else 0
+            # 如果符合条件的顾问少于9个，就把ninth_score设为最低分，这样所有符合条件的顾问都会被选中
+            ninth_score = qualified_scores[8]['score'] if len(qualified_scores) > 8 else qualified_scores[-1]['score'] if qualified_scores else None
+            
+            # 从符合条件的顾问中选择得分最高的
+            for s in qualified_scores:
                 if (ninth_score is not None and s['score'] >= ninth_score) or (ninth_score is None and s['score'] == highest_score):
                     consultant_data = {
                         'display': f"{s['name']}（{s['score']:.1f}分）",
@@ -560,7 +568,6 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 初始化该顾问的标志
             consultant_conditions = {
                 '国家标签': False,
-                '专业标签': False,
                 '博士成功案例': False,
                 '低龄留学成功案例': False,
                 '行业经验': False,
@@ -570,9 +577,9 @@ def Consultant_matching(consultant_tags_file, merge_df):
             
             # 1. 国家和专业标签判断
             has_country = True if case['国家标签'] != '' else False
-            has_major = True if case['专业标签'] != '' else False
+            
 
-            if has_country or has_major:
+            if has_country :
                 tag_score_dicts = all_tag_score_dicts[idx_case]
                 tag_score_dict = tag_score_dicts[consultant]
                 
@@ -580,12 +587,10 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     if tag in ['绝对高频国家', '相对高频国家','做过国家']:
                         if score == tag_weights['绝对高频国家']:
                             consultant_conditions['国家标签'] = True
-                    if tag in ['绝对高频专业', '相对高频专业','做过专业']:
-                        if score == tag_weights['绝对高频专业']:
-                            consultant_conditions['专业标签'] = True
+                    
             else:
                 consultant_conditions['国家标签'] = True
-                consultant_conditions['专业标签'] = True
+                
             
             # 2. 名校专家标签判断
             has_school = True if case['名校专家'] != '' else False
