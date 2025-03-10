@@ -156,7 +156,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if done_matches:
                 tag_score_dict['做过国家'] = (tag_weights['做过国家'] / total_countries) * len(done_matches)
             
-
+        elif case['国家标签'] == '':
+            tag_score_dict['绝对高频国家'] = tag_weights['绝对高频国家']
+            tag_score_dict['相对高频国家'] = 0
+            tag_score_dict['做过国家'] = 0
+            
         # 2. 专业标签匹配
         if '专业标签' in case and pd.notna(case['专业标签']):
             case_majors = set(re.split(r'[、,，\s]+', case['专业标签']))
@@ -184,7 +188,10 @@ def Consultant_matching(consultant_tags_file, merge_df):
             done_matches = done_matches - absolute_matches - relative_matches
             if done_matches:
                 tag_score_dict['做过专业'] = (tag_weights['做过专业'] / total_majors) * len(done_matches)
-        
+        elif case['专业标签'] == '':
+            tag_score_dict['绝对高频专业'] = tag_weights['绝对高频专业']
+            tag_score_dict['相对高频专业'] = 0
+            tag_score_dict['做过专业'] = 0
         
         # 3 博士成功案例和低龄留学成功案例按比例匹配
         proportion_tags = ['博士成功案例', '低龄留学成功案例']
@@ -202,7 +209,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 if matched_tags:
                     tag_score_dict[tag] = (tag_weights[tag] / len(case_tags)) * len(matched_tags)
 
-
+            elif case[tag] == '':
+                tag_score_dict[tag] = tag_weights[tag]
         # 4. 行业经验标签匹配（反向包含关系：consultant的标签要包含在case中）
         if pd.notna(case['行业经验']) and pd.notna(consultant['行业经验']) and case['行业经验'] != '':
             case_industry = set(re.split(r'[、,，\s]+', case['行业经验']))
@@ -211,7 +219,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 检查consultant的行业经验是否被case的行业经验包含
             if consultant_industry.issubset(case_industry):
                 tag_score_dict['行业经验'] = tag_weights['行业经验']
-        
+        elif case['行业经验'] == '':
+            tag_score_dict['行业经验'] = tag_weights['行业经验']
         # 5. 直接匹配标签（不需要分割）
         direct_match_tags = [
             '名校专家',
@@ -223,7 +232,8 @@ def Consultant_matching(consultant_tags_file, merge_df):
             if pd.notna(case[tag]) and pd.notna(consultant[tag]):
                 if case[tag] == consultant[tag] and case[tag] != '':
                     tag_score_dict[tag] = tag_weights[tag]
-        
+            elif case[tag] == '':
+                tag_score_dict[tag] = tag_weights[tag]
         return  tag_score_dict
 
 
