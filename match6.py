@@ -128,7 +128,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             case_countries = {country.strip() for country in split_case_countries}
             
             # 计算加权后的总国家数
-            weighted_total = sum(1.5 if country == '加拿大' else 1 for country in case_countries)
+            weighted_total = sum(2 if country == '加拿大' else 1 for country in case_countries)
             
             if "美国" in case_countries and consultant['文案方向'] != '美国':
                 direction = False
@@ -150,19 +150,19 @@ def Consultant_matching(consultant_tags_file, merge_df):
             
             # 按比例计算分数，考虑加拿大的权重
             if absolute_matches:
-                weighted_matches = sum(1.5 if country == '加拿大' else 1 for country in absolute_matches)
+                weighted_matches = sum(2 if country == '加拿大' else 1 for country in absolute_matches)
                 tag_score_dict['绝对高频国家'] = (tag_weights['绝对高频国家'] / weighted_total) * weighted_matches
             
             # 确保相对高频匹配不与绝对高频匹配重复计算
             relative_matches = relative_matches - absolute_matches
             if relative_matches:
-                weighted_matches = sum(1.5 if country == '加拿大' else 1 for country in relative_matches)
+                weighted_matches = sum(2 if country == '加拿大' else 1 for country in relative_matches)
                 tag_score_dict['相对高频国家'] = (tag_weights['相对高频国家'] / weighted_total) * weighted_matches
             
             # 确保做过国家匹配不与前两种匹配重复计算
             done_matches = done_matches - absolute_matches - relative_matches
             if done_matches:
-                weighted_matches = sum(1.5 if country == '加拿大' else 1 for country in done_matches)
+                weighted_matches = sum(2 if country == '加拿大' else 1 for country in done_matches)
                 tag_score_dict['做过国家'] = (tag_weights['做过国家'] / weighted_total) * weighted_matches
             
         elif case['国家标签'] == '':
@@ -219,7 +219,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     tag_score_dict[tag] = (tag_weights[tag] / len(case_tags)) * len(matched_tags)
 
             elif case[tag] == '':
-                tag_score_dict[tag] = tag_weights[tag]
+                tag_score_dict[tag] = 5
         # 4. 行业经验标签匹配（反向包含关系：consultant的标签要包含在case中）
         if pd.notna(case['行业经验']) and pd.notna(consultant['行业经验']) and case['行业经验'] != '':
             case_industry = set(re.split(r'[、,，\s]+', case['行业经验']))
