@@ -242,11 +242,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
         ]
         
         for tag in direct_match_tags:
-            if pd.notna(case[tag]) and pd.notna(consultant[tag]):
-                if case[tag] == consultant[tag] and case[tag] != '':
-                    tag_score_dict[tag] = tag_weights[tag]
-            elif case[tag] == '':
+            if case[tag] == '':  # 如果案例标签为空
                 tag_score_dict[tag] = tag_weights[tag]
+            elif pd.notna(case[tag]) and pd.notna(consultant[tag]):  # 如果案例和顾问标签都不为空
+                if case[tag] == consultant[tag]:  # 如果标签匹配
+                    tag_score_dict[tag] = tag_weights[tag]
         return  tag_score_dict,direction
 
 
@@ -512,6 +512,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
             
             # 选择得分最高的顾问们
             selected_consultants = []
+            
             # 首先筛选出符合国家标签条件的顾问
             qualified_scores = [
                 s for s in scores 
@@ -519,44 +520,67 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     s['tag_score_dict'].get('相对高频国家', 0)) > 0
             ]
             
-            # 获取最高分和第九高分（如果存在）
-            highest_score = qualified_scores[0]['score'] if qualified_scores else 0
-            # 如果符合条件的顾问少于9个，就把ninth_score设为最低分，这样所有符合条件的顾问都会被选中
-            ninth_score = qualified_scores[8]['score'] if len(qualified_scores) > 8 else qualified_scores[-1]['score'] if qualified_scores else None
+            # 不符合国家标签条件的顾问
+            unqualified_scores = [
+                s for s in scores 
+                if (s['tag_score_dict'].get('绝对高频国家', 0) + 
+                    s['tag_score_dict'].get('相对高频国家', 0)) == 0
+            ]
             
-            # 从符合条件的顾问中选择得分最高的
-            for s in qualified_scores:
-                if (ninth_score is not None and s['score'] >= ninth_score) or (ninth_score is None and s['score'] == highest_score):
-                    consultant_data = {
-                        'display': f"{s['name']}（{s['score']:.1f}分）",
-                        'name': s['name'],
-                        'businessunits': s['businessunits'],
-                        'area':s['area'],
-                        'score': s['score'],
-                        'tag_score_dict': s['tag_score_dict'],
-                        'workload_score': s['workload_score'],
-                        'personal_score': s['personal_score'],
-                        'country_count_need': s['country_count_need'],
-                        'special_count_need': s['special_count_need'],
-                        'other_count_need': s['other_count_need'],
-                        'country_count_total': s['country_count_total'],
-                        'special_count_total': s['special_count_total'],
-                        'other_count_total': s['other_count_total'],
-                        'country_match_ratio': s['country_match_ratio'],
-                        'special_match_ratio': s['special_match_ratio'],
-                        'country_coverage_ratio': s['country_coverage_ratio'],
-                        'special_coverage_ratio': s['special_coverage_ratio'],
-                        'country_tags_score': s['country_tags_score'],
-                        'special_tags_score': s['special_tags_score'],
-                        'other_tags_score': s['other_tags_score']
-                    }
-                    
-                    # 复制其他标签字段
-                    for field in standard_fields:
-                        if field in s:
-                            consultant_data[field] = s[field]
-                    
-                    selected_consultants.append(consultant_data)
+            def create_consultant_data(s):
+                """创建顾问数据结构"""
+                consultant_data = {
+                    'display': f"{s['name']}（{s['score']:.1f}分）",
+                    'name': s['name'],
+                    'businessunits': s['businessunits'],
+                    'area': s['area'],
+                    'score': s['score'],
+                    'tag_score_dict': s['tag_score_dict'],
+                    'workload_score': s['workload_score'],
+                    'personal_score': s['personal_score'],
+                    'country_count_need': s['country_count_need'],
+                    'special_count_need': s['special_count_need'],
+                    'other_count_need': s['other_count_need'],
+                    'country_count_total': s['country_count_total'],
+                    'special_count_total': s['special_count_total'],
+                    'other_count_total': s['other_count_total'],
+                    'country_match_ratio': s['country_match_ratio'],
+                    'special_match_ratio': s['special_match_ratio'],
+                    'country_coverage_ratio': s['country_coverage_ratio'],
+                    'special_coverage_ratio': s['special_coverage_ratio'],
+                    'country_tags_score': s['country_tags_score'],
+                    'special_tags_score': s['special_tags_score'],
+                    'other_tags_score': s['other_tags_score']
+                }
+                
+                # 复制其他标签字段
+                for field in standard_fields:
+                    if field in s:
+                        consultant_data[field] = s[field]
+                
+                return consultant_data
+            
+            # 如果符合条件的顾问超过9个
+            if len(qualified_scores) >= 9:
+                # 获取第9高分
+                ninth_score = qualified_scores[8]['score']
+                # 选择所有大于等于第9高分的顾问（处理同分情况）
+                selected_consultants = [create_consultant_data(s) for s in qualified_scores if s['score'] >= ninth_score]
+            else:
+                # 如果符合条件的顾问不足9个
+                # 先添加所有符合条件的顾问
+                selected_consultants = [create_consultant_data(s) for s in qualified_scores]
+                
+                # 计算还需要补充的顾问数量
+                remaining_slots = 9 - len(selected_consultants)
+                
+                if remaining_slots > 0 and unqualified_scores:
+                    # 从不符合条件的顾问中取得分最高的若干个
+                    # 获取第remaining_slots位的分数
+                    cutoff_score = unqualified_scores[remaining_slots - 1]['score'] if len(unqualified_scores) >= remaining_slots else unqualified_scores[-1]['score']
+                    # 添加所有大于等于这个分数的不符合条件顾问（处理同分情况）
+                    additional_consultants = [create_consultant_data(s) for s in unqualified_scores if s['score'] >= cutoff_score]
+                    selected_consultants.extend(additional_consultants)
             
             # 存储当前案例的匹配结果和所有顾问的得分字典
             case_key = f"案例{idx + 1}"
