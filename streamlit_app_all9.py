@@ -729,6 +729,7 @@ def main():
                                         
                                         # 特殊标签
                                         special_tags = [
+                                            ('名校专家', '名校专家'),
                                             ('博士成功案例', '博士成功案例'), 
                                             ('低龄留学成功案例', '低龄留学成功案例')
                                         ]
@@ -736,7 +737,7 @@ def main():
                                         has_special_tags = any(tag_key in consultant and consultant[tag_key] for _, tag_key in special_tags)
                                         if has_special_tags:
                                             st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
-                                            st.markdown("<strong>特殊标签(博士成功案例、低龄留学成功案例):</strong>", unsafe_allow_html=True)
+                                            st.markdown("<strong>特殊标签(名校专家、博士成功案例、低龄留学成功案例):</strong>", unsafe_allow_html=True)
                                             for tag_name, tag_key in special_tags:
                                                 if tag_key in consultant and consultant[tag_key]:
                                                     st.markdown(f"<span>• {tag_name}: {consultant[tag_key]}</span>", unsafe_allow_html=True)
@@ -744,9 +745,7 @@ def main():
                                         
                                         # 其他标签
                                         st.markdown("<div style='margin-bottom: 15px;'>", unsafe_allow_html=True)
-                                        st.markdown("<strong>其他信息(名校专家、行业经验、文案背景、业务单位所在地):</strong>", unsafe_allow_html=True)
-                                        if consultant['名校专家']:
-                                            st.markdown(f"<span>• 名校专家: {consultant['名校专家']}</span>", unsafe_allow_html=True)
+                                        st.markdown("<strong>其他信息(行业经验、文案背景、业务单位所在地):</strong>", unsafe_allow_html=True)
                                         if consultant['行业经验']:
                                             st.markdown(f"<span>• 行业经验: {consultant['行业经验']}</span>", unsafe_allow_html=True)
                                         if consultant['文案背景']:
@@ -831,7 +830,7 @@ def main():
                                             for tag in major_tags:
                                                 major_tags_score += tag_score_dict.get(tag, 0)
 
-                                            other_tags = ['名校专家','行业经验','文案背景','业务单位所在地']
+                                            other_tags = ['行业经验','文案背景','业务单位所在地']
                                             other_tags_score = 0
                                             for tag in other_tags:
                                                 other_tags_score += tag_score_dict.get(tag, 0)
