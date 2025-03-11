@@ -78,16 +78,16 @@ def Consultant_matching(consultant_tags_file, merge_df):
     # 定义标签权重
     global tag_weights
     tag_weights = {
-        '绝对高频国家': 20,
-        '相对高频国家': 15,
-        '做过国家':10,
+        '绝对高频国家': 35,
+        '相对高频国家': 20,
+        '做过国家':5,
         '绝对高频专业': 15,
         '相对高频专业': 10,
         '做过专业':5,
         '名校专家': 10,
         '博士成功案例': 10,
         '低龄留学成功案例': 10,
-        '行业经验': 20,
+        '行业经验': 15,
         '文案背景': 10,
         '业务单位所在地': 5
     }
@@ -362,7 +362,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         special_tags_score = sum(score for tag, score in tag_score_dict.items() if tag in [
             '博士成功案例', '低龄留学成功案例','名校专家'
         ])
-        
+        st.write(special_tags_score)
         other_tags_score = sum(score for tag, score in tag_score_dict.items() if tag  in [
             '绝对高频专业', '相对高频专业', '做过专业', '行业经验', '文案背景', '业务单位所在地'
         ])
