@@ -362,7 +362,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         special_tags_score = sum(score for tag, score in tag_score_dict.items() if tag in [
             '博士成功案例', '低龄留学成功案例','名校专家'
         ])
-        st.write(special_tags_score)
+        
         other_tags_score = sum(score for tag, score in tag_score_dict.items() if tag  in [
             '绝对高频专业', '相对高频专业', '做过专业', '行业经验', '文案背景', '业务单位所在地'
         ])
