@@ -204,6 +204,10 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         # 3 博士成功案例和低龄留学成功案例按比例匹配
         proportion_tags = ['博士成功案例', '低龄留学成功案例']
+        count = 0
+        for tag in proportion_tags:
+            if case[tag] == '':
+                count += 1
         
         for tag in proportion_tags:
             if pd.notna(case[tag]) and pd.notna(consultant[tag]) and case[tag] != '':
@@ -218,7 +222,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 if matched_tags:
                     tag_score_dict[tag] = (tag_weights[tag] / len(case_tags)) * len(matched_tags)
 
-            elif case[tag] == '':
+            elif count == 2:
                 tag_score_dict[tag] = 5
         # 4. 行业经验标签匹配（反向包含关系：consultant的标签要包含在case中）
         if pd.notna(case['行业经验']) and pd.notna(consultant['行业经验']) and case['行业经验'] != '':
