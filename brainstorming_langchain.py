@@ -9,6 +9,8 @@ import os
 from typing import Dict, Any, List
 import logging
 import sys
+from docx import Document
+import io
 # 配置日志记录
 logging.basicConfig(
     level=logging.INFO,
@@ -41,18 +43,33 @@ class PromptTemplates:
         # 初始化默认模板
         self.default_templates = {
             'consultant_role': """
-            你是一位留学资深咨询顾问，擅长从与学生的聊天记录中提取留学申请的关键信息，提供专业的见解和建议。
-            你的主要职责是仔细阅读提供的文档，提取关键信息，分析问题，并提供具体的解决方案和建议。
-            
+            你是一位资深的咨询顾问培训师，擅长分析咨询顾问与客户的沟通过程，提供专业的沟通技巧改进建议。
+            你需要基于沟通目的，分析沟通过程中的优缺点，并提供具体的改进建议。
             """,
             
             'consultant_task': """
-            我提供的是一份留学顾问老师与学生之间的语音聊天转成文字后的结果，你需要分析这份聊天记录，完成以下几个目标：
-            1. 了解文档中学生的意向
-            2. 分析此次留学申请服务成功的可能性
-            3. 提供具体的解决方案和建议
-
-            输出内容请分点陈述。
+            基于提供的沟通目的：{communication_purpose}
+            沟通记录：{document_content}
+            
+            请分析这份咨询顾问与学生的沟通记录，完成以下分析：
+            
+            1. 沟通要点分析：
+            - 根据沟通目的，列出本次沟通应该关注的关键要点
+            - 评估这些要点在实际沟通中是否得到了充分的覆盖
+            
+            2. 沟通过程细项分析：
+            - 开场与关系建立
+            - 信息获取的完整性
+            - 问题解答的专业性
+            - 情绪管理与共情能力
+            - 总体节奏把控
+            
+            3. 改进建议：
+            - 沟通文稿的具体优化建议
+            - 给咨询顾问的具体提升建议
+            - 下次沟通的重点关注事项
+            
+            请分点陈述，给出具体的例子和建议。
             """
         }
         
@@ -94,14 +111,15 @@ class BrainstormingAgent:
             verbose=True
         )
 
-    def process(self, document_content: str, callback=None) -> Dict[str, Any]:
+    def process(self, document_content: str, communication_purpose: str, callback=None) -> Dict[str, Any]:
         try:
-            # 添加日志记录以便调试
-            logger.info(f"Processing document content: {document_content[:100]}...")  # 只记录前100个字符
+            logger.info(f"Processing document with purpose: {communication_purpose[:100]}...")
+            logger.info(f"Document content: {document_content[:100]}...")
             
             # 准备输入
             chain_input = {
                 "document_content": document_content,
+                "communication_purpose": communication_purpose,
                 "task": self.prompt_templates.get_template('consultant_task')
             }
             
@@ -271,6 +289,19 @@ def add_custom_css():
     """, unsafe_allow_html=True)
 
 
+def read_docx(file_bytes):
+    """读取 Word 文档内容"""
+    try:
+        doc = Document(io.BytesIO(file_bytes))
+        full_text = []
+        for paragraph in doc.paragraphs:
+            if paragraph.text.strip():  # 只添加非空段落
+                full_text.append(paragraph.text)
+        return "\n".join(full_text)
+    except Exception as e:
+        logger.error(f"读取 Word 文档时出错: {str(e)}")
+        return None
+
 def main():
     st.set_page_config(page_title="咨询脑暴平台", layout="wide")
     add_custom_css()
@@ -279,33 +310,51 @@ def main():
     if 'prompt_templates' not in st.session_state:
         st.session_state.prompt_templates = PromptTemplates()
     
-    tab1, tab2 = st.tabs(["咨询脑暴助理", "提示词设置"])
+    tab1, tab2 = st.tabs(["咨询沟通分析助理", "提示词设置"])
     
     with tab1:
-        st.title("咨询脑暴助理")
+        st.title("咨询沟通分析助理")
         
-        document_content = st.text_area(
-            "请输入需要分析的文档内容",
-            height=300,
-            placeholder="请输入需要分析的文档内容..."
+        # 添加文件上传功能
+        uploaded_file = st.file_uploader("上传咨询沟通记录文档", type=['docx'])
+        
+        # 沟通目的输入框
+        communication_purpose = st.text_area(
+            "请输入本次沟通的目的",
+            height=100,
+            placeholder="例如：了解学生的学业背景和留学意向，确认是否适合申请英国硕士项目..."
         )
         
-        if st.button("开始分析", key="start_analysis"):
+        # 处理上传的文件
+        if uploaded_file is not None:
+            document_content = read_docx(uploaded_file.read())
             if document_content:
+                st.success("沟通记录上传成功！")
+                with st.expander("查看沟通记录内容", expanded=False):
+                    st.write(document_content)
+            else:
+                st.error("无法读取文档内容，请检查文件格式是否正确。")
+        
+        if st.button("开始分析", key="start_analysis"):
+            if document_content and communication_purpose:
                 try:
                     agent = BrainstormingAgent(
                         api_key=st.secrets["OPENROUTER_API_KEY"],
                         prompt_templates=st.session_state.prompt_templates
                     )
                     
-                    with st.spinner("正在分析文档..."):
+                    with st.spinner("正在分析沟通记录..."):
                         st.subheader("🤔 分析过程")
                         with st.expander("查看详细分析过程", expanded=True):
                             callback = StreamlitCallbackHandler(st.container())
-                            result = agent.process(document_content, callback=callback)
+                            # 将沟通目的添加到处理参数中
+                            result = agent.process(
+                                document_content, 
+                                communication_purpose=communication_purpose,
+                                callback=callback
+                            )
                             
                             if result["status"] == "success":
-                                # 显示分析结果
                                 st.markdown("### 📊 分析结果")
                                 st.markdown(result["analysis_result"])
                             else:
@@ -314,7 +363,10 @@ def main():
                 except Exception as e:
                     st.error(f"处理过程中出错: {str(e)}")
             else:
-                st.warning("请先输入文档内容")
+                if not document_content:
+                    st.warning("请先上传沟通记录文档")
+                if not communication_purpose:
+                    st.warning("请输入本次沟通的目的")
     
     with tab2:
         st.title("提示词设置")
