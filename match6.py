@@ -647,7 +647,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 consultant_conditions['工作量'] = True
             # 如果这个顾问满足所有条件，直接返回True
             if all(consultant_conditions.values()):
-                st.write(f"顾问 {consultant} 满足所有条件")
+                
                 return True
 
                 
