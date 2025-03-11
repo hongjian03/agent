@@ -116,7 +116,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         '个人意愿': 0.2
     }
 
-    def calculate_tag_matching_score(case, consultant):
+    def calculate_tag_matching_score(case, consultant,direction):
         """计算标签匹配得分"""
         tag_score_dict = {}  # 用于存储每个标签的得分
         
@@ -127,6 +127,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
             split_case_countries = re.split(r'[、,，\s]+', raw_case_countries)
             case_countries = {country.strip() for country in split_case_countries}
             total_countries = len(case_countries)
+            
+            if "美国" in case_countries and consultant['文案方向'] != '美国':
+                direction = False
+                return tag_score_dict,direction
+
             
             # 处理顾问国家
             raw_absolute = consultant['绝对高频国家'] if pd.notna(consultant['绝对高频国家']) else ''
@@ -234,14 +239,15 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     tag_score_dict[tag] = tag_weights[tag]
             elif case[tag] == '':
                 tag_score_dict[tag] = tag_weights[tag]
-        return  tag_score_dict
+        return  tag_score_dict,direction
 
 
 
-    def calculate_workload_score(case, consultant):
+    def calculate_workload_score(case, consultant,direction):
         """计算工作量得分"""
         total_score = 0
-        
+        if direction == False:
+            return total_score
         # 检查学年负荷
         if pd.notna(consultant['学年负荷']):
             value = str(consultant['学年负荷']).lower()
@@ -268,10 +274,11 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         return total_score
 
-    def calculate_personal_score(case, consultant):
+    def calculate_personal_score(case, consultant,direction):
         """计算个人意愿得分"""
         total_score = 0
-        
+        if direction == False:
+            return total_score
         # 检查个人意愿
         if pd.notna(consultant['个人意愿']):
             value = str(consultant['个人意愿']).lower()
@@ -429,13 +436,13 @@ def Consultant_matching(consultant_tags_file, merge_df):
             # 计算每个顾问对当前案例的得分
             for cidx, consultant in consultants.iterrows():
                 try:
-                    
+                    direction = True
                     # 获取标签匹配得分和得分字典
-                    tag_score_dict = calculate_tag_matching_score(case, consultant)
+                    tag_score_dict,direction = calculate_tag_matching_score(case, consultant,direction)
                     
-                    workload_score = calculate_workload_score(case, consultant)
+                    workload_score = calculate_workload_score(case, consultant,direction)
                     
-                    personal_score = calculate_personal_score(case, consultant)
+                    personal_score = calculate_personal_score(case, consultant,direction)
                     
                     # 计算最终得分
                     final_result = calculate_final_score(
@@ -479,7 +486,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                     standard_fields = [
                         '绝对高频国家', '相对高频国家', '做过国家','绝对高频专业', '相对高频专业', '做过专业','文案背景',
                         '行业经验', '业务单位所在地', '学年负荷', '近两周负荷', '文书完成率', '申请完成率', '个人意愿',
-                        '名校专家', '博士成功案例', '低龄留学成功案例'
+                        '名校专家', '博士成功案例', '低龄留学成功案例','文案方向'
                     ]
                     
                     for field in standard_fields:

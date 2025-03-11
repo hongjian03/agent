@@ -694,6 +694,7 @@ def main():
                                     </h3>
                                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                                         <span><strong>业务单位:</strong> {consultant.get('businessunits', '未知')}</span>
+                                        <span><strong>文案方向:</strong> {consultant.get('文案方向', '未知')}</span>
                                         <span><strong>匹配范围:</strong> {"本地匹配" if consultant.get('area', False) else "全国大池里匹配"}</span>
                                     </div>
                                 </div>
