@@ -1070,22 +1070,35 @@ def main():
                 if record_type_filter != "全部" and record_type != record_type_filter:
                     continue
                 
-                # 使用 record[4] 作为时间戳，record[5] 作为模型名称
                 with st.expander(f"{record_type} 记录 #{record[0]} - {record[4]}", expanded=False):
                     col1, col2 = st.columns(2)
                     
                     with col1:
                         st.markdown("**输入信息**")
                         if record[3] == "tag_matching":
-                            st.text_area("案例内容", record[1], height=200, disabled=True)
+                            # 添加唯一的 key
+                            st.text_area(
+                                "案例内容",
+                                record[1],
+                                height=200,
+                                disabled=True,
+                                key=f"input_text_{record[0]}"  # 使用记录ID作为唯一key
+                            )
                         else:
                             try:
                                 input_data = json.loads(record[1])
                                 st.dataframe(pd.DataFrame.from_dict(input_data))
                             except:
-                                st.text(record[1])
+                                # 如果JSON解析失败，也添加唯一的key
+                                st.text_area(
+                                    "输入数据",
+                                    record[1],
+                                    height=200,
+                                    disabled=True,
+                                    key=f"input_data_{record[0]}"
+                                )
                         st.markdown(f"**业务单位:** {record[6]}")
-                        st.markdown(f"**使用模型:** {record[5]}")  # 修改这里，使用 record[5] 显示模型名称
+                        st.markdown(f"**使用模型:** {record[5]}")
                     
                     with col2:
                         st.markdown("**输出结果**")
@@ -1104,9 +1117,16 @@ def main():
                             else:
                                 st.json(output_dict)
                         except:
-                            st.text(record[2])
-                    
-                    st.markdown("---")
+                            # 如果JSON解析失败，添加唯一的key
+                            st.text_area(
+                                "输出数据",
+                                record[2],
+                                height=200,
+                                disabled=True,
+                                key=f"output_data_{record[0]}"
+                            )
+                        
+                        st.markdown("---")
         else:
             st.info("暂无历史记录")
 
