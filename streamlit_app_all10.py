@@ -848,11 +848,14 @@ def main():
                 if uploaded_consultant_tags is not None and st.session_state.merged_df is not None:
                     try:
                         merge_df = st.session_state.merged_df
-                        # 传入补偿机制数据
+                        # 确保补偿数据格式正确
+                        compensation_data = st.session_state.compensation_data.to_dict('records')
+                        
+                        # 调用匹配函数
                         matching_results, area = Consultant_matching(
                             consultant_tags_file,
                             merge_df,
-                            compensation_data=st.session_state.compensation_data.to_dict('records')
+                            compensation_data
                         )
                         st.success("顾问匹配完成！")
                         
