@@ -72,9 +72,30 @@ def label_merge(merge_df):
     
     return result_df
 
-def Consultant_matching(consultant_tags_file, merge_df):
-    """顾问匹配"""
-        
+def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
+    """
+    顾问匹配函数
+    
+    Args:
+        consultant_tags_file: 顾问标签文件
+        merge_df: 合并后的数据框
+        compensation_data: 补偿机制数据列表，每个元素是一个字典，包含：
+            - 文案顾问: 顾问姓名
+            - 名校专家使用次数: 该顾问的名校专家标签使用次数
+            - 博士成功案例使用次数: 该顾问的博士成功案例标签使用次数
+            - 低龄留学成功案例使用次数: 该顾问的低龄留学成功案例标签使用次数
+    """
+    # 创建补偿数据查找字典
+    compensation_dict = {}
+    if compensation_data:
+        compensation_dict = {
+            item['文案顾问']: {
+                '名校专家': item['名校专家使用次数'],
+                '博士成功案例': item['博士成功案例使用次数'],
+                '低龄留学成功案例': item['低龄留学成功案例使用次数']
+            } for item in compensation_data
+        }
+    
     # 定义标签权重
     global tag_weights
     tag_weights = {
@@ -116,10 +137,14 @@ def Consultant_matching(consultant_tags_file, merge_df):
         '个人意愿': 0.2
     }
 
-    def calculate_tag_matching_score(case, consultant, direction):
+    def calculate_tag_matching_score(case, consultant, direction,compensation_dict=None):
         """计算标签匹配得分"""
         tag_score_dict = {}
-        
+         # 在计算得分时使用补偿数据
+        if compensation_dict:
+            top_school_count = compensation_dict.get(consultant['文案顾问'], {}).get('名校专家', 0)
+            phd_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('博士成功案例', 0)
+            young_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('低龄留学成功案例', 0)
         # 1. 国家标签匹配
         if '国家标签' in case and pd.notna(case['国家标签']):
             # 处理案例国家
@@ -210,7 +235,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 count += 1
         
         for tag in proportion_tags:
-            if pd.notna(case[tag]) and pd.notna(consultant[tag]) and case[tag] != '':
+            if pd.notna(case[tag]) and pd.notna(consultant[tag]) and case[tag] != '' and count != 2:
                 # 将case和consultant的标签都分割成集合
                 case_tags = set(re.split(r'[、,，\s]+', case[tag]))
                 consultant_tags = set(re.split(r'[、,，\s]+', consultant[tag]))
@@ -247,6 +272,36 @@ def Consultant_matching(consultant_tags_file, merge_df):
             elif pd.notna(case[tag]) and pd.notna(consultant[tag]):  # 如果案例和顾问标签都不为空
                 if case[tag] == consultant[tag]:  # 如果标签匹配
                     tag_score_dict[tag] = tag_weights[tag]
+
+        # 6. 补偿机制
+        compensate_tags = ['名校专家','博士成功案例','低龄留学成功案例']
+        count = 0
+        for tag in compensate_tags:
+            if case[tag] == '':
+                count += 1
+        for tag in compensate_tags:
+            if count != 3:
+                if pd.notna(case[tag]) and pd.notna(consultant[tag]):
+                    if tag == '名校专家':
+                        if tag_score_dict[tag] > 0:
+                            compensate_score = tag_score_dict[tag] - top_school_count*2.5
+                            if compensate_score < 0:
+                                compensate_score = 0
+                            tag_score_dict[tag] = compensate_score
+                    elif tag == '博士成功案例':
+                        if tag_score_dict[tag] > 0:
+                            compensate_score = tag_score_dict[tag] - phd_case_count*2.5
+                            if compensate_score < 0:
+                                compensate_score = 0
+                            tag_score_dict[tag] = compensate_score
+                    elif tag == '低龄留学成功案例':
+                        if tag_score_dict[tag] > 0:
+                            compensate_score = tag_score_dict[tag] - young_case_count*2.5
+                            if compensate_score < 0:
+                                compensate_score = 0
+                            tag_score_dict[tag] = compensate_score
+
+
         return  tag_score_dict,direction
 
 
@@ -421,7 +476,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         
         return result
 
-    def find_best_matches(consultant_tags_file, merge_df, area):
+    def find_best_matches(consultant_tags_file, merge_df, area,compensation_data=None):
         """找到每条案例得分最高的顾问们"""
         # 存储所有案例的匹配结果
         all_matches = {}
@@ -446,7 +501,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
                 try:
                     direction = True
                     # 获取标签匹配得分和得分字典
-                    tag_score_dict,direction = calculate_tag_matching_score(case, consultant,direction)
+                    tag_score_dict,direction = calculate_tag_matching_score(case, consultant,direction,compensation_dict)
                     
                     workload_score = calculate_workload_score(case, consultant,direction)
                     
@@ -594,7 +649,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
     
     # 1. 先计算本地顾问的得分
     area = True
-    local_scores, all_tag_score_dicts, all_workload_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
+    local_scores, all_tag_score_dicts, all_workload_score_dicts = find_best_matches(consultant_tags_file, merge_df, area,compensation_dict)
 
     # 2. 检查7个判断条件
     def all_conditions_met(all_tag_score_dicts, all_workload_score_dicts, case,idx):
@@ -694,7 +749,7 @@ def Consultant_matching(consultant_tags_file, merge_df):
         # 如果有任何条件不满足，使用所有顾问重新计算匹配
 
         area = False
-        all_scores,all_tag_score_dicts,all_workload_score_dicts = find_best_matches(consultant_tags_file, merge_df, area)
+        all_scores,all_tag_score_dicts,all_workload_score_dicts = find_best_matches(consultant_tags_file, merge_df, area,compensation_dict)
         return all_scores ,area
 
 

@@ -736,13 +736,13 @@ def main():
                 consultant_tags_file = pd.read_excel(uploaded_consultant_tags)
                 st.success("顾问标签汇总上传成功")
             
-        # 处理按钮区域
+        # 数据处理区域
         with st.container():
             st.subheader("数据处理")
             
             # 标签转换处理按钮
             if st.button("开始标签转换处理"):
-                if st.session_state.tagged_data is not None:  # 使用session中的标签数据
+                if st.session_state.tagged_data is not None:
                     try:
                         st.session_state.merged_df = label_merge(st.session_state.tagged_data)
                         st.success("标签转换处理完成！")
@@ -767,14 +767,92 @@ def main():
             
             st.markdown("---")  # 添加分隔线
             
+            # 添加补偿机制设置表格
+            st.subheader("补偿机制设置")
+            
+            # 初始化 session state
+            if 'compensation_data' not in st.session_state:
+                st.session_state.compensation_data = pd.DataFrame(columns=[
+                    '文案顾问',
+                    '名校专家使用次数',
+                    '博士成功案例使用次数',
+                    '低龄留学成功案例使用次数'
+                ])
+            
+            # 如果有顾问数据，更新补偿机制表格
+            if uploaded_consultant_tags is not None:
+                # 获取所有顾问名单
+                consultants = consultant_tags_file['文案顾问'].unique()
+                
+                # 如果是新的顾问列表，更新 session state
+                current_consultants = set(st.session_state.compensation_data['文案顾问'].values)
+                new_consultants = set(consultants) - current_consultants
+                
+                if new_consultants:
+                    new_data = pd.DataFrame({
+                        '文案顾问': list(new_consultants),
+                        '名校专家使用次数': [0] * len(new_consultants),
+                        '博士成功案例使用次数': [0] * len(new_consultants),
+                        '低龄留学成功案例使用次数': [0] * len(new_consultants)
+                    })
+                    st.session_state.compensation_data = pd.concat([
+                        st.session_state.compensation_data,
+                        new_data
+                    ]).reset_index(drop=True)
+            
+            # 创建可编辑的数据表格
+            edited_df = st.data_editor(
+                st.session_state.compensation_data,
+                use_container_width=True,
+                num_rows="dynamic",
+                column_config={
+                    "文案顾问": st.column_config.TextColumn(
+                        "文案顾问",
+                        help="顾问姓名",
+                        required=True
+                    ),
+                    "名校专家使用次数": st.column_config.NumberColumn(
+                        "名校专家使用次数",
+                        help="该顾问的名校专家标签被使用的次数",
+                        min_value=0,
+                        default=0
+                    ),
+                    "博士成功案例使用次数": st.column_config.NumberColumn(
+                        "博士成功案例使用次数",
+                        help="该顾问的博士成功案例标签被使用的次数",
+                        min_value=0,
+                        default=0
+                    ),
+                    "低龄留学成功案例使用次数": st.column_config.NumberColumn(
+                        "低龄留学成功案例使用次数",
+                        help="该顾问的低龄留学成功案例标签被使用的次数",
+                        min_value=0,
+                        default=0
+                    )
+                }
+            )
+            
+            # 更新按钮
+            if st.button("更新补偿数据"):
+                st.session_state.compensation_data = edited_df
+                st.success("✅ 补偿数据已更新！")
+                
+                # 显示更新后的数据预览
+                with st.expander("查看更新后的补偿数据"):
+                    st.dataframe(st.session_state.compensation_data)
+            
+            st.markdown("---")  # 添加分隔线
+            
             # 顾问匹配按钮
             if st.button("开始顾问匹配"):
                 if uploaded_consultant_tags is not None and st.session_state.merged_df is not None:
                     try:
                         merge_df = st.session_state.merged_df
+                        # 传入补偿机制数据
                         matching_results, area = Consultant_matching(
                             consultant_tags_file,
-                            merge_df
+                            merge_df,
+                            compensation_data=st.session_state.compensation_data.to_dict('records')
                         )
                         st.success("顾问匹配完成！")
                         
@@ -1076,20 +1154,18 @@ def main():
                     with col1:
                         st.markdown("**输入信息**")
                         if record[3] == "tag_matching":
-                            # 添加唯一的 key
                             st.text_area(
                                 "案例内容",
                                 record[1],
                                 height=200,
                                 disabled=True,
-                                key=f"input_text_{record[0]}"  # 使用记录ID作为唯一key
+                                key=f"input_text_{record[0]}"
                             )
                         else:
                             try:
                                 input_data = json.loads(record[1])
                                 st.dataframe(pd.DataFrame.from_dict(input_data))
                             except:
-                                # 如果JSON解析失败，也添加唯一的key
                                 st.text_area(
                                     "输入数据",
                                     record[1],
@@ -1105,28 +1181,116 @@ def main():
                         try:
                             output_dict = json.loads(record[2])
                             if record[3] == "consultant_matching":
-                                # 为顾问匹配结果创建更友好的显示
+                                # 为每个匹配的顾问创建一个展开器
                                 for case, consultants in output_dict.items():
-                                    st.markdown("##### 匹配结果")
+                                    st.markdown("### 匹配结果")
                                     for consultant in consultants:
-                                        st.markdown(f"""
-                                        - **{consultant['name']}** (得分: {consultant['score']:.1f})
-                                            - 业务单位: {consultant.get('businessunits', '未知')}
-                                            - 文案方向: {consultant.get('文案方向', '未知')}
-                                        """)
+                                        with st.expander(
+                                            f"**{consultant['name']}** (得分: {consultant['score']:.1f})",
+                                            expanded=False
+                                        ):
+                                            # 基本信息
+                                            st.markdown(f"""
+                                            #### 基本信息
+                                            - **业务单位:** {consultant.get('businessunits', '未知')}
+                                            - **文案方向:** {consultant.get('文案方向', '未知')}
+                                            - **匹配范围:** {"本地匹配" if consultant.get('area', False) else "全国大池里匹配"}
+                                            """)
+                                            
+                                            # 标签匹配得分详情
+                                            if 'tag_score_dict' in consultant:
+                                                st.markdown("#### 标签匹配得分")
+                                                tag_data = []
+                                                for tag, score in consultant['tag_score_dict'].items():
+                                                    tag_status = "✅" if score > 0 else "❌"
+                                                    tag_data.append({
+                                                        "标签": tag,
+                                                        "状态": tag_status,
+                                                        "得分": f"{score}分"
+                                                    })
+                                                tag_df = pd.DataFrame(tag_data)
+                                                st.dataframe(tag_df, hide_index=True)
+                                            
+                                            # 匹配率与覆盖率
+                                            st.markdown("#### 匹配率与覆盖率")
+                                            ratio_data = [{
+                                                "类别": "特殊标签",
+                                                "匹配率": f"{consultant.get('special_match_ratio', 0):.2f} ({consultant.get('special_count_need', 0)}/{consultant.get('special_count_total', 1)})",
+                                                "覆盖率": f"{consultant.get('special_coverage_ratio', 0):.2f}"
+                                            }]
+                                            ratio_df = pd.DataFrame(ratio_data)
+                                            st.dataframe(ratio_df, hide_index=True)
+                                            
+                                            # 得分计算详情
+                                            st.markdown("#### 得分计算详情")
+                                            
+                                            # 获取各项得分
+                                            country_tags_score = consultant.get('country_tags_score', 0)
+                                            major_tags_score = sum(consultant.get('tag_score_dict', {}).get(tag, 0) 
+                                                                 for tag in ['绝对高频专业','相对高频专业','做过专业'])
+                                            special_tags_score = consultant.get('special_tags_score', 0)
+                                            other_tags_score = sum(consultant.get('tag_score_dict', {}).get(tag, 0)
+                                                                 for tag in ['行业经验','文案背景','业务单位所在地'])
+                                            workload_score = consultant.get('workload_score', 0)
+                                            personal_score = consultant.get('personal_score', 0)
+                                            
+                                            score_calculation = [
+                                                {
+                                                    "项目": "国家标签得分",
+                                                    "得分": f"{country_tags_score}分",
+                                                    "计算公式": "国家得分 × 0.5",
+                                                    "详细计算": f"({country_tags_score:.1f}) × 0.5 = {country_tags_score * 0.5:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "专业标签得分",
+                                                    "得分": f"{major_tags_score}分",
+                                                    "计算公式": "专业得分 × 0.5",
+                                                    "详细计算": f"({major_tags_score:.1f}) × 0.5 = {major_tags_score * 0.5:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "特殊标签得分",
+                                                    "得分": f"{special_tags_score}分",
+                                                    "计算公式": "特殊得分 × 特殊匹配率 × 特殊覆盖率 × 0.5",
+                                                    "详细计算": f"({special_tags_score:.1f}) × ({consultant.get('special_match_ratio', 0):.2f}) × ({consultant.get('special_coverage_ratio', 0):.2f}) × 0.5 = {special_tags_score * consultant.get('special_match_ratio', 0) * consultant.get('special_coverage_ratio', 0) * 0.5:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "其他标签得分",
+                                                    "得分": f"{other_tags_score}分",
+                                                    "计算公式": "其他标签得分 × 0.5",
+                                                    "详细计算": f"({other_tags_score:.1f}) × 0.5 = {other_tags_score * 0.5:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "工作量评分",
+                                                    "得分": f"{workload_score}分",
+                                                    "计算公式": "工作量得分 × 0.3",
+                                                    "详细计算": f"({workload_score:.1f}) × 0.3 = {workload_score * 0.3:.1f}分"
+                                                },
+                                                {
+                                                    "项目": "个人意愿评分",
+                                                    "得分": f"{personal_score}分",
+                                                    "计算公式": "个人意愿得分 × 0.2",
+                                                    "详细计算": f"({personal_score:.1f}) × 0.2 = {personal_score * 0.2:.1f}分"
+                                                }
+                                            ]
+                                            
+                                            score_df = pd.DataFrame(score_calculation)
+                                            st.dataframe(score_df, hide_index=True)
+                                            
+                                            # 最终得分
+                                            st.success(f"#### 最终得分: {consultant['score']:.1f}分")
                             else:
                                 st.json(output_dict)
-                        except:
-                            # 如果JSON解析失败，添加唯一的key
+                        except Exception as e:
+                            st.error(f"解析输出结果时出错: {str(e)}")
                             st.text_area(
-                                "输出数据",
+                                "原始输出数据",
                                 record[2],
                                 height=200,
                                 disabled=True,
                                 key=f"output_data_{record[0]}"
                             )
-                        
-                        st.markdown("---")
+                    
+                    st.markdown("---")
         else:
             st.info("暂无历史记录")
 
