@@ -348,7 +348,7 @@ def save_interaction(input_text, output_result, business_unit, interaction_type=
         data = (
             input_text,
             json.dumps(output_result, ensure_ascii=False),
-            interaction_type,
+            interaction_type,  # 现在可以是 "tag_matching" 或 "consultant_matching"
             datetime.utcnow().isoformat(),
             st.session_state.current_model,
             business_unit
@@ -363,7 +363,7 @@ def save_interaction(input_text, output_result, business_unit, interaction_type=
         
         conn.commit()
         conn.close()
-        logger.info("交互记录已保存到数据库")
+        logger.info(f"{interaction_type} 交互记录已保存到数据库")
     except Exception as e:
         logger.error(f"保存交互记录失败: {str(e)}")
 
@@ -373,8 +373,16 @@ def get_interactions(limit=100):
         conn = sqlite3.connect('data.db')
         c = conn.cursor()
         
+        # 明确指定字段顺序
         c.execute('''
-            SELECT id, input_text, output_result, interaction_type, timestamp, model, business_unit
+            SELECT 
+                id,             -- record[0]
+                input_text,     -- record[1]
+                output_result,  -- record[2]
+                interaction_type, -- record[3]
+                timestamp,      -- record[4]
+                model,         -- record[5]
+                business_unit   -- record[6]
             FROM interactions
             ORDER BY timestamp DESC
             LIMIT ?
@@ -764,11 +772,19 @@ def main():
                 if uploaded_consultant_tags is not None and st.session_state.merged_df is not None:
                     try:
                         merge_df = st.session_state.merged_df
-                        matching_results ,area = Consultant_matching(
-                            consultant_tags_file,  # 顾问标签数据
-                            merge_df  # 已处理的标签数据
+                        matching_results, area = Consultant_matching(
+                            consultant_tags_file,
+                            merge_df
                         )
                         st.success("顾问匹配完成！")
+                        
+                        # 保存匹配结果到数据库
+                        save_interaction(
+                            input_text=json.dumps(merge_df.to_dict(), ensure_ascii=False),
+                            output_result=matching_results,
+                            business_unit=selected_unit,
+                            interaction_type="consultant_matching"
+                        )
                         
                         # 显示匹配结果
                         st.markdown("<div class='card-container'>", unsafe_allow_html=True)
@@ -1025,7 +1041,7 @@ def main():
         st.title("历史记录查询")
         
         # 添加过滤选项
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             records_limit = st.number_input("显示记录数量", min_value=1, max_value=1000, value=100)
         with col2:
@@ -1034,30 +1050,59 @@ def main():
                 options=["全部"] + business_units,
                 index=0
             )
+        with col3:
+            record_type_filter = st.selectbox(
+                "记录类型",
+                options=["全部", "标签匹配", "顾问匹配"],
+                index=0
+            )
         
         # 获取并显示历史记录
         records = get_interactions(limit=records_limit)
         
         if records:
             for record in records:
-                # 如果选择了特定业务单位，则只显示该单位的记录
+                # 应用筛选条件
                 if business_unit_filter != "全部" and record[6] != business_unit_filter:
                     continue
-                    
-                with st.expander(f"记录 #{record[0]} - {record[4]}", expanded=False):
+                
+                record_type = "标签匹配" if record[3] == "tag_matching" else "顾问匹配"
+                if record_type_filter != "全部" and record_type != record_type_filter:
+                    continue
+                
+                # 使用 record[4] 作为时间戳，record[5] 作为模型名称
+                with st.expander(f"{record_type} 记录 #{record[0]} - {record[4]}", expanded=False):
                     col1, col2 = st.columns(2)
                     
                     with col1:
                         st.markdown("**输入信息**")
-                        st.text_area("案例内容", record[1], height=200, disabled=True)
+                        if record[3] == "tag_matching":
+                            st.text_area("案例内容", record[1], height=200, disabled=True)
+                        else:
+                            try:
+                                input_data = json.loads(record[1])
+                                st.dataframe(pd.DataFrame.from_dict(input_data))
+                            except:
+                                st.text(record[1])
                         st.markdown(f"**业务单位:** {record[6]}")
-                        st.markdown(f"**使用模型:** {record[4]}")
+                        st.markdown(f"**使用模型:** {record[5]}")  # 修改这里，使用 record[5] 显示模型名称
                     
                     with col2:
                         st.markdown("**输出结果**")
                         try:
                             output_dict = json.loads(record[2])
-                            st.json(output_dict)
+                            if record[3] == "consultant_matching":
+                                # 为顾问匹配结果创建更友好的显示
+                                for case, consultants in output_dict.items():
+                                    st.markdown("##### 匹配结果")
+                                    for consultant in consultants:
+                                        st.markdown(f"""
+                                        - **{consultant['name']}** (得分: {consultant['score']:.1f})
+                                            - 业务单位: {consultant.get('businessunits', '未知')}
+                                            - 文案方向: {consultant.get('文案方向', '未知')}
+                                        """)
+                            else:
+                                st.json(output_dict)
                         except:
                             st.text(record[2])
                     
