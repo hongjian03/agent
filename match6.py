@@ -137,7 +137,7 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
         '个人意愿': 0.2
     }
 
-    def calculate_tag_matching_score(case, consultant, direction,compensation_dict=None):
+    def calculate_tag_matching_score(case, consultant, direction, compensation_dict):
         """计算标签匹配得分"""
         tag_score_dict = {}
          # 在计算得分时使用补偿数据
@@ -279,24 +279,38 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
         for tag in compensate_tags:
             if case[tag] == '':
                 count += 1
+        experience_level = consultant['行业经验']
+        if experience_level == '专家':
+            top_school_count_data = 2.5
+            phd_case_count_data = 5
+            young_case_count_data = 5
+        elif experience_level == '资深':
+            top_school_count_data = 3.3
+            phd_case_count_data = 5
+            young_case_count_data = 5
+        elif experience_level == '熟练':
+            top_school_count_data = 5.0
+            phd_case_count_data = 10
+            young_case_count_data = 10
+            
         for tag in compensate_tags:
             if count != 3:
                 if pd.notna(case[tag]) and pd.notna(consultant[tag]):
                     if tag == '名校专家':
                         if tag_score_dict[tag] > 0:
-                            compensate_score = tag_score_dict[tag] - top_school_count*2.5
+                            compensate_score = tag_score_dict[tag] - top_school_count*top_school_count_data
                             if compensate_score < 0:
                                 compensate_score = 0
                             tag_score_dict[tag] = compensate_score
                     elif tag == '博士成功案例':
                         if tag_score_dict[tag] > 0:
-                            compensate_score = tag_score_dict[tag] - phd_case_count*2.5
+                            compensate_score = tag_score_dict[tag] - phd_case_count*phd_case_count_data
                             if compensate_score < 0:
                                 compensate_score = 0
                             tag_score_dict[tag] = compensate_score
                     elif tag == '低龄留学成功案例':
                         if tag_score_dict[tag] > 0:
-                            compensate_score = tag_score_dict[tag] - young_case_count*2.5
+                            compensate_score = tag_score_dict[tag] - young_case_count*young_case_count_data
                             if compensate_score < 0:
                                 compensate_score = 0
                             tag_score_dict[tag] = compensate_score
@@ -630,12 +644,16 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 remaining_slots = 9 - len(selected_consultants)
                 
                 if remaining_slots > 0 and unqualified_scores:
-                    # 从不符合条件的顾问中取得分最高的若干个
-                    # 获取第remaining_slots位的分数
-                    cutoff_score = unqualified_scores[remaining_slots - 1]['score'] if len(unqualified_scores) >= remaining_slots else unqualified_scores[-1]['score']
-                    # 添加所有大于等于这个分数的不符合条件顾问（处理同分情况）
-                    additional_consultants = [create_consultant_data(s) for s in unqualified_scores if s['score'] >= cutoff_score]
-                    selected_consultants.extend(additional_consultants)
+                    # 过滤掉得分为0的不符合条件顾问
+                    valid_unqualified_scores = [s for s in unqualified_scores if s['score'] > 0]
+                    
+                    if valid_unqualified_scores:
+                        # 从不符合条件且得分大于0的顾问中取得分最高的若干个
+                        # 获取第remaining_slots位的分数
+                        cutoff_score = valid_unqualified_scores[remaining_slots - 1]['score'] if len(valid_unqualified_scores) >= remaining_slots else valid_unqualified_scores[-1]['score']
+                        # 添加所有大于等于这个分数的不符合条件顾问（处理同分情况）
+                        additional_consultants = [create_consultant_data(s) for s in valid_unqualified_scores if s['score'] >= cutoff_score]
+                        selected_consultants.extend(additional_consultants)
             
             # 存储当前案例的匹配结果和所有顾问的得分字典
             case_key = f"案例{idx + 1}"
