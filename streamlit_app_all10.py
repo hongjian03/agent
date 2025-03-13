@@ -420,7 +420,10 @@ def main():
     if 'current_model' not in st.session_state:
         st.session_state.current_model = st.secrets['OPENAI_MODEL_NAME']  # 默认值
     
-
+    langsmith_api_key = st.secrets["LANGCHAIN_API_KEY"]
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    os.environ["LANGCHAIN_API_KEY"] = langsmith_api_key
+    os.environ["LANGCHAIN_PROJECT"] = "agent_case_match"
 
     
     # 创建四个标签页
