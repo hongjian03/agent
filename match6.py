@@ -279,6 +279,9 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
         for tag in compensate_tags:
             if case[tag] == '':
                 count += 1
+        top_school_count_data = 0
+        phd_case_count_data = 0
+        young_case_count_data = 0
         experience_level = consultant['行业经验']
         if experience_level == '专家':
             top_school_count_data = 2.5
