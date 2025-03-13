@@ -1185,96 +1185,66 @@ def main():
                         try:
                             output_dict = json.loads(record[2])
                             if record[3] == "consultant_matching":
-                                # 为每个匹配的顾问创建一个表格显示
+                                # 为每个匹配的案例创建结果显示
                                 for case, consultants in output_dict.items():
-                                    st.markdown("##### 匹配结果")
+                                    st.markdown(f"#### {case} 匹配结果")
                                     
-                                    # 创建一个表格来显示基本信息
-                                    consultant_data = []
+                                    # 创建一个包含所有信息的大表格
+                                    all_data = []
                                     for consultant in consultants:
-                                        consultant_data.append({
+                                        # 基本信息
+                                        consultant_info = {
                                             "顾问姓名": consultant['name'],
-                                            "得分": f"{consultant['score']:.1f}",
+                                            "总得分": f"{consultant['score']:.1f}",
                                             "业务单位": consultant.get('businessunits', '未知'),
                                             "文案方向": consultant.get('文案方向', '未知'),
                                             "匹配范围": "本地匹配" if consultant.get('area', False) else "全国匹配"
+                                        }
+                                        
+                                        # 标签得分
+                                        if 'tag_score_dict' in consultant:
+                                            for tag, score in consultant['tag_score_dict'].items():
+                                                consultant_info[f"标签_{tag}"] = f"{score:.1f}"
+                                        
+                                        # 匹配率与覆盖率
+                                        consultant_info.update({
+                                            "特殊标签匹配率": f"{consultant.get('special_match_ratio', 0):.2f}",
+                                            "特殊标签覆盖率": f"{consultant.get('special_coverage_ratio', 0):.2f}"
                                         })
+                                        
+                                        # 各项得分
+                                        country_score = consultant.get('country_tags_score', 0)
+                                        special_score = consultant.get('special_tags_score', 0)
+                                        workload_score = consultant.get('workload_score', 0)
+                                        personal_score = consultant.get('personal_score', 0)
+                                        
+                                        consultant_info.update({
+                                            "国家标签得分": f"{country_score:.1f}",
+                                            "特殊标签得分": f"{special_score:.1f}",
+                                            "工作量评分": f"{workload_score:.1f}",
+                                            "个人意愿评分": f"{personal_score:.1f}"
+                                        })
+                                        
+                                        all_data.append(consultant_info)
                                     
-                                    # 显示基本信息表格
-                                    st.dataframe(
-                                        pd.DataFrame(consultant_data),
-                                        hide_index=True
-                                    )
+                                    # 显示完整的匹配结果表格
+                                    df = pd.DataFrame(all_data)
                                     
-                                    # 为每个顾问创建一个详情expander
-                                    for consultant in consultants:
-                                        with st.expander(f"查看 {consultant['name']} 详细得分", expanded=False):
-                                            # 标签匹配得分
-                                            st.markdown("##### 标签匹配得分")
-                                            if 'tag_score_dict' in consultant:
-                                                tag_data = []
-                                                for tag, score in consultant['tag_score_dict'].items():
-                                                    tag_status = "✅" if score > 0 else "❌"
-                                                    tag_data.append({
-                                                        "标签": tag,
-                                                        "状态": tag_status,
-                                                        "得分": f"{score}分"
-                                                    })
-                                                st.dataframe(pd.DataFrame(tag_data), hide_index=True)
-                                            
-                                            # 匹配率与覆盖率
-                                            st.markdown("##### 匹配率与覆盖率")
-                                            ratio_data = [{
-                                                "类别": "特殊标签",
-                                                "匹配率": f"{consultant.get('special_match_ratio', 0):.2f} ({consultant.get('special_count_need', 0)}/{consultant.get('special_count_total', 1)})",
-                                                "覆盖率": f"{consultant.get('special_coverage_ratio', 0):.2f}"
-                                            }]
-                                            st.dataframe(pd.DataFrame(ratio_data), hide_index=True)
-                                            
-                                            # 得分计算详情
-                                            st.markdown("##### 得分计算详情")
-                                            score_calculation = [
-                                                {
-                                                    "项目": "国家标签得分",
-                                                    "得分": f"{consultant.get('country_tags_score', 0):.1f}分",
-                                                    "计算公式": "国家得分 × 0.5",
-                                                    "详细计算": f"({consultant.get('country_tags_score', 0):.1f}) × 0.5 = {consultant.get('country_tags_score', 0) * 0.5:.1f}分"
-                                                },
-                                                {
-                                                    "项目": "专业标签得分",
-                                                    "得分": f"{sum(consultant.get('tag_score_dict', {}).get(tag, 0) for tag in ['绝对高频专业','相对高频专业','做过专业']):.1f}分",
-                                                    "计算公式": "专业得分 × 0.5",
-                                                    "详细计算": f"({sum(consultant.get('tag_score_dict', {}).get(tag, 0) for tag in ['绝对高频专业','相对高频专业','做过专业']):.1f}) × 0.5"
-                                                },
-                                                {
-                                                    "项目": "特殊标签得分",
-                                                    "得分": f"{consultant.get('special_tags_score', 0):.1f}分",
-                                                    "计算公式": "特殊得分 × 特殊匹配率 × 特殊覆盖率 × 0.5",
-                                                    "详细计算": f"({consultant.get('special_tags_score', 0):.1f}) × ({consultant.get('special_match_ratio', 0):.2f}) × ({consultant.get('special_coverage_ratio', 0):.2f}) × 0.5"
-                                                },
-                                                {
-                                                    "项目": "其他标签得分",
-                                                    "得分": f"{sum(consultant.get('tag_score_dict', {}).get(tag, 0) for tag in ['行业经验','文案背景','业务单位所在地']):.1f}分",
-                                                    "计算公式": "其他标签得分 × 0.5",
-                                                    "详细计算": f"({sum(consultant.get('tag_score_dict', {}).get(tag, 0) for tag in ['行业经验','文案背景','业务单位所在地']):.1f}) × 0.5"
-                                                },
-                                                {
-                                                    "项目": "工作量评分",
-                                                    "得分": f"{consultant.get('workload_score', 0):.1f}分",
-                                                    "计算公式": "工作量得分 × 0.3",
-                                                    "详细计算": f"({consultant.get('workload_score', 0):.1f}) × 0.3"
-                                                },
-                                                {
-                                                    "项目": "个人意愿评分",
-                                                    "得分": f"{consultant.get('personal_score', 0):.1f}分",
-                                                    "计算公式": "个人意愿得分 × 0.2",
-                                                    "详细计算": f"({consultant.get('personal_score', 0):.1f}) × 0.2"
-                                                }
-                                            ]
-                                            st.dataframe(pd.DataFrame(score_calculation), hide_index=True)
-                                            
-                                            # 最终得分
-                                            st.success(f"#### 最终得分: {consultant['score']:.1f}分")
+                                    # 设置列的显示顺序
+                                    columns_order = [
+                                        "顾问姓名", "总得分", "业务单位", "文案方向", "匹配范围",
+                                        "国家标签得分", "特殊标签得分", "工作量评分", "个人意愿评分",
+                                        "特殊标签匹配率", "特殊标签覆盖率"
+                                    ]
+                                    
+                                    # 添加标签得分列
+                                    tag_columns = [col for col in df.columns if col.startswith("标签_")]
+                                    columns_order.extend(tag_columns)
+                                    
+                                    # 重新排序列并显示
+                                    df = df[columns_order]
+                                    st.dataframe(df, hide_index=True)
+                                    
                             else:
                                 st.json(output_dict)
                         except Exception as e:
