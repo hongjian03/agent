@@ -547,15 +547,17 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                     workload_score = calculate_workload_score(case, consultant,direction)
                     
                     personal_score = calculate_personal_score(case, consultant,direction)
-                    
-                    # 计算最终得分
-                    final_result = calculate_final_score(
-                        tag_score_dict,
-                        consultant,
-                        workload_score,
-                        personal_score,
-                        case
-                    )
+                    try:
+                        # 计算最终得分
+                        final_result = calculate_final_score(
+                            tag_score_dict,
+                            consultant,
+                            workload_score,
+                            personal_score,
+                                case
+                            )
+                    except Exception as e:
+                        st.error(f"计算最终得分时发生错误: {e}")
                     
                     # 保存当前顾问的得分字典
                     case_tag_score_dicts[consultant['文案顾问']] = tag_score_dict
