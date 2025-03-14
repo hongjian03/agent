@@ -203,70 +203,76 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 tag_score_dict['做过国家匹配数量'] = 0
         except Exception as e:
             st.error(f"计算国家标签匹配得分时发生错误: {e}")
-        # 2. 专业标签匹配
-        if '专业标签' in case and pd.notna(case['专业标签']):
-            case_majors = set(re.split(r'[、,，\s]+', case['专业标签']))
-            total_majors = len(case_majors)
-            
-            absolute_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
-            relative_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
-            done_majors = set(re.split(r'[、,，\s]+', consultant['做过专业'])) if pd.notna(consultant['做过专业']) else set()
-            
-            # 计算各类型匹配的专业数量
-            absolute_matches = case_majors.intersection(absolute_high_freq_majors)
-            relative_matches = case_majors.intersection(relative_high_freq_majors)
-            done_matches = case_majors.intersection(done_majors)
-            
-            # 按比例计算分数
-            if absolute_matches:
-                tag_score_dict['绝对高频专业'] = (tag_weights['绝对高频专业'] / total_majors) * len(absolute_matches)
-                tag_score_dict['绝对高频专业匹配数量'] = len(absolute_matches)
-            
-            # 确保相对高频匹配不与绝对高频匹配重复计算
-            relative_matches = relative_matches - absolute_matches
-            if relative_matches:
-                tag_score_dict['相对高频专业'] = (tag_weights['相对高频专业'] / total_majors) * len(relative_matches)
-                tag_score_dict['相对高频专业匹配数量'] = len(relative_matches)
-            
-            # 确保做过专业匹配不与前两种匹配重复计算
-            done_matches = done_matches - absolute_matches - relative_matches
-            if done_matches:
-                tag_score_dict['做过专业'] = (tag_weights['做过专业'] / total_majors) * len(done_matches)
-                tag_score_dict['做过专业匹配数量'] = len(done_matches)
-        elif case['专业标签'] == '':
-            tag_score_dict['绝对高频专业'] = tag_weights['绝对高频专业']
-            tag_score_dict['相对高频专业'] = 0
-            tag_score_dict['做过专业'] = 0
-            tag_score_dict['绝对高频专业匹配数量'] = 0
-            tag_score_dict['相对高频专业匹配数量'] = 0
-            tag_score_dict['做过专业匹配数量'] = 0
-        
-        # 3 博士成功案例和低龄留学成功案例按比例匹配
-        proportion_tags = ['博士成功案例', '低龄留学成功案例']
-        count = 0
-        for tag in proportion_tags:
-            if case[tag] == '':
-                count += 1
-        
-        for tag in proportion_tags:
-            if pd.notna(case[tag]) and pd.notna(consultant[tag]) and case[tag] != '' and count != 2:
-                # 将case和consultant的标签都分割成集合
-                case_tags = set(re.split(r'[、,，\s]+', case[tag]))
-                consultant_tags = set(re.split(r'[、,，\s]+', consultant[tag]))
+        try:
+            # 2. 专业标签匹配
+            if '专业标签' in case and pd.notna(case['专业标签']):
+                case_majors = set(re.split(r'[、,，\s]+', case['专业标签']))
+                total_majors = len(case_majors)
                 
-                # 计算匹配的标签数量
-                matched_tags = case_tags.intersection(consultant_tags)
+                absolute_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['绝对高频专业'])) if pd.notna(consultant['绝对高频专业']) else set()
+                relative_high_freq_majors = set(re.split(r'[、,，\s]+', consultant['相对高频专业'])) if pd.notna(consultant['相对高频专业']) else set()
+                done_majors = set(re.split(r'[、,，\s]+', consultant['做过专业'])) if pd.notna(consultant['做过专业']) else set()
                 
-                # 如果有匹配的标签，按比例计算得分
-                if matched_tags:
-                    tag_score_dict[tag] = (tag_weights[tag] / len(case_tags)) * len(matched_tags)
-                    tag_score_dict[f'{tag}匹配数量'] = len(matched_tags)
-                else:
-                    tag_score_dict[f'{tag}匹配数量'] = 0
+                # 计算各类型匹配的专业数量
+                absolute_matches = case_majors.intersection(absolute_high_freq_majors)
+                relative_matches = case_majors.intersection(relative_high_freq_majors)
+                done_matches = case_majors.intersection(done_majors)
+                
+                # 按比例计算分数
+                if absolute_matches:
+                    tag_score_dict['绝对高频专业'] = (tag_weights['绝对高频专业'] / total_majors) * len(absolute_matches)
+                    tag_score_dict['绝对高频专业匹配数量'] = len(absolute_matches)
+                
+                # 确保相对高频匹配不与绝对高频匹配重复计算
+                relative_matches = relative_matches - absolute_matches
+                if relative_matches:
+                    tag_score_dict['相对高频专业'] = (tag_weights['相对高频专业'] / total_majors) * len(relative_matches)
+                    tag_score_dict['相对高频专业匹配数量'] = len(relative_matches)
+                
+                # 确保做过专业匹配不与前两种匹配重复计算
+                done_matches = done_matches - absolute_matches - relative_matches
+                if done_matches:
+                    tag_score_dict['做过专业'] = (tag_weights['做过专业'] / total_majors) * len(done_matches)
+                    tag_score_dict['做过专业匹配数量'] = len(done_matches)
+            elif case['专业标签'] == '':
+                tag_score_dict['绝对高频专业'] = tag_weights['绝对高频专业']
+                tag_score_dict['相对高频专业'] = 0
+                tag_score_dict['做过专业'] = 0
+                tag_score_dict['绝对高频专业匹配数量'] = 0
+                tag_score_dict['相对高频专业匹配数量'] = 0
+                tag_score_dict['做过专业匹配数量'] = 0  
+        except Exception as e:
+            st.error(f"计算专业标签匹配得分时发生错误: {e}")
+        try:
 
-            elif count == 2:
-                tag_score_dict[tag] = 5
-                tag_score_dict[f'{tag}匹配数量'] = 0
+            # 3 博士成功案例和低龄留学成功案例按比例匹配
+            proportion_tags = ['博士成功案例', '低龄留学成功案例']
+            count = 0
+            for tag in proportion_tags:
+                if case[tag] == '':
+                    count += 1
+            
+            for tag in proportion_tags:
+                if pd.notna(case[tag]) and pd.notna(consultant[tag]) and case[tag] != '' and count != 2:
+                    # 将case和consultant的标签都分割成集合
+                    case_tags = set(re.split(r'[、,，\s]+', case[tag]))
+                    consultant_tags = set(re.split(r'[、,，\s]+', consultant[tag]))
+                    
+                    # 计算匹配的标签数量
+                    matched_tags = case_tags.intersection(consultant_tags)
+                    
+                    # 如果有匹配的标签，按比例计算得分
+                    if matched_tags:
+                        tag_score_dict[tag] = (tag_weights[tag] / len(case_tags)) * len(matched_tags)
+                        tag_score_dict[f'{tag}匹配数量'] = len(matched_tags)
+                    else:
+                        tag_score_dict[f'{tag}匹配数量'] = 0
+
+                elif count == 2:
+                    tag_score_dict[tag] = 5
+                    tag_score_dict[f'{tag}匹配数量'] = 0
+        except Exception as e:
+            st.error(f"计算国家标签匹配得分时发生错误: {e}")
         # 4. 行业经验标签匹配（反向包含关系：consultant的标签要包含在case中）
         if pd.notna(case['行业经验']) and pd.notna(consultant['行业经验']) and case['行业经验'] != '':
             case_industry = set(re.split(r'[、,，\s]+', case['行业经验']))
