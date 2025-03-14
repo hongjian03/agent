@@ -248,18 +248,20 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             # 3 博士成功案例和低龄留学成功案例按比例匹配
             proportion_tags = ['博士成功案例', '低龄留学成功案例']
             count = 0
+
             for tag in proportion_tags:
-                if case[tag] == '':
+                if case.get(tag, '') == '':
                     count += 1
-            
+
             for tag in proportion_tags:
-                if pd.notna(case[tag]) and pd.notna(consultant[tag]) and case[tag] != '' and count != 2:
+                if pd.notna(case.get(tag)) and pd.notna(consultant.get(tag)) and case[tag] != '' and count != 2:
                     # 将case和consultant的标签都分割成集合
-                    case_tags = set(re.split(r'[、,，\s]+', case[tag]))
-                    consultant_tags = set(re.split(r'[、,，\s]+', consultant[tag]))
+                    case_tags = {t.strip() for t in re.split(r'[、,，\s]+', str(case[tag])) if t.strip()}
+                    consultant_tags = {t.strip() for t in re.split(r'[、,，\s]+', str(consultant[tag])) if t.strip()}
                     
                     # 计算匹配的标签数量
                     matched_tags = case_tags.intersection(consultant_tags)
+                    st.write(f"匹配的标签数量: {len(matched_tags)}")
                     
                     # 如果有匹配的标签，按比例计算得分
                     if matched_tags:
@@ -272,7 +274,7 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                     tag_score_dict[tag] = 5
                     tag_score_dict[f'{tag}匹配数量'] = 0
         except Exception as e:
-            st.error(f"计算国家标签匹配得分时发生错误: {e}")
+            st.error(f"计算特殊标签匹配得分时发生错误: {e}")
         # 4. 行业经验标签匹配（反向包含关系：consultant的标签要包含在case中）
         if pd.notna(case['行业经验']) and pd.notna(consultant['行业经验']) and case['行业经验'] != '':
             case_industry = set(re.split(r'[、,，\s]+', case['行业经验']))
