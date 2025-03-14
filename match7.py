@@ -395,55 +395,60 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
     def calculate_final_score(tag_score_dict, consultant, workload_score, personal_score, case):
         """计算最终得分（包含所有维度）"""
         def count_matched_tags(tag_score_dict, case):
-            """计算匹配上的标签数量"""
-            country_count_need = 0
-            special_count_need = 0
-            other_count_need = 0
-            
+            try:
+                """计算匹配上的标签数量"""
+                country_count_need = 0
+                special_count_need = 0
+                other_count_need = 0
+                
 
-            country_count_need = tag_score_dict['绝对高频国家匹配数量'] + tag_score_dict['相对高频国家匹配数量'] + tag_score_dict['做过国家匹配数量']
-            
-            # 特殊标签如果得分，获取案例中对应标签的数量
-            special_tags = ['博士成功案例匹配数量', '低龄留学成功案例匹配数量', '名校专家匹配数量']
-    
-            for tag in special_tags:
-                special_count_need += tag_score_dict[tag]
+                country_count_need = tag_score_dict['绝对高频国家匹配数量'] + tag_score_dict['相对高频国家匹配数量'] + tag_score_dict['做过国家匹配数量']
+                
+                # 特殊标签如果得分，获取案例中对应标签的数量
+                special_tags = ['博士成功案例匹配数量', '低龄留学成功案例匹配数量', '名校专家匹配数量']
+        
+                for tag in special_tags:
+                    special_count_need += tag_score_dict[tag]
 
-            # 其他标签只要得分就计数
-            other_tags = ['绝对高频专业', '相对高频专业', '做过专业','行业经验', '文案背景', 
-                          '业务单位所在地']
-            for tag in other_tags:
-                if tag_score_dict[tag] > 0:
-                    other_count_need += 1
-            
+                # 其他标签只要得分就计数
+                other_tags = ['绝对高频专业', '相对高频专业', '做过专业','行业经验', '文案背景', 
+                            '业务单位所在地']
+                for tag in other_tags:
+                    if tag_score_dict[tag] > 0:
+                        other_count_need += 1
+            except Exception as e:
+                st.error(f"计算匹配上的标签数量时发生错误: {e}")
             return country_count_need, special_count_need, other_count_need
 
         def count_total_consultant_tags(consultant):
             """计算顾问的总标签数"""
-            country_count_total = 0
-            special_count_total = 0
-            other_count_total = 0
-            
-            # 计算国家标签数
-            absolute_high_freq = set(re.split(r'[、,，\s]+', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
-            relative_high_freq = set(re.split(r'[、,，\s]+', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
-            done_countries = set(re.split(r'[、,，\s]+', consultant['做过国家'])) if pd.notna(consultant['做过国家']) else set()
-            country_count_total += len(absolute_high_freq) + len(relative_high_freq) + len(done_countries)
-            
-            # 计算特殊标签数
-            special_tags = ['博士成功案例', '低龄留学成功案例','名校专家']
-    
-            for tag in special_tags:
-                if pd.notna(consultant[tag]) and consultant[tag] != '':
-                    tag_items = set(re.split(r'[、,，\s]+', consultant[tag]))
-                    special_count_total += len(tag_items)
-            
-            # 计算其他标签数
-            other_tags = ['绝对高频专业', '相对高频专业','做过专业','行业经验', '文案背景', 
-                          '业务单位所在地']
-            for tag in other_tags:
-                if pd.notna(consultant[tag]) and consultant[tag] != '':
-                    other_count_total += 1
+            try:
+                country_count_total = 0
+                special_count_total = 0
+                other_count_total = 0
+                
+                # 计算国家标签数
+                absolute_high_freq = set(re.split(r'[、,，\s]+', consultant['绝对高频国家'])) if pd.notna(consultant['绝对高频国家']) else set()
+                relative_high_freq = set(re.split(r'[、,，\s]+', consultant['相对高频国家'])) if pd.notna(consultant['相对高频国家']) else set()
+                done_countries = set(re.split(r'[、,，\s]+', consultant['做过国家'])) if pd.notna(consultant['做过国家']) else set()
+                country_count_total += len(absolute_high_freq) + len(relative_high_freq) + len(done_countries)
+                
+                # 计算特殊标签数
+                special_tags = ['博士成功案例', '低龄留学成功案例','名校专家']
+        
+                for tag in special_tags:
+                    if pd.notna(consultant[tag]) and consultant[tag] != '':
+                        tag_items = set(re.split(r'[、,，\s]+', consultant[tag]))
+                        special_count_total += len(tag_items)
+                
+                # 计算其他标签数
+                other_tags = ['绝对高频专业', '相对高频专业','做过专业','行业经验', '文案背景', 
+                            '业务单位所在地']
+                for tag in other_tags:
+                    if pd.notna(consultant[tag]) and consultant[tag] != '':
+                        other_count_total += 1
+            except Exception as e:
+                st.error(f"计算顾问的总标签数时发生错误: {e}")
                 
             return country_count_total, special_count_total, other_count_total
         
