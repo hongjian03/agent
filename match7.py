@@ -540,13 +540,24 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             # 计算每个顾问对当前案例的得分
             for cidx, consultant in consultants.iterrows():
                 try:
+
                     direction = True
                     # 获取标签匹配得分和得分字典
-                    tag_score_dict,direction = calculate_tag_matching_score(case, consultant,direction,compensation_dict)
+                    try:
+                        tag_score_dict,direction = calculate_tag_matching_score(case, consultant,direction,compensation_dict)
+                    except Exception as e:
+                        st.error(f"计算标签匹配得分时发生错误: {e}")
+
+                    try:
+                        workload_score = calculate_workload_score(case, consultant,direction)
+                    except Exception as e:
+                        st.error(f"计算工作量得分时发生错误: {e}")
                     
-                    workload_score = calculate_workload_score(case, consultant,direction)
+                    try:
+                        personal_score = calculate_personal_score(case, consultant,direction)
+                    except Exception as e:
+                        st.error(f"计算个人意愿得分时发生错误: {e}")
                     
-                    personal_score = calculate_personal_score(case, consultant,direction)
                     try:
                         # 计算最终得分
                         final_result = calculate_final_score(
