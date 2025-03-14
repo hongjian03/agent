@@ -1021,7 +1021,7 @@ def main():
                                             major_tags_score = 0
                                             for tag in major_tags:
                                                 major_tags_score += tag_score_dict.get(tag, 0)
-
+                                            
                                             other_tags = ['行业经验','文案背景','业务单位所在地']
                                             other_tags_score = 0
                                             for tag in other_tags:
