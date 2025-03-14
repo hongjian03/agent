@@ -316,7 +316,11 @@ def add_custom_css():
 def init_db():
     """初始化数据库"""
     try:
-        conn = sqlite3.connect('data.db')
+        # 使用 Streamlit 持久化目录
+        db_path = './.streamlit/data.db'
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         
         # 创建交互记录表
@@ -407,7 +411,6 @@ def main():
      # 添加页面标题
     st.markdown("<h1 class='page-title'>留学文案匹配平台</h1>", unsafe_allow_html=True)
     
-    
     # 初始化 session_state 变量
     if 'tagged_data' not in st.session_state:
         st.session_state.tagged_data = None
@@ -423,9 +426,8 @@ def main():
     langsmith_api_key = st.secrets["LANGCHAIN_API_KEY"]
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
     os.environ["LANGCHAIN_API_KEY"] = langsmith_api_key
-    os.environ["LANGCHAIN_PROJECT"] = "agent_case_match"
+    os.environ["LANGCHAIN_PROJECT"] = "agent_case_match2"
 
-    
     # 创建四个标签页
     system_tab1, system_tab2, system_tab3, system_tab4 = st.tabs([
         "标签匹配系统", 
@@ -719,7 +721,7 @@ def main():
                 st.write("更新后的输出结构：", st.session_state.prompt_templates.get_template('tag_recommendation_structure'))
 
     with system_tab3:
-        from match6 import (
+        from match7 import (
             label_merge,
             Consultant_matching
         )
