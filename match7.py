@@ -139,68 +139,70 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
 
     def calculate_tag_matching_score(case, consultant, direction, compensation_dict):
         """计算标签匹配得分"""
-        tag_score_dict = {}
-         # 在计算得分时使用补偿数据
-        if compensation_dict:
-            top_school_count = compensation_dict.get(consultant['文案顾问'], {}).get('名校专家', 0)
-            phd_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('博士成功案例', 0)
-            young_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('低龄留学成功案例', 0)
-        # 1. 国家标签匹配
-        if '国家标签' in case and pd.notna(case['国家标签']):
-            # 处理案例国家
-            raw_case_countries = case['国家标签']
-            split_case_countries = re.split(r'[、,，\s]+', raw_case_countries)
-            case_countries = {country.strip() for country in split_case_countries}
-            
-            # 计算加权后的总国家数
-            weighted_total = sum(2 if country == '加拿大' else 1 for country in case_countries)
-            
-            if "美国" in case_countries and consultant['文案方向'] != '美国':
-                direction = False
-                return tag_score_dict, direction
-            
-            # 处理顾问国家
-            raw_absolute = consultant['绝对高频国家'] if pd.notna(consultant['绝对高频国家']) else ''
-            raw_relative = consultant['相对高频国家'] if pd.notna(consultant['相对高频国家']) else ''
-            raw_done = consultant['做过国家'] if pd.notna(consultant['做过国家']) else ''
-            
-            absolute_high_freq = {country.strip() for country in re.split(r'[、,，\s]+', raw_absolute)} if raw_absolute else set()
-            relative_high_freq = {country.strip() for country in re.split(r'[、,，\s]+', raw_relative)} if raw_relative else set()
-            done_countries = {country.strip() for country in re.split(r'[、,，\s]+', raw_done)} if raw_done else set()
-            
-            # 计算各类型匹配的国家
-            absolute_matches = case_countries.intersection(absolute_high_freq)
-            relative_matches = case_countries.intersection(relative_high_freq)
-            done_matches = case_countries.intersection(done_countries)
-            
-            # 按比例计算分数，考虑加拿大的权重
-            if absolute_matches:
-                weighted_matches = sum(2 if country == '加拿大' else 1 for country in absolute_matches)
-                tag_score_dict['绝对高频国家'] = (tag_weights['绝对高频国家'] / weighted_total) * weighted_matches
-                tag_score_dict['绝对高频国家匹配数量'] = len(absolute_matches)
-            
-            # 确保相对高频匹配不与绝对高频匹配重复计算
-            relative_matches = relative_matches - absolute_matches
-            if relative_matches:
-                weighted_matches = sum(2 if country == '加拿大' else 1 for country in relative_matches)
-                tag_score_dict['相对高频国家'] = (tag_weights['相对高频国家'] / weighted_total) * weighted_matches
-                tag_score_dict['相对高频国家匹配数量'] = len(relative_matches)
-            
-            # 确保做过国家匹配不与前两种匹配重复计算
-            done_matches = done_matches - absolute_matches - relative_matches
-            if done_matches:
-                weighted_matches = sum(2 if country == '加拿大' else 1 for country in done_matches)
-                tag_score_dict['做过国家'] = (tag_weights['做过国家'] / weighted_total) * weighted_matches
-                tag_score_dict['做过国家匹配数量'] = len(done_matches)
-            
-        elif case['国家标签'] == '':
-            tag_score_dict['绝对高频国家'] = tag_weights['绝对高频国家']
-            tag_score_dict['相对高频国家'] = 0
-            tag_score_dict['做过国家'] = 0
-            tag_score_dict['绝对高频国家匹配数量'] = 0
-            tag_score_dict['相对高频国家匹配数量'] = 0
-            tag_score_dict['做过国家匹配数量'] = 0
-        
+        try:
+            tag_score_dict = {}
+             # 在计算得分时使用补偿数据
+            if compensation_dict:
+                top_school_count = compensation_dict.get(consultant['文案顾问'], {}).get('名校专家', 0)
+                phd_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('博士成功案例', 0)
+                young_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('低龄留学成功案例', 0)
+            # 1. 国家标签匹配
+            if '国家标签' in case and pd.notna(case['国家标签']):
+                # 处理案例国家
+                raw_case_countries = case['国家标签']
+                split_case_countries = re.split(r'[、,，\s]+', raw_case_countries)
+                case_countries = {country.strip() for country in split_case_countries}
+                
+                # 计算加权后的总国家数
+                weighted_total = sum(2 if country == '加拿大' else 1 for country in case_countries)
+                
+                if "美国" in case_countries and consultant['文案方向'] != '美国':
+                    direction = False
+                    return tag_score_dict, direction
+                
+                # 处理顾问国家
+                raw_absolute = consultant['绝对高频国家'] if pd.notna(consultant['绝对高频国家']) else ''
+                raw_relative = consultant['相对高频国家'] if pd.notna(consultant['相对高频国家']) else ''
+                raw_done = consultant['做过国家'] if pd.notna(consultant['做过国家']) else ''
+                
+                absolute_high_freq = {country.strip() for country in re.split(r'[、,，\s]+', raw_absolute)} if raw_absolute else set()
+                relative_high_freq = {country.strip() for country in re.split(r'[、,，\s]+', raw_relative)} if raw_relative else set()
+                done_countries = {country.strip() for country in re.split(r'[、,，\s]+', raw_done)} if raw_done else set()
+                
+                # 计算各类型匹配的国家
+                absolute_matches = case_countries.intersection(absolute_high_freq)
+                relative_matches = case_countries.intersection(relative_high_freq)
+                done_matches = case_countries.intersection(done_countries)
+                
+                # 按比例计算分数，考虑加拿大的权重
+                if absolute_matches:
+                    weighted_matches = sum(2 if country == '加拿大' else 1 for country in absolute_matches)
+                    tag_score_dict['绝对高频国家'] = (tag_weights['绝对高频国家'] / weighted_total) * weighted_matches
+                    tag_score_dict['绝对高频国家匹配数量'] = len(absolute_matches)
+                
+                # 确保相对高频匹配不与绝对高频匹配重复计算
+                relative_matches = relative_matches - absolute_matches
+                if relative_matches:
+                    weighted_matches = sum(2 if country == '加拿大' else 1 for country in relative_matches)
+                    tag_score_dict['相对高频国家'] = (tag_weights['相对高频国家'] / weighted_total) * weighted_matches
+                    tag_score_dict['相对高频国家匹配数量'] = len(relative_matches)
+                
+                # 确保做过国家匹配不与前两种匹配重复计算
+                done_matches = done_matches - absolute_matches - relative_matches
+                if done_matches:
+                    weighted_matches = sum(2 if country == '加拿大' else 1 for country in done_matches)
+                    tag_score_dict['做过国家'] = (tag_weights['做过国家'] / weighted_total) * weighted_matches
+                    tag_score_dict['做过国家匹配数量'] = len(done_matches)
+                
+            elif case['国家标签'] == '':
+                tag_score_dict['绝对高频国家'] = tag_weights['绝对高频国家']
+                tag_score_dict['相对高频国家'] = 0
+                tag_score_dict['做过国家'] = 0
+                tag_score_dict['绝对高频国家匹配数量'] = 0
+                tag_score_dict['相对高频国家匹配数量'] = 0
+                tag_score_dict['做过国家匹配数量'] = 0
+        except Exception as e:
+            st.error(f"计算国家标签匹配得分时发生错误: {e}")
         # 2. 专业标签匹配
         if '专业标签' in case and pd.notna(case['专业标签']):
             case_majors = set(re.split(r'[、,，\s]+', case['专业标签']))
