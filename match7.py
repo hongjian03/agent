@@ -285,7 +285,6 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             tag_score_dict['行业经验'] = tag_weights['行业经验']
         # 5. 直接匹配标签（不需要分割）
         direct_match_tags = [
-            '名校专家',
             '文案背景',
             '业务单位所在地'
         ]
@@ -296,7 +295,13 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             elif pd.notna(case[tag]) and pd.notna(consultant[tag]):  # 如果案例和顾问标签都不为空
                 if case[tag] == consultant[tag]:  # 如果标签匹配
                     tag_score_dict[tag] = tag_weights[tag]
-
+        top_school_tag = '名校专家'
+        if case[top_school_tag] == '':
+            tag_score_dict[top_school_tag] = tag_weights[top_school_tag]
+        elif case[top_school_tag] != '' and consultant[top_school_tag] != '':
+            if case[top_school_tag] == consultant[top_school_tag]:
+                tag_score_dict[top_school_tag] = tag_weights[top_school_tag]
+                tag_score_dict[f'{top_school_tag}匹配数量'] = 1
         # 6. 补偿机制
         compensate_tags = ['名校专家','博士成功案例','低龄留学成功案例']
         count = 0
@@ -401,14 +406,14 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 special_count_need = 0
                 other_count_need = 0
                 
-
-                country_count_need = tag_score_dict['绝对高频国家匹配数量'] + tag_score_dict['相对高频国家匹配数量'] + tag_score_dict['做过国家匹配数量']
+                country_tags = ['绝对高频国家匹配数量', '相对高频国家匹配数量','做过国家匹配数量']
+                for tag in country_tags:
+                    country_count_need += tag_score_dict.get(tag,0)
                 
                 # 特殊标签如果得分，获取案例中对应标签的数量
                 special_tags = ['博士成功案例匹配数量', '低龄留学成功案例匹配数量', '名校专家匹配数量']
-        
                 for tag in special_tags:
-                    special_count_need += tag_score_dict[tag]
+                    special_count_need += tag_score_dict.get(tag,0)
 
                 # 其他标签只要得分就计数
                 other_tags = ['绝对高频专业', '相对高频专业', '做过专业','行业经验', '文案背景', 
