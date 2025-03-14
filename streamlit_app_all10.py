@@ -316,7 +316,11 @@ def add_custom_css():
 def init_db():
     """初始化数据库"""
     try:
-        conn = sqlite3.connect('data.db')
+        # 使用 Streamlit 持久化目录
+        db_path = './.streamlit/data.db'
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         
         # 创建交互记录表
@@ -423,7 +427,7 @@ def main():
     langsmith_api_key = st.secrets["LANGCHAIN_API_KEY"]
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
     os.environ["LANGCHAIN_API_KEY"] = langsmith_api_key
-    os.environ["LANGCHAIN_PROJECT"] = "agent_case_match"
+    os.environ["LANGCHAIN_PROJECT"] = "agent_case_match2"
 
     
     # 创建四个标签页
