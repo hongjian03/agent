@@ -416,14 +416,10 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                     special_count_need += tag_score_dict.get(tag,0)
 
                 # 其他标签只要得分就计数
-                other_tags = ['绝对高频专业', '相对高频专业', '做过专业','行业经验', '文案背景', 
-                            '业务单位所在地']
-                for tag in other_tags:
-                    if tag_score_dict[tag] > 0:
-                        other_count_need += 1
+
             except Exception as e:
                 st.error(f"计算匹配上的标签数量时发生错误: {e}")
-            return country_count_need, special_count_need, other_count_need
+            return country_count_need, special_count_need
 
         def count_total_consultant_tags(consultant):
             """计算顾问的总标签数"""
@@ -458,7 +454,7 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             return country_count_total, special_count_total, other_count_total
         
         # 计算需求标签数和顾问标签数
-        country_count_need, special_count_need, other_count_need = count_matched_tags(tag_score_dict, case)
+        country_count_need, special_count_need = count_matched_tags(tag_score_dict, case)
         country_count_total, special_count_total, other_count_total = count_total_consultant_tags(consultant)
         
         # 计算匹配率
@@ -506,7 +502,7 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             'score': final_tag_score + final_workload_score + final_personal_score,
             'country_count_need': country_count_need,
             'special_count_need': special_count_need,
-            'other_count_need': other_count_need,
+            
             'country_count_total': country_count_total,
             'special_count_total': special_count_total,
             'other_count_total': other_count_total,
