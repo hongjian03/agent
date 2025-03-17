@@ -855,14 +855,16 @@ def main():
                         merge_df = st.session_state.merged_df
                         # 确保补偿数据格式正确
                         compensation_data = st.session_state.compensation_data.to_dict('records')
-                        
-                        # 调用匹配函数
-                        matching_results, area = Consultant_matching(
-                            consultant_tags_file,
-                            merge_df,
-                            compensation_data
-                        )
-                        st.success("顾问匹配完成！")
+                        try:
+                            # 调用匹配函数
+                            matching_results, area = Consultant_matching(
+                                consultant_tags_file,
+                                merge_df,
+                                compensation_data
+                            )
+                            st.success("顾问匹配完成！")
+                        except Exception as e:
+                            st.error(f"顾问匹配出错: {str(e)}")
                         
                         # 保存匹配结果到数据库
                         save_interaction(
@@ -1099,7 +1101,7 @@ def main():
                         st.session_state.matching_results = matching_results
                         
                     except Exception as e:
-                        st.error(f"顾问匹配出错: {str(e)}")
+                        st.error(f"顾问匹配出错2: {str(e)}")
                 else:
                     st.warning("请先上传顾问标签汇总并完成标签处理")
 
