@@ -309,8 +309,8 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             compensate_tags = ['名校专家','博士成功案例','低龄留学成功案例']
             count = 0
             for tag in compensate_tags:
-            if case[tag] == '':
-                count += 1
+                if case[tag] == '':
+                    count += 1
             top_school_count_data = 0
             phd_case_count_data = 0
             young_case_count_data = 0
