@@ -143,9 +143,9 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             tag_score_dict = {}
              # 在计算得分时使用补偿数据
             if compensation_dict:
-                top_school_count = compensation_dict.get(consultant['文案顾问'], {}).get('名校专家', 0)
-                phd_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('博士成功案例', 0)
-                young_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('低龄留学成功案例', 0)
+                top_school_count = compensation_dict.get(consultant['文案顾问'], {}).get('名校专家使用次数', 0)
+                phd_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('博士成功案例使用次数', 0)
+                young_case_count = compensation_dict.get(consultant['文案顾问'], {}).get('低龄留学成功案例使用次数', 0)
             # 1. 国家标签匹配
             if '国家标签' in case and pd.notna(case['国家标签']):
                 # 处理案例国家
