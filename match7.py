@@ -334,20 +334,20 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 if count != 3:
                     if pd.notna(case[tag]) and pd.notna(consultant[tag]):
                         if tag == '名校专家':
-                            if tag_score_dict[tag] > 0:
-                                compensate_score = tag_score_dict[tag] - top_school_count*top_school_count_data
+                            if tag_score_dict.get(tag,0) > 0:
+                                compensate_score = tag_score_dict.get(tag,0) - top_school_count*top_school_count_data
                                 if compensate_score < 0:
                                     compensate_score = 0
                                 tag_score_dict[tag] = compensate_score
                         elif tag == '博士成功案例':
-                            if tag_score_dict[tag] > 0:
-                                compensate_score = tag_score_dict[tag] - phd_case_count*phd_case_count_data
+                            if tag_score_dict.get(tag,0) > 0:
+                                compensate_score = tag_score_dict.get(tag,0) - phd_case_count*phd_case_count_data
                                 if compensate_score < 0:
                                     compensate_score = 0
                                 tag_score_dict[tag] = compensate_score
                         elif tag == '低龄留学成功案例':
-                            if tag_score_dict[tag] > 0:
-                                compensate_score = tag_score_dict[tag] - young_case_count*young_case_count_data
+                            if tag_score_dict.get(tag,0) > 0:
+                                compensate_score = tag_score_dict.get(tag,0) - young_case_count*young_case_count_data
                                 if compensate_score < 0:
                                     compensate_score = 0
                                 tag_score_dict[tag] = compensate_score
