@@ -345,14 +345,15 @@ def init_db():
 def save_interaction(input_text, output_result, business_unit, interaction_type="tag_matching"):
     """保存交互记录到数据库"""
     try:
-        conn = sqlite3.connect('data.db')
+        db_path = './.streamlit/data.db'
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         
         # 准备数据
         data = (
             input_text,
             json.dumps(output_result, ensure_ascii=False),
-            interaction_type,  # 现在可以是 "tag_matching" 或 "consultant_matching"
+            interaction_type,
             datetime.utcnow().isoformat(),
             st.session_state.current_model,
             business_unit
@@ -374,7 +375,8 @@ def save_interaction(input_text, output_result, business_unit, interaction_type=
 def get_interactions(limit=100):
     """获取历史交互记录"""
     try:
-        conn = sqlite3.connect('data.db')
+        db_path = './.streamlit/data.db'
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         
         # 明确指定字段顺序
