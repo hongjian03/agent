@@ -306,6 +306,8 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 tag_score_dict[f'{top_school_tag}匹配数量'] = 1
         # 6. 补偿机制
         try:
+            st.write(case)
+            st.write(consultant)
             compensate_tags = ['名校专家','博士成功案例','低龄留学成功案例']
             count = 0
             for tag in compensate_tags:
