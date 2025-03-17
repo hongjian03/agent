@@ -650,7 +650,6 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                     'personal_score': s['personal_score'],
                     'country_count_need': s['country_count_need'],
                     'special_count_need': s['special_count_need'],
-                    'other_count_need': s['other_count_need'],
                     'country_count_total': s['country_count_total'],
                     'special_count_total': s['special_count_total'],
                     'other_count_total': s['other_count_total'],
