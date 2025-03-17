@@ -261,7 +261,6 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                     
                     # 计算匹配的标签数量
                     matched_tags = case_tags.intersection(consultant_tags)
-                    st.write(f"匹配的标签数量: {len(matched_tags)}")
                     
                     # 如果有匹配的标签，按比例计算得分
                     if matched_tags:
@@ -306,8 +305,6 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 tag_score_dict[f'{top_school_tag}匹配数量'] = 1
         # 6. 补偿机制
         try:
-            st.write(case)
-            st.write(consultant)
             compensate_tags = ['名校专家','博士成功案例','低龄留学成功案例']
             count = 0
             for tag in compensate_tags:
@@ -410,7 +407,7 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 """计算匹配上的标签数量"""
                 country_count_need = 0
                 special_count_need = 0
-                other_count_need = 0
+                
                 
                 country_tags = ['绝对高频国家匹配数量', '相对高频国家匹配数量','做过国家匹配数量']
                 for tag in country_tags:
@@ -508,7 +505,6 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
             'score': final_tag_score + final_workload_score + final_personal_score,
             'country_count_need': country_count_need,
             'special_count_need': special_count_need,
-            
             'country_count_total': country_count_total,
             'special_count_total': special_count_total,
             'other_count_total': other_count_total,
