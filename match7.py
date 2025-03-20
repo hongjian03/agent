@@ -157,9 +157,7 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 weighted_total = sum(3 if country == '美国' else (2 if country == '加拿大' else 1) 
                                    for country in case_countries)
                 
-                if "美国" in case_countries and (consultant['文案方向'] != '美国' or consultant['文案方向'] != '混合'):
-                    direction = False
-                    return tag_score_dict, direction
+
                 
                 # 处理顾问国家
                 raw_absolute = consultant['绝对高频国家'] if pd.notna(consultant['绝对高频国家']) else ''
