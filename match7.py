@@ -153,10 +153,11 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 split_case_countries = re.split(r'[、,，\s]+', raw_case_countries)
                 case_countries = {country.strip() for country in split_case_countries}
                 
-                # 计算加权后的总国家数
-                weighted_total = sum(2 if country == '加拿大' else 1 for country in case_countries)
+                # 计算加权后的总国家数，美国权重为3，加拿大权重为2
+                weighted_total = sum(3 if country == '美国' else (2 if country == '加拿大' else 1) 
+                                   for country in case_countries)
                 
-                if "美国" in case_countries and consultant['文案方向'] != '美国':
+                if "美国" in case_countries and (consultant['文案方向'] != '美国' or consultant['文案方向'] != '混合'):
                     direction = False
                     return tag_score_dict, direction
                 
@@ -174,23 +175,26 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                 relative_matches = case_countries.intersection(relative_high_freq)
                 done_matches = case_countries.intersection(done_countries)
                 
-                # 按比例计算分数，考虑加拿大的权重
+                # 按比例计算分数，考虑美国和加拿大的权重
                 if absolute_matches:
-                    weighted_matches = sum(2 if country == '加拿大' else 1 for country in absolute_matches)
+                    weighted_matches = sum(3 if country == '美国' else (2 if country == '加拿大' else 1) 
+                                        for country in absolute_matches)
                     tag_score_dict['绝对高频国家'] = (tag_weights['绝对高频国家'] / weighted_total) * weighted_matches
                     tag_score_dict['绝对高频国家匹配数量'] = len(absolute_matches)
                 
                 # 确保相对高频匹配不与绝对高频匹配重复计算
                 relative_matches = relative_matches - absolute_matches
                 if relative_matches:
-                    weighted_matches = sum(2 if country == '加拿大' else 1 for country in relative_matches)
+                    weighted_matches = sum(3 if country == '美国' else (2 if country == '加拿大' else 1) 
+                                        for country in relative_matches)
                     tag_score_dict['相对高频国家'] = (tag_weights['相对高频国家'] / weighted_total) * weighted_matches
                     tag_score_dict['相对高频国家匹配数量'] = len(relative_matches)
                 
                 # 确保做过国家匹配不与前两种匹配重复计算
                 done_matches = done_matches - absolute_matches - relative_matches
                 if done_matches:
-                    weighted_matches = sum(2 if country == '加拿大' else 1 for country in done_matches)
+                    weighted_matches = sum(3 if country == '美国' else (2 if country == '加拿大' else 1) 
+                                        for country in done_matches)
                     tag_score_dict['做过国家'] = (tag_weights['做过国家'] / weighted_total) * weighted_matches
                     tag_score_dict['做过国家匹配数量'] = len(done_matches)
                 
@@ -567,7 +571,7 @@ def Consultant_matching(consultant_tags_file, merge_df, compensation_data=None):
                             consultant,
                             workload_score,
                             personal_score,
-                                case
+                            case
                             )
                     except Exception as e:
                         st.error(f"计算最终得分时发生错误: {e}")
