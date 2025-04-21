@@ -1192,7 +1192,7 @@ class ExcelQueryTool(BaseTool):
             print(f"加载Excel文件出错: {str(e)}")
             self._df = None
     
-    def _run(self, country_tag=None, study_level_tag=None, major_tag=None, *, config=None):
+    def _run(self, country_tag=None, study_level_tag=None, major_tag=None, *, config=None, **kwargs):
         """
         根据标签查询指南内容
         
@@ -1201,16 +1201,25 @@ class ExcelQueryTool(BaseTool):
             study_level_tag: 留学类别标签
             major_tag: 专业标签
             config: 工具配置（CrewAI框架要求的参数）
+            **kwargs: 其他参数
             
         Returns:
             符合条件的指南内容列表，按输出内容类型分类
         """
         try:
+            # 从kwargs中提取参数，如果提供的话
+            country_tag = kwargs.get('country_tag', country_tag)
+            study_level_tag = kwargs.get('study_level_tag', study_level_tag)
+            major_tag = kwargs.get('major_tag', major_tag)
+            
             if self._df is None:
                 return "Excel文件未成功加载，无法查询"
             
             if not country_tag:
                 return "请提供国家标签进行查询"
+            
+            # 打印接收到的参数，用于调试
+            print(f"查询参数：country_tag={country_tag}, study_level_tag={study_level_tag}, major_tag={major_tag}")
             
             # 创建结果列表
             matched_rows = []
