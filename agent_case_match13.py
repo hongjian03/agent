@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 import logging
 import asyncio
 import re
-from typing import Any
+from typing import Any, Optional
 logging.getLogger('streamlit.runtime.scriptrunner.magic_funcs').setLevel(logging.ERROR)
 # 或者完全禁用所有警告
 logging.getLogger('streamlit').setLevel(logging.ERROR)
@@ -1171,8 +1171,10 @@ def main():
 class ExcelQueryTool(BaseTool):
     name: str = "excel_query_tool"
     description: str = "查询个性服务指南Excel表格，根据国家标签、留学类别标签和专业标签返回对应的指南内容"
+    file_path: str
+    df: Optional[pd.DataFrame] = None
     
-    def __init__(self, file_path):
+    def __init__(self, file_path: str):
         self.file_path = file_path
         # 预加载Excel文件以提高性能
         try:
