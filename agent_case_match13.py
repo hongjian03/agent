@@ -1169,8 +1169,8 @@ def main():
 
 # 添加Excel查询工具
 class ExcelQueryTool(BaseTool):
-    name = "excel_query_tool"
-    description = "查询个性服务指南Excel表格，根据国家标签、留学类别标签和专业标签返回对应的指南内容"
+    name: str = "excel_query_tool"
+    description: str = "查询个性服务指南Excel表格，根据国家标签、留学类别标签和专业标签返回对应的指南内容"
     
     def __init__(self, file_path):
         self.file_path = file_path
