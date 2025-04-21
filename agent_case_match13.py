@@ -1252,14 +1252,19 @@ class ExcelQueryTool(BaseTool):
             matched_rows = []
             
             # 遍历DataFrame的每一行
-            for _, row in self._df.iterrows():
+            for idx, row in self._df.iterrows():
                 match_country = self._is_match(row['国家标签'], country_tag)
                 match_study_level = self._is_match(row['留学类别标签'], study_level_tag)
                 match_major = self._is_match(row['专业标签'], major_tag)
                 
+                # 记录每行的匹配结果
+                logger.debug(f"行 {idx}: 国家匹配={match_country}, 留学类别匹配={match_study_level}, 专业匹配={match_major}")
+                logger.debug(f"行 {idx} 数据: 国家={row.get('国家标签', 'N/A')}, 留学类别={row.get('留学类别标签', 'N/A')}, 专业={row.get('专业标签', 'N/A')}")
+                
                 # 如果三个标签都匹配，则添加到结果中
                 if match_country and match_study_level and match_major:
                     matched_rows.append(row)
+                    logger.info(f"找到匹配行: {idx}, 内容类型: {row.get('输出内容类型', 'N/A')}")
             
             # 记录匹配结果
             logger.info(f"匹配到 {len(matched_rows)} 条记录")
@@ -1272,9 +1277,24 @@ class ExcelQueryTool(BaseTool):
             
             # 按输出内容类型分类结果
             content_by_type = {}
-            for row in matched_rows:
+            for idx, row in enumerate(matched_rows):
                 content_type = row['输出内容类型']
                 content = row['输出内容']
+                
+                # 记录内容值，帮助调试
+                is_na_content = pd.isna(content)
+                content_str = str(content) if not is_na_content else "NaN"
+                logger.debug(f"处理内容: idx={idx}, 类型={content_type}, 内容={content_str[:50]}{'...' if len(content_str) > 50 else ''}, 是否为NaN={is_na_content}")
+                
+                # 跳过NaN值或空内容
+                if pd.isna(content) or content == "" or content == "nan":
+                    logger.info(f"跳过空内容: idx={idx}, 类型={content_type}")
+                    continue
+                
+                # 确保content_type不是NaN
+                if pd.isna(content_type):
+                    logger.info(f"内容类型为NaN，使用默认类型: idx={idx}")
+                    content_type = "未分类内容"
                 
                 if content_type not in content_by_type:
                     content_by_type[content_type] = []
@@ -1287,12 +1307,26 @@ class ExcelQueryTool(BaseTool):
             # 格式化输出
             result = []
             for content_type, contents in content_by_type.items():
+                # 跳过空列表
+                if not contents:
+                    continue
+                
                 result.append(f"**{content_type}**：")
                 for i, content in enumerate(contents, 1):
-                    result.append(f"{i}. {content}")
-                result.append("")  # 添加空行分隔不同类型
+                    # 再次检查确保不输出NaN值
+                    if not pd.isna(content) and content != "nan" and content.strip() != "":
+                        result.append(f"{i}. {content}")
+                
+                # 只有在添加了内容后才添加空行
+                if len(result) > 0 and result[-1].startswith(f"{len(contents)}. "):
+                    result.append("")  # 添加空行分隔不同类型
             
             response = "\n".join(result)
+            
+            # 如果没有有效内容，提供明确的反馈
+            if not response.strip():
+                response = "找到匹配的记录，但所有内容均为空值。请检查Excel文件中的数据。"
+            
             # 记录输出结果摘要
             logger.info(f"输出结果摘要: {response[:100]}...")
             logger.info(f"===== 工具调用结束 =====")
@@ -1319,15 +1353,25 @@ class ExcelQueryTool(BaseTool):
         if pd.isna(table_value) or table_value == "":
             return True
         
-        # 如果输入值为空，但表格值不为空，不匹配
-        if not input_value:
+        # 如果输入值为空或NaN，但表格值不为空，不匹配
+        if input_value is None or (isinstance(input_value, str) and (input_value.strip() == "" or input_value.lower() == "nan")):
             return False
         
-        # 将表格值按逗号分割成列表
-        table_values = [v.strip() for v in str(table_value).split(',')]
+        # 确保输入值是字符串
+        input_value_str = str(input_value).strip()
         
-        # 检查输入值是否在表格值列表中
-        return input_value in table_values
+        # 将表格值按逗号分割成列表，并确保每个值都被清理
+        table_values = [v.strip() for v in str(table_value).split(',') if v.strip() and v.strip().lower() != "nan"]
+        
+        # 如果表格值列表为空（可能全是NaN或空字符串），默认匹配
+        if not table_values:
+            return True
+        
+        # 记录匹配过程
+        logger.debug(f"匹配检查: 表格值={table_values}, 输入值={input_value_str}")
+        
+        # 检查输入值是否在表格值列表中，忽略大小写
+        return any(v.lower() == input_value_str.lower() for v in table_values)
 
 # 添加个性服务指南Agent
 def service_guide_agent(excel_path, llm=None):
