@@ -1192,7 +1192,7 @@ class ExcelQueryTool(BaseTool):
             print(f"加载Excel文件出错: {str(e)}")
             self._df = None
     
-    def _run(self, country_tag=None, study_level_tag=None, major_tag=None):
+    def _run(self, country_tag=None, study_level_tag=None, major_tag=None, *, config=None):
         """
         根据标签查询指南内容
         
@@ -1200,6 +1200,7 @@ class ExcelQueryTool(BaseTool):
             country_tag: 国家标签
             study_level_tag: 留学类别标签
             major_tag: 专业标签
+            config: 工具配置（CrewAI框架要求的参数）
             
         Returns:
             符合条件的指南内容列表，按输出内容类型分类
