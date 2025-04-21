@@ -1171,22 +1171,26 @@ def main():
 class ExcelQueryTool(BaseTool):
     name: str = "excel_query_tool"
     description: str = "查询个性服务指南Excel表格，根据国家标签、留学类别标签和专业标签返回对应的指南内容"
-    file_path: str
-    df: Optional[pd.DataFrame] = None
+    file_path: str = ""
     
     # 添加model_config允许任意类型
     model_config = {"arbitrary_types_allowed": True}
     
     def __init__(self, file_path: str):
+        # 首先调用父类初始化方法，确保Pydantic字段被正确初始化
+        super().__init__()
+        
+        # 然后设置我们自己的实例变量，但不要直接设置已声明的Pydantic字段
+        # 而是通过Pydantic的setattr方法设置
         self.file_path = file_path
-        # 预加载Excel文件以提高性能
+        
+        # 存储DataFrame作为实例变量，但不作为Pydantic字段
         try:
-            self.df = pd.read_excel(file_path)
+            self._df = pd.read_excel(file_path)
             print(f"成功加载Excel文件: {file_path}")
         except Exception as e:
             print(f"加载Excel文件出错: {str(e)}")
-            self.df = None
-        super().__init__()
+            self._df = None
     
     def _run(self, country_tag=None, study_level_tag=None, major_tag=None):
         """
@@ -1201,7 +1205,7 @@ class ExcelQueryTool(BaseTool):
             符合条件的指南内容列表，按输出内容类型分类
         """
         try:
-            if self.df is None:
+            if self._df is None:
                 return "Excel文件未成功加载，无法查询"
             
             if not country_tag:
@@ -1211,7 +1215,7 @@ class ExcelQueryTool(BaseTool):
             matched_rows = []
             
             # 遍历DataFrame的每一行
-            for _, row in self.df.iterrows():
+            for _, row in self._df.iterrows():
                 match_country = self._is_match(row['国家标签'], country_tag)
                 match_study_level = self._is_match(row['留学类别标签'], study_level_tag)
                 match_major = self._is_match(row['专业标签'], major_tag)
