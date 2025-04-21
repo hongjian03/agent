@@ -1174,6 +1174,9 @@ class ExcelQueryTool(BaseTool):
     file_path: str
     df: Optional[pd.DataFrame] = None
     
+    # 添加model_config允许任意类型
+    model_config = {"arbitrary_types_allowed": True}
+    
     def __init__(self, file_path: str):
         self.file_path = file_path
         # 预加载Excel文件以提高性能
