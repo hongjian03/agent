@@ -18,8 +18,19 @@ import time
 import streamlit as st
 import pandas as pd
 
-
-
+# 设置日志配置
+# 创建logs目录如果不存在
+os.makedirs('logs', exist_ok=True)
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/tool_calls.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger('agent_tools')
 
 from pathlib import Path
 from crewai_tools import SerperDevTool
@@ -1187,9 +1198,9 @@ class ExcelQueryTool(BaseTool):
         # 存储DataFrame作为实例变量，但不作为Pydantic字段
         try:
             self._df = pd.read_excel(file_path)
-            print(f"成功加载Excel文件: {file_path}")
+            logger.info(f"成功加载Excel文件: {file_path}")
         except Exception as e:
-            print(f"加载Excel文件出错: {str(e)}")
+            logger.error(f"加载Excel文件出错: {str(e)}")
             self._df = None
     
     def _run(self, country_tag=None, study_level_tag=None, major_tag=None, *, config=None, **kwargs):
@@ -1207,15 +1218,31 @@ class ExcelQueryTool(BaseTool):
             符合条件的指南内容列表，按输出内容类型分类
         """
         try:
+            # 记录工具调用开始
+            logger.info(f"===== 工具调用开始 =====")
+            logger.info(f"工具名称: {self.name}")
+            
             # 从kwargs中提取参数，如果提供的话
             country_tag = kwargs.get('country_tag', country_tag)
             study_level_tag = kwargs.get('study_level_tag', study_level_tag)
             major_tag = kwargs.get('major_tag', major_tag)
             
+            # 记录传入的参数
+            logger.info(f"传入参数: country_tag={country_tag}, study_level_tag={study_level_tag}, major_tag={major_tag}")
+            logger.info(f"其他关键字参数: {kwargs}")
+            
+            # 记录config参数内容
+            if config:
+                logger.info(f"Config参数内容: {json.dumps(config, ensure_ascii=False, default=str)}")
+            else:
+                logger.info("Config参数为空")
+                
             if self._df is None:
+                logger.error("Excel文件未成功加载，无法查询")
                 return "Excel文件未成功加载，无法查询"
             
             if not country_tag:
+                logger.warning("未提供国家标签进行查询")
                 return "请提供国家标签进行查询"
             
             # 打印接收到的参数，用于调试
@@ -1234,9 +1261,14 @@ class ExcelQueryTool(BaseTool):
                 if match_country and match_study_level and match_major:
                     matched_rows.append(row)
             
+            # 记录匹配结果
+            logger.info(f"匹配到 {len(matched_rows)} 条记录")
+            
             # 如果没有匹配的行，返回提示信息
             if not matched_rows:
-                return f"未找到匹配的指南内容：国家={country_tag}, 留学类别={study_level_tag}, 专业={major_tag}"
+                no_match_msg = f"未找到匹配的指南内容：国家={country_tag}, 留学类别={study_level_tag}, 专业={major_tag}"
+                logger.warning(no_match_msg)
+                return no_match_msg
             
             # 按输出内容类型分类结果
             content_by_type = {}
@@ -1249,6 +1281,9 @@ class ExcelQueryTool(BaseTool):
                 
                 content_by_type[content_type].append(content)
             
+            # 记录分类结果
+            logger.info(f"内容分类: {list(content_by_type.keys())}")
+            
             # 格式化输出
             result = []
             for content_type, contents in content_by_type.items():
@@ -1257,10 +1292,17 @@ class ExcelQueryTool(BaseTool):
                     result.append(f"{i}. {content}")
                 result.append("")  # 添加空行分隔不同类型
             
-            return "\n".join(result)
+            response = "\n".join(result)
+            # 记录输出结果摘要
+            logger.info(f"输出结果摘要: {response[:100]}...")
+            logger.info(f"===== 工具调用结束 =====")
+            
+            return response
             
         except Exception as e:
-            return f"查询过程中出错: {str(e)}"
+            error_msg = f"查询过程中出错: {str(e)}"
+            logger.error(f"{error_msg}\n{traceback.format_exc()}")
+            return error_msg
     
     def _is_match(self, table_value, input_value):
         """
