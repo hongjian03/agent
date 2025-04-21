@@ -1,5 +1,5 @@
 from crewai import Agent, Task, Crew
-from crewai_tools import SerperDevTool, CSVSearchTool
+from crewai_tools import SerperDevTool, CSVSearchTool, BaseTool
 #from JinaReaderTool import JinaReaderTool
 from langchain_openai import ChatOpenAI
 import os
@@ -16,6 +16,7 @@ logging.getLogger('streamlit').setLevel(logging.ERROR)
 import time
 #from embedchain.models.data_type import DataType
 import streamlit as st
+import pandas as pd
 
 
 
@@ -225,8 +226,7 @@ class PromptTemplates:
                 "文案顾问业务单位"
             ]
             """,
-
-
+            
             'tag_specialist': """      
             我是 CaseMatch, 一个专门为留学机构设计的留学顾问匹配助手。我的主要工作是通过分析学生的基本申请需求,为他们匹配合适的留学申请顾问。
             我的工作原理建立在对留学申请关键要素的理解之上。通过分析学生选择的目标国家、专业方向、申请院校层次(普通/名校/顶尖名校)、申请项目类型(本科/硕士/博士/K12)等信息,我能够准确判断该案件对留学顾问的具体要求,包括顾问需要具备的行业经验水平、教育背景以及地域特征等要素。
@@ -488,8 +488,64 @@ class PromptTemplates:
             如果缺少任何一个级别，必须修正为完整的["熟练", "资深", "专家"]
 
 
-            """
+            """,
         
+            'service_guide_backstory': """
+            你是一位专业的留学咨询机构高级服务培训专家。
+            你的工作是帮助咨询顾问根据申请人的基本信息，分析其个性特点并制定相应的沟通策略，同时识别可能的申请风险点。
+            这份分析报告将指导咨询顾问如何更好地为申请人提供个性化服务，提升客户体验和满意度。
+            """,
+            
+            'service_guide_task': """
+            当收到申请人的基本信息后，你需要进行以下步骤：
+            1.第一步：检验输入的信息是否缺失以下基本信息之一：申请国家、申请专业、留学类别、预计入学时间、补充信息中的学校院校背景和均分信息，如缺失，直接跳过以下步骤，并只输出"转案基本信息缺失，请联系规划顾问进一步了解客户情况及需求。
+            2.第二步：继续检验输入的信息是否包含客户其他特殊需求信息，包括但不限于文书要求、沟通要求、操作速度，如不包含，则直接跳过接下来的第三步：个性分析和第四步：沟通建议，直接进行第五步：操作要点提醒的信息提取和生成。
+            3.第三步：个性分析
+                ●基于申请人的学术背景、成绩、语言能力和特殊需求等信息，推断其可能的性格特点
+                ●特别注重分析其决策风格、沟通偏好和可能的焦虑点
+                ●注重分析实质性的个性特征，避免简单重复背景信息
+            4.第四步：沟通建议
+                ●根据第三步的个性分析，提出适合该申请人的沟通风格
+                ●设计简洁有效的沟通机制和频率
+                ●保持建议的可操作性和简洁性
+            5.第五步：操作要点提醒
+                ●先提取客户的申请国家、申请专业及留学类别标签
+                ●调用excel_query_tool工具，根据申请国家、留学类别和专业标签返回对应的指南内容，该工具的输入参数为country_tag, study_level_tag, major_tag，输出为对应的指南内容
+                ●通过工具的查询结果输出要点提醒，要求不要遗漏，不要自己添加或者推断，仅仅是调用信息
+                ●按照输出格式按照要点输出内容
+
+            
+            申请人信息:
+            {student_info}
+            """,
+            
+            'service_guide_output': """
+            生成的报告应包含以下三个主要部分，格式简洁清晰：
+            ## 申请人个性分析
+
+            [简洁段落形式描述申请人的性格特点、决策风格、沟通偏好和可能的焦虑点，避免重复背景信息]
+
+            ## 沟通方式建议
+
+            **沟通风格**：[简洁一句话描述适合的沟通风格]
+
+            **沟通机制**：
+            - [要点1]
+            - [要点2]
+            - [要点3]
+            - [要点4]
+
+            ## 操作要点提醒
+
+            **操作要点提醒**：[根据调用的内容，按点输出内容，不要遗漏，不要自我推断和添加]
+
+            注意事项：
+            ●所有内容应简洁明了，避免冗长描述
+            ●避免使用专业术语或外语词汇
+            ●建议应具体且可操作（避免出现图表建议）
+            ●报告总体篇幅应控制在适中范围，便于快速阅读和应用
+
+            """
         }
     
     def get_template(self, key):
@@ -1110,6 +1166,198 @@ def main():
                         ensure_ascii=False, indent=2))
     else:
         print(f"处理失败: {result['error_message']}")
+
+# 添加Excel查询工具
+class ExcelQueryTool(BaseTool):
+    name = "excel_query_tool"
+    description = "查询个性服务指南Excel表格，根据国家标签、留学类别标签和专业标签返回对应的指南内容"
+    
+    def __init__(self, file_path):
+        self.file_path = file_path
+        # 预加载Excel文件以提高性能
+        try:
+            self.df = pd.read_excel(file_path)
+            print(f"成功加载Excel文件: {file_path}")
+        except Exception as e:
+            print(f"加载Excel文件出错: {str(e)}")
+            self.df = None
+        super().__init__()
+    
+    def _run(self, country_tag=None, study_level_tag=None, major_tag=None):
+        """
+        根据标签查询指南内容
+        
+        Args:
+            country_tag: 国家标签
+            study_level_tag: 留学类别标签
+            major_tag: 专业标签
+            
+        Returns:
+            符合条件的指南内容列表，按输出内容类型分类
+        """
+        try:
+            if self.df is None:
+                return "Excel文件未成功加载，无法查询"
+            
+            if not country_tag:
+                return "请提供国家标签进行查询"
+            
+            # 创建结果列表
+            matched_rows = []
+            
+            # 遍历DataFrame的每一行
+            for _, row in self.df.iterrows():
+                match_country = self._is_match(row['国家标签'], country_tag)
+                match_study_level = self._is_match(row['留学类别标签'], study_level_tag)
+                match_major = self._is_match(row['专业标签'], major_tag)
+                
+                # 如果三个标签都匹配，则添加到结果中
+                if match_country and match_study_level and match_major:
+                    matched_rows.append(row)
+            
+            # 如果没有匹配的行，返回提示信息
+            if not matched_rows:
+                return f"未找到匹配的指南内容：国家={country_tag}, 留学类别={study_level_tag}, 专业={major_tag}"
+            
+            # 按输出内容类型分类结果
+            content_by_type = {}
+            for row in matched_rows:
+                content_type = row['输出内容类型']
+                content = row['输出内容']
+                
+                if content_type not in content_by_type:
+                    content_by_type[content_type] = []
+                
+                content_by_type[content_type].append(content)
+            
+            # 格式化输出
+            result = []
+            for content_type, contents in content_by_type.items():
+                result.append(f"**{content_type}**：")
+                for i, content in enumerate(contents, 1):
+                    result.append(f"{i}. {content}")
+                result.append("")  # 添加空行分隔不同类型
+            
+            return "\n".join(result)
+            
+        except Exception as e:
+            return f"查询过程中出错: {str(e)}"
+    
+    def _is_match(self, table_value, input_value):
+        """
+        检查输入值是否与表格中的值匹配
+        
+        Args:
+            table_value: 表格中的值
+            input_value: 输入的值
+            
+        Returns:
+            是否匹配
+        """
+        # 如果表格中的值为空，则默认匹配
+        if pd.isna(table_value) or table_value == "":
+            return True
+        
+        # 如果输入值为空，但表格值不为空，不匹配
+        if not input_value:
+            return False
+        
+        # 将表格值按逗号分割成列表
+        table_values = [v.strip() for v in str(table_value).split(',')]
+        
+        # 检查输入值是否在表格值列表中
+        return input_value in table_values
+
+# 添加个性服务指南Agent
+def service_guide_agent(excel_path, llm=None):
+    """创建个性服务指南Agent"""
+    if llm is None:
+        llm = default_llm
+    
+    # 初始化Excel查询工具
+    excel_tool = ExcelQueryTool(excel_path)
+    
+    # 创建Agent
+    service_guide_agent = Agent(
+        role="个性服务指南专家",
+        goal="根据申请人的标签信息，提供个性化的服务指南",
+        backstory="我是留学申请领域的专家，擅长根据申请人的具体情况提供个性化的服务指南。",
+        verbose=True,
+        allow_delegation=True,
+        tools=[excel_tool],
+        llm=llm
+    )
+    
+    return service_guide_agent
+
+# 修改生成个性服务指南任务函数
+def generate_service_guide_task(agent, step_callback, student_info, current_prompt=None):
+    """创建生成个性服务指南的任务"""
+    
+    # 获取提示词模板
+    prompt_templates = PromptTemplates()
+    
+    # 如果提供了自定义提示词，使用自定义提示词
+    if current_prompt:
+        task_description = current_prompt
+    else:
+        # 否则组合默认的提示词模板
+        backstory = prompt_templates.get_template('service_guide_backstory')
+        task = prompt_templates.get_template('service_guide_task')
+        output = prompt_templates.get_template('service_guide_output')
+        
+        task_description = f"{backstory}\n\n{task.format(student_info=student_info)}\n\n{output}"
+    
+    task = Task(
+        description=task_description,
+        agent=agent,
+        expected_output="完整的个性服务指南",
+        callback=step_callback
+    )
+    
+    return task
+
+# 修改处理学生案例并生成服务指南的主函数
+def process_student_case_with_guide(student_info, guide_prompt=None, excel_path=None):
+    """处理学生案例并生成个性服务指南"""
+    
+    # 创建步骤回调函数
+    step_callback = create_step_callback()
+    
+    # 如果没有提供Excel路径，返回错误信息
+    if not excel_path:
+        return {"service_guide": "未提供Excel路径，无法生成服务指南"}
+    
+    # 生成个性服务指南
+    try:
+        # 创建服务指南Agent
+        guide_agent = service_guide_agent(excel_path)
+        
+        # 创建任务
+        guide_task = generate_service_guide_task(
+            agent=guide_agent, 
+            step_callback=step_callback, 
+            student_info=student_info,
+            current_prompt=guide_prompt
+        )
+        
+        # 创建Crew
+        guide_crew = Crew(
+            agents=[guide_agent],
+            tasks=[guide_task],
+            verbose=True
+        )
+        
+        # 执行任务
+        guide_result = guide_crew.kickoff()
+        
+        return {"service_guide": guide_result}
+        
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"生成服务指南时出错: {error_trace}")
+        return {"service_guide": f"生成服务指南时出错: {str(e)}"}
 
 if __name__ == "__main__":
     # 初始化配置

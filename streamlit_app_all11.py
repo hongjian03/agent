@@ -59,6 +59,7 @@ from agent_case_match13 import (
     TAG_SYSTEM,
     process_student_case,
     process_student_case2,
+    process_student_case_with_guide,
     PromptTemplates
 )
 import io
@@ -92,8 +93,9 @@ def initialize_config():
         config = load_config()
         if not config:
             raise ValueError("无法加载配置")
-            
         
+        # 添加服务指南Excel路径
+        config['SERVICE_GUIDE_EXCEL_PATH'] = os.path.join(os.path.dirname(__file__), '服务指南.xlsx')
         
         return config
         
@@ -520,7 +522,8 @@ def main():
                     index=0  # 默认选择第一个选项
                 )
                 
-                
+                # 添加选项让用户选择是否生成个性服务指南
+                generate_service_guide = st.checkbox("生成个性服务指南", value=True)
                 
                 # 添加处理按钮
                 if st.button("开始分析", key="start_analysis") :
@@ -548,13 +551,54 @@ def main():
                                         update_process("🔍 开始分析学生案例...")
                                         update_process("1️⃣ 提取关键信息...")
                                         
-                                        # 直接将文本传给大模型处理，并获取处理过程
-                                        result = process_student_case2(student_case, callback=update_process)
+                                        # 第一步：始终先执行标签提取
+                                        tag_result = process_student_case2(student_case, callback=update_process)
+                                        
+                                        # 初始化result为标签结果
+                                        result = tag_result
+                                        
+                                        # 第二步：如果选择了生成个性服务指南，则继续执行服务指南生成
+                                        if generate_service_guide and tag_result["status"] == "success":
+                                            update_process("2️⃣ 生成个性服务指南...")
+                                            
+                                            # 确认Excel文件路径
+                                            excel_path = os.path.join(os.path.dirname(__file__), '服务指南.xlsx')
+                                            
+                                            if not os.path.exists(excel_path):
+                                                update_process("⚠️ 服务指南Excel文件不存在，只生成标签")
+                                            else:
+                                                update_process("3️⃣ 根据标签生成个性服务指南...")
+                                                
+                                                # 构建完整的提示词
+                                                backstory = st.session_state.get('service_guide_backstory', prompt_templates.get_template('service_guide_backstory'))
+                                                task = st.session_state.get('service_guide_task', prompt_templates.get_template('service_guide_task'))
+                                                output = st.session_state.get('service_guide_output', prompt_templates.get_template('service_guide_output'))
+                                                
+                                                # 格式化任务说明中的学生信息
+                                                formatted_task = task.format(student_info=student_case)
+                                                
+                                                # 完整提示词
+                                                guide_prompt = f"{backstory}\n\n{formatted_task}\n\n{output}"
+                                                
+                                                # 使用服务指南Agent处理
+                                                try:
+                                                    guide_result = process_student_case_with_guide(
+                                                        student_case,
+                                                        guide_prompt,
+                                                        excel_path
+                                                    )
+                                                    
+                                                    if isinstance(guide_result, dict) and 'service_guide' in guide_result:
+                                                        result['service_guide'] = guide_result['service_guide']
+                                                    else:
+                                                        result['service_guide'] = "无法生成服务指南"
+                                                except Exception as e:
+                                                    update_process(f"⚠️ 生成服务指南时出错: {str(e)}")
+                                                    result['service_guide'] = f"生成服务指南出错: {str(e)}"
                                         
                                         update_process("✅ 分析完成！")
 
                                 if result["status"] == "success":
-                                    
                                     
                                     # 显示原始输出（放在可展开的部分中）
                                     with st.expander("查看原始输出（调试用）", expanded=False):
@@ -617,21 +661,10 @@ def main():
                                                         
                               
 
-                                            # 2. 提取服务指南部分（在JSON之后的文本）
-                                            service_guide_text = json_str[end_idx + 1:].strip()
-                                            if service_guide_text:
-                                                with st.expander("🎓 查看卓越服务指南", expanded=True):
-                                                    # 移除可能的 markdown 代码块标记
-                                                    service_guide_text = service_guide_text.replace('```', '').strip()
-                                                    # 如果文本以"卓越服务指南："开头，移除这个标题
-                                                    service_guide_text = re.sub(r'^卓越服务指南[：:]\s*', '', service_guide_text)
-                                                    
-                                                    # 显示服务指南内容
-                                                    sections = service_guide_text.split('\n\n')  # 按空行分割各部分
-                                                    for section in sections:
-                                                        if section.strip():  # 确保部分不是空的
-                                                            st.markdown(section.strip())
-                                                            st.markdown("---")  # 添加分隔线
+                                            # 显示个性服务指南结果
+                                            if 'service_guide' in result:
+                                                st.subheader("📝 个性服务指南")
+                                                st.markdown(result['service_guide'])
                                             
                                             # 修改创建DataFrame的部分
                                             df = pd.DataFrame({
@@ -707,6 +740,60 @@ def main():
             value=prompt_templates.get_template('tag_recommendation_structure'),
             height=400
         )
+        
+        # 添加个性服务指南提示词编辑 - 分为三个部分
+        st.subheader("个性服务指南提示词")
+        
+        # 创建三个tab用于编辑不同部分的提示词
+        guide_tab1, guide_tab2, guide_tab3 = st.tabs(["角色设定", "任务说明", "输出格式"])
+        
+        with guide_tab1:
+            if 'service_guide_backstory' not in st.session_state:
+                # 初始化个性服务指南角色设定
+                st.session_state.service_guide_backstory = prompt_templates.get_template('service_guide_backstory')
+            
+            service_guide_backstory = st.text_area(
+                "个性服务指南角色设定",
+                value=st.session_state.service_guide_backstory,
+                height=300
+            )
+            
+            if service_guide_backstory != st.session_state.service_guide_backstory:
+                st.session_state.service_guide_backstory = service_guide_backstory
+                prompt_templates.update_template('service_guide_backstory', service_guide_backstory)
+                st.success("个性服务指南角色设定已更新")
+        
+        with guide_tab2:
+            if 'service_guide_task' not in st.session_state:
+                # 初始化个性服务指南任务说明
+                st.session_state.service_guide_task = prompt_templates.get_template('service_guide_task')
+            
+            service_guide_task = st.text_area(
+                "个性服务指南任务说明",
+                value=st.session_state.service_guide_task,
+                height=400
+            )
+            
+            if service_guide_task != st.session_state.service_guide_task:
+                st.session_state.service_guide_task = service_guide_task
+                prompt_templates.update_template('service_guide_task', service_guide_task)
+                st.success("个性服务指南任务说明已更新")
+        
+        with guide_tab3:
+            if 'service_guide_output' not in st.session_state:
+                # 初始化个性服务指南输出格式
+                st.session_state.service_guide_output = prompt_templates.get_template('service_guide_output')
+            
+            service_guide_output = st.text_area(
+                "个性服务指南输出格式",
+                value=st.session_state.service_guide_output,
+                height=300
+            )
+            
+            if service_guide_output != st.session_state.service_guide_output:
+                st.session_state.service_guide_output = service_guide_output
+                prompt_templates.update_template('service_guide_output', service_guide_output)
+                st.success("个性服务指南输出格式已更新")
 
         # 更新按钮
         if st.button("更新提示词", key="update_prompts"):
@@ -721,6 +808,9 @@ def main():
                 st.write("更新后的角色设定：", st.session_state.prompt_templates.get_template('tag_specialist'))
                 st.write("更新后的任务说明：", st.session_state.prompt_templates.get_template('tag_task'))
                 st.write("更新后的输出结构：", st.session_state.prompt_templates.get_template('tag_recommendation_structure'))
+                st.write("更新后的个性服务指南角色设定：", st.session_state.prompt_templates.get_template('service_guide_backstory'))
+                st.write("更新后的个性服务指南任务说明：", st.session_state.prompt_templates.get_template('service_guide_task'))
+                st.write("更新后的个性服务指南输出格式：", st.session_state.prompt_templates.get_template('service_guide_output'))
 
     with system_tab3:
         from match7 import (
