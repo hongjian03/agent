@@ -699,6 +699,8 @@ def main():
                                             try:
                                                 ai_country_tag=df["国家标签"]
                                                 ai_major_tag=df["专业标签"]
+                                                logger.info(f"ai_country_tag: {ai_country_tag}")
+                                                logger.info(f"ai_major_tag: {ai_major_tag}")
                                                 points_extractor=OperationPointsExtractor(excel_path)
                                                 # 使用操作要点提取器，传入AI提取的标签
                                                 operation_points = points_extractor.get_operation_points(
