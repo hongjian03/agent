@@ -93,9 +93,22 @@ class OperationPointsExtractor:
             # 从文本中提取标签
             _, study_level_tag, _ = self.extract_tags_from_text(text)
 
-            # 使用AI提取的标签
-            country_tags = ai_country_tags if ai_country_tags else []
-            major_tags = ai_major_tags if ai_major_tags else []
+            # 处理国家标签 - 考虑pandas Series的情况
+            if isinstance(ai_country_tags, pd.Series):
+                country_tags = ai_country_tags.tolist() if not ai_country_tags.empty else []
+            elif ai_country_tags is None:
+                country_tags = []
+            else:
+                country_tags = ai_country_tags  # 假设是列表或其他可迭代对象
+            
+            # 处理专业标签 - 也考虑pandas Series的情况
+            if isinstance(ai_major_tags, pd.Series):
+                major_tags = ai_major_tags.tolist() if not ai_major_tags.empty else []
+            elif ai_major_tags is None:
+                major_tags = []
+            else:
+                major_tags = ai_major_tags  # 假设是列表或其他可迭代对象
+        
             
             logger.info(f"使用AI提取的标签: 国家={country_tags}, 专业={major_tags}, 留学类别(正则)={study_level_tag}")
             
