@@ -609,36 +609,6 @@ def main():
                                                 except Exception as e:
                                                     update_process(f"⚠️ 生成服务指南时出错: {str(e)}")
                                                     result['service_guide'] = f"生成服务指南出错: {str(e)}"
-                                                update_process("🔄 使用算法提取操作要点...")
-
-                                                try:
-                                                    # 从tag_result中提取国家和专业标签
-                                                    ai_country_tag = None
-                                                    ai_major_tag = None
-                                                    
-                                                    # 提取国家标签
-                                                    if "tags" in tag_result and "countries" in tag_result["tags"]:
-                                                        countries = tag_result["tags"]["countries"]
-                                                        if countries and isinstance(countries, list) and len(countries) > 0:
-                                                            ai_country_tag = countries  
-                                                    
-                                                    # 提取专业标签
-                                                    if "tags" in tag_result and "majors" in tag_result["tags"]:
-                                                        majors = tag_result["tags"]["majors"]
-                                                        if majors and isinstance(majors, list) and len(majors) > 0:
-                                                            ai_major_tag = majors  
-                                                    points_extractor=OperationPointsExtractor(excel_path)
-                                        # 使用操作要点提取器，传入AI提取的标签
-                                                    operation_points = points_extractor.get_operation_points(
-                                                        student_case,
-                                                        ai_country_tag,
-                                                        ai_major_tag
-                                                    )
-
-                                                    result['operation_points'] = operation_points
-                                                    update_process("✅ 算法提取操作要点完成")
-                                                except Exception as e:
-                                                    update_process(f"⚠️ 算法提取操作要点出错: {str(e)}")
                                         update_process("✅ 分析完成！")
 
                                 if result["status"] == "success":
@@ -708,9 +678,6 @@ def main():
                                             if 'service_guide' in result:
                                                 st.subheader("📝 个性服务指南")
                                                 st.markdown(result['service_guide'])
-                                            if 'operation_points' in result:
-                                                st.subheader("📝 操作要点")
-                                                st.markdown(result['operation_points'])
                                             
                                             # 修改创建DataFrame的部分
                                             df = pd.DataFrame({
@@ -727,6 +694,27 @@ def main():
                                             # 存入session_state
                                             st.session_state.tagged_data = df
                                             
+                                            update_process("🔄 使用算法提取操作要点...")
+
+                                            try:
+                                                ai_country_tag=df["国家标签"]
+                                                ai_major_tag=df["专业标签"]
+                                                points_extractor=OperationPointsExtractor(excel_path)
+                                                # 使用操作要点提取器，传入AI提取的标签
+                                                operation_points = points_extractor.get_operation_points(
+                                                    student_case,
+                                                    ai_country_tag,
+                                                    ai_major_tag
+                                                )
+
+                                                result['operation_points'] = operation_points
+                                                update_process("✅ 算法提取操作要点完成")
+                                            except Exception as e:
+                                                update_process(f"⚠️ 算法提取操作要点出错: {str(e)}")
+                                            if 'operation_points' in result:
+                                                st.subheader("📝 操作要点")
+                                                st.markdown(result['operation_points'])
+
                                             # 将DataFrame显示放在可展开的部分中
                                             with st.expander("查看标签数据表格", expanded=False):
                                                 st.dataframe(df)
