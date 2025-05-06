@@ -476,7 +476,7 @@ def main():
                 if os.path.exists(excel_path):
                     logger.info(f"找到Excel文件: {excel_path}")
                     if 'points_extractor' not in st.session_state:
-                        st.session_state.points_extractor = OperationPointsExtractor(excel_path)
+                        points_extractor = OperationPointsExtractor(excel_path)
                         logger.info("操作要点提取器初始化成功")
                 else:
                     logger.warning(f"Excel文件不存在: {excel_path}")
@@ -629,7 +629,7 @@ def main():
                                                             ai_major_tag = majors  
                                                     
                                                     # 使用操作要点提取器，传入AI提取的标签
-                                                    operation_points = st.session_state.points_extractor.get_operation_points(
+                                                    operation_points = points_extractor.get_operation_points(
                                                         student_case,
                                                         ai_country_tag=ai_country_tag,
                                                         ai_major_tag=ai_major_tag
