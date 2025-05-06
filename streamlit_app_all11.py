@@ -63,7 +63,8 @@ from agent_case_match13 import (
     PromptTemplates
 )
 import io
-
+from operation_points_extractor import OperationPointsExtractor
+import traceback
 st.set_page_config(
     layout="wide",  # 使用宽布局
     initial_sidebar_state="collapsed"  # 默认折叠侧边栏
@@ -469,7 +470,20 @@ def main():
             # 使用session_state中的prompt_templates
             prompt_templates = st.session_state.prompt_templates
             
-            
+            try:
+                # 确认Excel文件路径
+                excel_path = os.path.join(os.path.dirname(__file__), '个性化服务指南内容表.xlsx')
+                if os.path.exists(excel_path):
+                    logger.info(f"找到Excel文件: {excel_path}")
+                    if 'points_extractor' not in st.session_state:
+                        st.session_state.points_extractor = OperationPointsExtractor(excel_path)
+                        logger.info("操作要点提取器初始化成功")
+                else:
+                    logger.warning(f"Excel文件不存在: {excel_path}")
+                    st.session_state.points_extractor = None
+            except Exception as e:
+                logger.error(f"初始化操作要点提取器出错: {str(e)}")
+                st.session_state.points_extractor = None
             
             # 添加选项卡来切换输入方式
             input_tab1, = st.tabs(["手动输入"])
@@ -595,7 +609,14 @@ def main():
                                                 except Exception as e:
                                                     update_process(f"⚠️ 生成服务指南时出错: {str(e)}")
                                                     result['service_guide'] = f"生成服务指南出错: {str(e)}"
-                                        
+                                                update_process("🔄 使用算法提取操作要点...")
+                                                try:
+                                                    # 使用操作要点提取器
+                                                    operation_points = st.session_state.points_extractor.get_operation_points(student_case)
+                                                    result['operation_points'] = operation_points
+                                                    update_process("✅ 算法提取操作要点完成")
+                                                except Exception as e:
+                                                    update_process(f"⚠️ 算法提取操作要点出错: {str(e)}")
                                         update_process("✅ 分析完成！")
 
                                 if result["status"] == "success":
@@ -665,6 +686,9 @@ def main():
                                             if 'service_guide' in result:
                                                 st.subheader("📝 个性服务指南")
                                                 st.markdown(result['service_guide'])
+                                            if 'operation_points' in result:
+                                                st.subheader("📝 操作要点")
+                                                st.markdown(result['operation_points'])
                                             
                                             # 修改创建DataFrame的部分
                                             df = pd.DataFrame({
