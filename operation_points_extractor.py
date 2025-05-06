@@ -40,59 +40,18 @@ class OperationPointsExtractor:
             
     def _initialize_tag_dictionaries(self):
         """初始化标签字典"""
-        # 国家标签
-        self.country_tags = {
-            "中国大陆", "中国澳门", "中国香港", "丹麦", "俄罗斯", "加拿大",
-            "匈牙利", "奥地利", "德国", "意大利", "挪威", "新加坡", 
-            "新西兰", "日本", "比利时", "法国", "泰国", "澳大利亚",
-            "爱尔兰", "瑞典", "瑞士", "美国", "芬兰", "英国",
-            "荷兰", "西班牙", "韩国", "马来西亚"
-        }
         
         # 留学类别标签
         self.study_level_tags = {
-            "预科/语言/文凭课程", "K12", "学士学位", "硕士学位（授课/研究型）", "博士学位"
+            "小学", "初中", "高中", "高中预科", "学前", "证书课程", "语言", "大学预科", "大专文凭", "研究生文凭",
+            "硕士预科", "本科文凭", "大学转学分课程","研究生预科", "学士学位", "副学士学位", "博士学位","硕士学位",
+            "授课类硕士","研究类硕士"
         }
         
-        # 专业标签 (精简版)
-        self.major_tags = {
-            "计算机科学/工程", "电气/电子工程", "数据科学", "信息科学/信息学",
-            "土木工程", "环境工程", "机械工程", "航空航天工程", "船舶及石油工程", "材料工程",
-            "工业工程", "化学/化工", "物理", "地球科学", "数学/统计", "金融数学/精算",
-            "生物科学", "医学", "公共卫生", "药学与制药", "农业与动物科学",
-            "经济学", "金融", "会计", "商业管理", "市场营销",
-            "法学", "政策管理", "教育学", "心理学", "社会学", 
-            "哲学", "历史", "语言与文学", "传媒", "艺术", "设计",
-            "音乐", "表演艺术", "建筑学"
-        }
+    
         
-        # 同义词映射
-        self.country_synonyms = {
-            "中国": "中国大陆",
-            "澳门": "中国澳门",
-            "香港": "中国香港",
-            "美": "美国",
-            "英": "英国",
-            "澳": "澳大利亚",
-            "加": "加拿大",
-            "新": "新加坡",  # 可能需要区分新加坡和新西兰
-        }
+      
         
-        self.study_level_synonyms = {
-            "预科": "预科/语言/文凭课程",
-            "语言课程": "预科/语言/文凭课程",
-            "文凭课程": "预科/语言/文凭课程",
-            "中小学": "K12",
-            "高中": "K12",
-            "初中": "K12",
-            "小学": "K12",
-            "本科": "学士学位",
-            "学士": "学士学位",
-            "硕士": "硕士学位（授课/研究型）",
-            "研究生": "硕士学位（授课/研究型）",
-            "博士": "博士学位",
-            "PhD": "博士学位"
-        }
             
     def extract_tags_from_text(self, text: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """
@@ -108,42 +67,19 @@ class OperationPointsExtractor:
         study_level_tag = None
         major_tag = None
         
-        # 查找国家标签
-        for country in self.country_tags:
-            if country in text:
-                country_tag = country
-                break
-                
-        # 如果没有找到精确匹配，尝试同义词
-        if not country_tag:
-            for synonym, country in self.country_synonyms.items():
-                if synonym in text:
-                    country_tag = country
-                    break
+
         
         # 查找留学类别标签
         for study_level in self.study_level_tags:
             if study_level in text:
                 study_level_tag = study_level
                 break
-                
-        # 如果没有找到精确匹配，尝试同义词
-        if not study_level_tag:
-            for synonym, study_level in self.study_level_synonyms.items():
-                if synonym in text:
-                    study_level_tag = study_level
-                    break
         
-        # 查找专业标签
-        for major in self.major_tags:
-            if major in text:
-                major_tag = major
-                break
                 
         logger.info(f"从文本中提取的标签: 国家={country_tag}, 留学类别={study_level_tag}, 专业={major_tag}")
         return country_tag, study_level_tag, major_tag
             
-    def get_operation_points(self, text: str) -> str:
+    def get_operation_points(self, text: str,ai_country_tags: List[str] = None, ai_major_tags: List[str] = None) -> str:
         """
         从文本中提取标签并查询对应的操作要点
         
@@ -155,7 +91,13 @@ class OperationPointsExtractor:
         """
         try:
             # 从文本中提取标签
-            country_tag, study_level_tag, major_tag = self.extract_tags_from_text(text)
+            _, study_level_tag, _ = self.extract_tags_from_text(text)
+
+            # 使用AI提取的标签
+            country_tags = ai_country_tags if ai_country_tags else []
+            major_tags = ai_major_tags if ai_major_tags else []
+            
+            logger.info(f"使用AI提取的标签: 国家={country_tags}, 专业={major_tags}, 留学类别(正则)={study_level_tag}")
             
             if self._df is None:
                 return "Excel文件未成功加载，无法查询操作要点"
@@ -165,9 +107,14 @@ class OperationPointsExtractor:
             
             # 遍历DataFrame的每一行
             for idx, row in self._df.iterrows():
-                match_country = self._is_match(row['国家标签'], country_tag)
+                # 检查是否有任何一个国家标签匹配
+                match_country = any(self._is_match(row['国家标签'], country_tag) for country_tag in country_tags) if country_tags else self._is_match(row['国家标签'], None)
+                
+                # 检查是否有任何一个专业标签匹配
+                match_major = any(self._is_match(row['专业标签'], major_tag) for major_tag in major_tags) if major_tags else self._is_match(row['专业标签'], None)
+                
+                # 留学类别匹配
                 match_study_level = self._is_match(row['留学类别标签'], study_level_tag)
-                match_major = self._is_match(row['专业标签'], major_tag)
                 
                 # 记录每行的匹配结果
                 logger.debug(f"行 {idx}: 国家匹配={match_country}, 留学类别匹配={match_study_level}, 专业匹配={match_major}")
@@ -182,7 +129,7 @@ class OperationPointsExtractor:
             
             # 如果没有匹配的行，返回提示信息
             if not matched_rows:
-                no_match_msg = f"未找到匹配的操作要点：国家={country_tag}, 留学类别={study_level_tag}, 专业={major_tag}"
+                no_match_msg = f"未找到匹配的操作要点：国家={country_tags}, 留学类别={study_level_tag}, 专业={major_tags}"
                 logger.warning(no_match_msg)
                 return no_match_msg
             

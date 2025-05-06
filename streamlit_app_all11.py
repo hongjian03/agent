@@ -610,9 +610,31 @@ def main():
                                                     update_process(f"⚠️ 生成服务指南时出错: {str(e)}")
                                                     result['service_guide'] = f"生成服务指南出错: {str(e)}"
                                                 update_process("🔄 使用算法提取操作要点...")
+
                                                 try:
-                                                    # 使用操作要点提取器
-                                                    operation_points = st.session_state.points_extractor.get_operation_points(student_case)
+                                                    # 从tag_result中提取国家和专业标签
+                                                    ai_country_tag = None
+                                                    ai_major_tag = None
+                                                    
+                                                    # 提取国家标签
+                                                    if "tags" in tag_result and "countries" in tag_result["tags"]:
+                                                        countries = tag_result["tags"]["countries"]
+                                                        if countries and isinstance(countries, list) and len(countries) > 0:
+                                                            ai_country_tag = countries  
+                                                    
+                                                    # 提取专业标签
+                                                    if "tags" in tag_result and "majors" in tag_result["tags"]:
+                                                        majors = tag_result["tags"]["majors"]
+                                                        if majors and isinstance(majors, list) and len(majors) > 0:
+                                                            ai_major_tag = majors  
+                                                    
+                                                    # 使用操作要点提取器，传入AI提取的标签
+                                                    operation_points = st.session_state.points_extractor.get_operation_points(
+                                                        student_case,
+                                                        ai_country_tag=ai_country_tag,
+                                                        ai_major_tag=ai_major_tag
+                                                    )
+
                                                     result['operation_points'] = operation_points
                                                     update_process("✅ 算法提取操作要点完成")
                                                 except Exception as e:
