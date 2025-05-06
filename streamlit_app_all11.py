@@ -631,8 +631,8 @@ def main():
                                         # 使用操作要点提取器，传入AI提取的标签
                                                     operation_points = points_extractor.get_operation_points(
                                                         student_case,
-                                                        ai_country_tag=ai_country_tag,
-                                                        ai_major_tag=ai_major_tag
+                                                        ai_country_tag,
+                                                        ai_major_tag
                                                     )
 
                                                     result['operation_points'] = operation_points
