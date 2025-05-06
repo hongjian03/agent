@@ -472,7 +472,7 @@ def main():
             
             try:
                 # 确认Excel文件路径
-                excel_path = os.path.join(os.path.dirname(__file__), '个性化服务指南内容表.xlsx')
+                excel_path = os.path.join(os.path.dirname(__file__), '服务指南.xlsx')
                 if os.path.exists(excel_path):
                     logger.info(f"找到Excel文件: {excel_path}")
                     if 'points_extractor' not in st.session_state:
