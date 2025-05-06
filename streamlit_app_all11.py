@@ -627,8 +627,8 @@ def main():
                                                         majors = tag_result["tags"]["majors"]
                                                         if majors and isinstance(majors, list) and len(majors) > 0:
                                                             ai_major_tag = majors  
-                                                    
-                                                    # 使用操作要点提取器，传入AI提取的标签
+                                                    points_extractor=OperationPointsExtractor(excel_path)
+                                        # 使用操作要点提取器，传入AI提取的标签
                                                     operation_points = points_extractor.get_operation_points(
                                                         student_case,
                                                         ai_country_tag=ai_country_tag,

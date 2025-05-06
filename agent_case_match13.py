@@ -1377,7 +1377,6 @@ def service_guide_agent(excel_path, llm=None):
         backstory="我是留学申请领域的专家，擅长根据申请人的具体情况提供个性化的服务指南。",
         verbose=True,
         allow_delegation=True,
-        tools=[excel_tool],
         llm=llm
     )
     
