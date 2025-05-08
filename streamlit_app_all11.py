@@ -491,7 +491,7 @@ def main():
 
             with input_tab1:
                 st.subheader("客户基本信息")
-                input_col,ref_col1,ref_col2,ref_col3,ref_col4 = st.columns([8,1,1,1,1])
+                input_col,ref_col1,ref_col2,ref_col3,ref_col4 = st.columns([7,1,1,1,1])
 
                 with input_col:
                     default_template = """
