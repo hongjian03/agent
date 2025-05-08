@@ -518,7 +518,7 @@ def main():
                     )
 
                     with ref_col1:
-                        st.markdown("### 标准留学类别（可复制）")
+                        
                         st.code("小学", language=None)
                         st.code("初中", language=None)
                         st.code("高中", language=None)
