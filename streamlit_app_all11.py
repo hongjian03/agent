@@ -523,20 +523,20 @@ def main():
                         st.code("初中", language=None)
                         st.code("高中", language=None)
                         st.code("高中预科", language=None)
-                    with ref_col2:
                         st.code("学前", language=None)
+                    with ref_col2:
                         st.code("证书课程", language=None)
                         st.code("语言", language=None)
                         st.code("大学预科", language=None)
                         st.code("大专文凭", language=None)
-                    with ref_col3:
                         st.code("硕士预科", language=None)
+                    with ref_col3:
                         st.code("本科文凭", language=None)
                         st.code("大学转学分课程", language=None)
                         st.code("研究生预科", language=None)
                         st.code("研究生文凭", language=None)
-                    with ref_col4:
                         st.code("学士学位", language=None)
+                    with ref_col4:
                         st.code("副学士学位", language=None)
                         st.code("博士学位", language=None)
                         st.code("硕士学位", language=None)
