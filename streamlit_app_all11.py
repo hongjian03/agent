@@ -491,20 +491,57 @@ def main():
 
             with input_tab1:
                 st.subheader("客户基本信息")
-                
-                # 添加文本输入区域
-                student_case = st.text_area(
-                    "请输入学生案例信息",
-                    height=300,
-                    placeholder="""请用自然语言描述学生的基本情况，例如：
-                        这是一位来自浙江大学的学生，计算机专业，GPA 3.8/4.0。托福成绩100分，GRE 320分。
-                        希望申请某国XXXX项目,预计入学时间为2025年秋季。
-                        XXXX项目必须是以下之一："小学", "初中", "高中", "高中预科", "学前", "证书课程", "语言", "大学预科", "大专文凭", "研究生文凭",
-                        "硕士预科", "本科文凭", "大学转学分课程","研究生预科", "学士学位", "副学士学位", "博士学位","硕士学位",
-                        "授课类硕士","研究类硕士"
-                        """
-                )
-                
+                input_col,ref_col1,ref_col2 = st.columns([3,1,1])
+
+                with input_col:
+                    default_template = """
+                    学生基本信息：
+                    - 当前学校：
+                    - 专业：
+                    - 平均成绩：
+                    - 语言成绩：
+
+                    申请意向：
+                    - 申请国家：
+                    - 申请专业：
+                    - 留学类别：
+                    - 时间规划：
+
+                    其他信息或需求：
+                    - 
+                    """
+                    # 添加文本输入区域
+                    student_case = st.text_area(
+                        "请输入学生案例信息，留学类别必须从右边留学类别列表中选择",
+                        height=300,
+                        value=default_template
+                    )
+
+                    with ref_col1:
+                        st.markdown("### 标准留学类别（可复制）")
+                        st.code("小学", language=None)
+                        st.code("初中", language=None)
+                        st.code("高中", language=None)
+                        st.code("高中预科", language=None)
+                        st.code("学前", language=None)
+                        st.code("证书课程", language=None)
+                        st.code("语言", language=None)
+                        st.code("大学预科", language=None)
+                        st.code("大专文凭", language=None)
+                    with ref_col2:
+                        st.code("硕士预科", language=None)
+                        st.code("本科文凭", language=None)
+                        st.code("大学转学分课程", language=None)
+                        st.code("研究生预科", language=None)
+                        st.code("研究生文凭", language=None)
+                        st.code("学士学位", language=None)
+                        st.code("副学士学位", language=None)
+                        st.code("博士学位", language=None)
+                        st.code("硕士学位", language=None)
+                        st.code("授课类硕士", language=None)
+                        st.code("研究类硕士", language=None)
+                                                
+                        
                 # 添加业务单位选择框
                 business_units = [
                     "新通国际", 
